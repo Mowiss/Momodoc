@@ -60,7 +60,7 @@
   .hbtn:hover{background:var(--btn-h)}
   .hbtn svg{width:18px;height:18px}
   .hbtn[disabled]{opacity:.35;cursor:default;pointer-events:none}
-  .hbtn.c-blue{color:#60a5fa} .hbtn.c-sky{color:#7dd3fc} .hbtn.c-amber{color:#fcd34d} .hbtn.c-blue3{color:#93c5fd}
+  .hbtn.c-blue{color:#60a5fa} .hbtn.c-sky{color:#7dd3fc} .hbtn.c-amber{color:#fcd34d} .hbtn.c-blue3{color:#93c5fd} .hbtn.c-orange{color:#ff9a3c}
   .hbtn.glyph span{font-family:'Segoe UI Symbol','Segoe UI Emoji','FreeSans','DejaVu Sans',sans-serif;font-size:19px;line-height:1}
   .hsep{width:1px;height:20px;background:var(--line-2);margin:0 4px}
   .btn-install{height:36px;padding:0 12px;display:flex;align-items:center;gap:6px;background:#059669;border:1px solid #10b981;border-radius:4px;
@@ -567,6 +567,83 @@
   body.extract-mode #sectionsList .thumb:hover{outline:3px solid #6ee7b7;outline-offset:-1px}
   body.extract-mode #document .page[data-img]:hover, body.extract-mode #document .page-divider:hover{outline:4px solid #6ee7b7}
   body.extract-mode .tx-edit{pointer-events:none}
+  /* ===== Planning (Gantt) ===== */
+  .gantt .gt-head{flex-wrap:wrap;gap:6px}
+  .gt-logo{height:30px;max-width:90px;display:flex;align-items:center;background:#fff;border-radius:4px;padding:2px 5px}
+  .gt-logo:empty{display:none}
+  .gt-logo img{max-height:26px;max-width:80px;object-fit:contain;display:block}
+  .gantt .gt-head h3 svg{color:#ff9a3c}
+  .gt-title{background:transparent;border:1px solid transparent;border-radius:6px;color:#fff;font:600 14px var(--ui);padding:5px 8px;width:15rem;min-width:8rem}
+  .gt-title:hover{border-color:var(--line-2)}
+  .gt-title:focus{outline:none;border-color:var(--accent-2);background:var(--card)}
+  .gt-sep{width:1px;height:22px;background:var(--line-2);margin:0 3px}
+  .gt-grow{flex:1}
+  .gt-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:6px;border:1px solid transparent;background:var(--btn);color:var(--ink);font:600 12.5px var(--ui);cursor:pointer;white-space:nowrap}
+  .gt-btn:hover{background:var(--btn-h)}
+  .gt-btn svg{width:15px;height:15px}
+  .gt-btn.icon{width:30px;padding:0;justify-content:center}
+  .gt-btn.on{background:var(--accent);border-color:var(--accent-2);color:#fff}
+  .gt-btn.primary{background:var(--accent);color:#fff}
+  .gt-btn.primary:hover{background:var(--accent-2)}
+  .gt-seg{display:inline-flex;background:var(--card);border:1px solid var(--line-2);border-radius:7px;padding:2px;gap:2px}
+  .gt-seg button{border:0;background:none;color:#d1d5db;font:600 12px var(--ui);padding:5px 10px;border-radius:5px;cursor:pointer}
+  .gt-seg button:hover{background:var(--btn)}
+  .gt-seg button.on{background:var(--accent);color:#fff}
+  .gt-seg.full{display:flex}
+  .gt-seg.full button{flex:1}
+  .gt-start{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .gt-start input{background:var(--btn);border:1px solid var(--line-2);color:var(--ink);border-radius:6px;padding:4px 6px;font:12.5px var(--ui);color-scheme:dark}
+  .gt-main{flex:1;min-height:0;display:grid;grid-template-columns:200px 1fr;grid-template-rows:58px 1fr}
+  .gt-corner{grid-row:1;grid-column:1;background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px}
+  .gt-corner span{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .gt-rulerwrap{grid-row:1;grid-column:2;position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:#111827;cursor:ew-resize}
+  .gt-rulerwrap canvas,.gt-tl>canvas{position:absolute;inset:0;display:block}
+  .gt-side{grid-row:2;grid-column:1;position:relative;overflow:hidden;background:var(--panel);border-right:1px solid var(--line)}
+  #gtLanes{position:absolute;left:0;right:0;top:0}
+  .gt-lane{display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;border-bottom:1px solid var(--line)}
+  .gt-lane .dot{width:10px;height:10px;border-radius:3px;flex:0 0 auto;cursor:pointer;border:0;padding:0}
+  .gt-lane input{flex:1;min-width:0;background:transparent;border:1px solid transparent;border-radius:5px;color:var(--ink-2);font:600 13px var(--ui);padding:4px 5px}
+  .gt-lane input:hover{border-color:var(--line-2)}
+  .gt-lane input:focus{outline:none;border-color:var(--accent-2);background:var(--card)}
+  .gt-lane .iconbtn{opacity:0}
+  .gt-lane:hover .iconbtn{opacity:1}
+  .gt-tl{grid-row:2;grid-column:2;position:relative;overflow:hidden;background:#111827}
+  .gt-ov{position:absolute;inset:0;cursor:grab}
+  .gt-ov.panning{cursor:grabbing}
+  .gt-pas{position:absolute;height:26px;border-radius:6px;display:flex;align-items:center;cursor:grab;overflow:hidden;font:600 12px var(--ui);color:#0b1220}
+  .gt-pas .ttl{padding:0 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+  .gt-pas .h{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize}
+  .gt-pas .h.l{left:0} .gt-pas .h.r{right:0}
+  .gt-pas.sel{outline:2px solid #fff;outline-offset:1px}
+  .gt-mile{position:absolute;display:flex;align-items:center;gap:7px;cursor:grab}
+  .gt-mile .dia{width:16px;height:16px;transform:rotate(45deg);border-radius:3px}
+  .gt-mile .lab{font:600 12px var(--ui);color:#e5e7eb;white-space:nowrap;pointer-events:none}
+  .gt-mile.sel .dia{outline:2px solid #fff;outline-offset:2px}
+  .gt-props{position:absolute;top:12px;right:12px;width:250px;background:var(--panel);border:1px solid var(--line-2);border-radius:8px;padding:10px 12px 12px;display:none;z-index:5;color:var(--ink)}
+  .gt-props.show{display:block}
+  .gt-ph{display:flex;align-items:center;justify-content:space-between}
+  .gt-ph b{font-size:13px;color:#fff}
+  .gt-props label{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:9px 0 4px}
+  .gt-props input[type=text],.gt-props input[type=datetime-local],.gt-props input[type=number]{width:100%;background:var(--btn);border:1px solid var(--line-2);color:var(--ink);border-radius:6px;padding:6px 8px;font:13px var(--ui);color-scheme:dark}
+  .gt-props input:focus{outline:none;border-color:var(--accent-2)}
+  .gt-row{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+  .gt-row input{flex:1}
+  .gt-sw{display:flex;gap:6px;flex-wrap:wrap}
+  .gt-sw button{width:22px;height:22px;border-radius:5px;border:2px solid transparent;cursor:pointer;padding:0}
+  .gt-sw button.on{border-color:#fff}
+  .gt-del{margin-top:12px;width:100%;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.1);color:var(--danger);font:600 13px var(--ui);padding:7px;border-radius:6px;cursor:pointer}
+  .gt-del:hover{background:rgba(248,113,113,.2)}
+  .gt-status{display:flex;align-items:center;gap:14px;padding:6px 12px;background:var(--head);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .gt-status b{color:var(--ink)}
+  .gt-scale{color:#fff;background:var(--accent);padding:2px 9px;border-radius:10px;font-weight:600;font-size:11px}
+  .gt-orient{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .gt-or{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--card);color:var(--ink);cursor:pointer;font:13px var(--ui)}
+  .gt-or:hover{border-color:var(--accent-2);background:rgba(59,130,246,.08)}
+  .gt-or span:last-child{font-size:11.5px;color:var(--muted);text-align:center}
+  .gt-or-ic{display:block;border:2px solid #93c5fd;border-radius:3px;background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(147,197,253,.35) 5px 7px)}
+  .gt-or-ic.land{width:46px;height:33px}
+  .gt-or-ic.port{width:33px;height:46px}
+  #gt-add{z-index:95}
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
   @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
@@ -697,7 +774,8 @@ requestAnimationFrame(frame);
   </div>
   <div class="side">
     <button class="btn-install hidden" id="btn-install" title="Installer MomoDOC comme une application (raccourci, fenêtre dédiée)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Installer</button>
-    <button class="hbtn c-blue3" id="btnAtelier" title="Atelier PDF : modifier, convertir, fusionner, compresser, filigrane, caviardage, déverrouiller un XLSX"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h5"/><path d="M13 2v6h6v3"/><path d="M14.7 14.3a2.6 2.6 0 0 0 3.5 3.5l2.8 2.8a1.4 1.4 0 0 1-2 2l-2.8-2.8a2.6 2.6 0 0 0-3.5-3.5z"/><path d="M14.7 14.3l-1-3 3 1"/></svg></button>
+    <button class="hbtn c-orange" id="btnGantt" title="Planning : diagramme de Gantt du document (daté ou en J1, S1…), à ajouter au document ou à télécharger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 7h6"/><path d="M10 11h7"/><path d="M8 15h5"/><path d="M15 15h4"/></svg></button>
+    <button class="hbtn c-blue3" id="btnAtelier" title="Atelier PDF : modifier, convertir, fusionner, compresser, filigrane, caviardage, déverrouiller un XLSX"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5v-5h1.6a1.5 1.5 0 0 1 0 3H7.5"/><path d="M12 12.5v5h1.1a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/><path d="M17 17.5v-5h2M17 15h1.6"/></svg></button>
     <span class="hsep"></span>
     <button class="hbtn" id="btnFull" title="Plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
     <div class="dd">
@@ -870,7 +948,7 @@ requestAnimationFrame(frame);
 <!-- ======= Atelier PDF ======= -->
 <div class="atelier" id="atelier" role="dialog" aria-modal="true" aria-labelledby="atTitle" hidden>
   <div class="at-head">
-    <h3 id="atTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h5"/><path d="M13 2v6h6v3"/><path d="M14.7 14.3a2.6 2.6 0 0 0 3.5 3.5l2.8 2.8a1.4 1.4 0 0 1-2 2l-2.8-2.8a2.6 2.6 0 0 0-3.5-3.5z"/><path d="M14.7 14.3l-1-3 3 1"/></svg>Atelier PDF</h3>
+    <h3 id="atTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5v-5h1.6a1.5 1.5 0 0 1 0 3H7.5"/><path d="M12 12.5v5h1.1a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/><path d="M17 17.5v-5h2M17 15h1.6"/></svg>Atelier PDF</h3>
     <span class="at-target" id="atTarget"></span>
     <button class="at-send" id="atSend" title="Envoie le PDF final du document dans l'outil affiché"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M12 12l3 3-3 3"/></svg>Document en cours</button>
     <button class="iconbtn" id="atClose" title="Fermer l'atelier (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -886,6 +964,66 @@ requestAnimationFrame(frame);
       <p class="ps-sub" id="atOutWhere"></p>
     </div>
     <div class="mm-foot"><button class="ps-btn" id="atOutDl">Télécharger</button><button class="ps-btn primary" id="atOutAdd">Ajouter au document</button></div>
+  </div>
+</div>
+
+<!-- ======= Planning (Gantt) ======= -->
+<div class="atelier gantt" id="gantt" role="dialog" aria-modal="true" aria-labelledby="gtTitleLbl" hidden>
+  <div class="at-head gt-head">
+    <div class="gt-logo" id="gtLogo"></div>
+    <h3 id="gtTitleLbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 7h6"/><path d="M10 11h7"/><path d="M8 15h5"/><path d="M15 15h4"/></svg>Planning</h3>
+    <input class="gt-title" id="gtTitle" type="text" placeholder="Titre du planning" spellcheck="false">
+    <span class="gt-sep"></span>
+    <button class="gt-btn primary" id="gtAddTask" data-tip="Nouvelle tâche|Ajoute une tâche au centre de la vue (ou double-clic sur la frise)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tâche</button>
+    <button class="gt-btn" id="gtAddMile" data-tip="Nouvelle étape clé|Un losange à une date précise (réception, OS, livraison…)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 9-9 9-9-9z"/></svg>Étape clé</button>
+    <span class="gt-sep"></span>
+    <div class="gt-seg" id="gtMode" data-tip="Daté ou non daté|Daté : vraies dates du calendrier. Non daté : J1, J2… S1, S2… M1… à partir du début du planning"><button data-v="date">Daté</button><button data-v="rel">Non daté</button></div>
+    <label class="gt-start" id="gtStartWrap" data-tip="Début du planning|Changer cette date décale tout le planning">Début <input type="date" id="gtStart"></label>
+    <span class="gt-sep"></span>
+    <button class="gt-btn icon" id="gtToday" data-tip="Aller à aujourd'hui|(au début, en non daté)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button class="gt-btn icon" id="gtFit" data-tip="Tout afficher|Cadre l'ensemble du planning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <button class="gt-btn icon" id="gtZout" data-tip="Dézoomer|ou molette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M20 20l-4-4"/></svg></button>
+    <button class="gt-btn icon" id="gtZin" data-tip="Zoomer|ou molette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M20 20l-4-4"/></svg></button>
+    <button class="gt-btn icon on" id="gtSnap" data-tip="Magnétisme|Les tâches s'accrochent à la graduation fine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 7h4M14 7h4"/></svg></button>
+    <span class="gt-grow"></span>
+    <button class="gt-btn icon" id="gtImport" data-tip="Importer|Un planning Gantt'o'Matic (.json)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></button>
+    <button class="gt-btn" id="gtPdf" data-tip="Télécharger|Le planning en PDF A4 paysage, avec le logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5v-5h1.6a1.5 1.5 0 0 1 0 3H7.5"/><path d="M12 12.5v5h1.1a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/><path d="M17 17.5v-5h2M17 15h1.6"/></svg>PDF</button>
+    <button class="gt-btn primary" id="gtAdd" data-tip="Ajouter au document|Une page du planning dans l'élément actif"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 11v6M9 14h6"/></svg>Au document</button>
+    <button class="iconbtn" id="gtClose" title="Fermer le planning (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <input type="file" id="gtFile" class="hidden-input" accept=".json,application/json">
+  </div>
+  <div class="gt-main">
+    <div class="gt-corner"><span>Lots</span><button class="iconbtn" id="gtAddLane" title="Ajouter un lot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="gt-rulerwrap" id="gtRulerWrap"><canvas id="gtRuler"></canvas></div>
+    <div class="gt-side" id="gtSide"><div id="gtLanes"></div></div>
+    <div class="gt-tl" id="gtTl">
+      <canvas id="gtGrid"></canvas>
+      <div class="gt-ov" id="gtOv"></div>
+      <div class="gt-props" id="gtProps">
+        <div class="gt-ph"><b id="gtPTitle">Tâche</b><button class="iconbtn" id="gtPClose" title="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <label>Libellé</label><input type="text" id="gtPLabel">
+        <label>Type</label><div class="gt-seg full" id="gtPType"><button data-v="task">Tâche</button><button data-v="mile">Étape clé</button></div>
+        <label>Couleur</label><div class="gt-sw" id="gtPColors"></div>
+        <div id="gtPDate"><label>Début</label><input type="datetime-local" id="gtPStart"><div id="gtPEndRow"><label>Fin</label><input type="datetime-local" id="gtPEnd"></div></div>
+        <div id="gtPRel"><label>Début (jour)</label><div class="gt-row">J <input type="number" id="gtPDay" step="1"></div><div id="gtPDurRow"><label>Durée</label><div class="gt-row"><input type="number" id="gtPDur" min="0.25" step="0.5"> jour(s)</div></div></div>
+        <button class="gt-del" id="gtPDel">Supprimer</button>
+      </div>
+    </div>
+  </div>
+  <div class="gt-status"><span class="gt-scale" id="gtScale">échelle</span><span>Curseur : <b id="gtCur">—</b></span><span class="gt-grow"></span><span><b id="gtCount">0</b> élément(s) · molette = zoom · Maj+molette = défiler · glisser le fond = naviguer · double-clic = nouvelle tâche</span></div>
+</div>
+<div class="mm-modal" id="gt-add" role="dialog" aria-modal="true" aria-labelledby="gtAddTitle" hidden>
+  <div class="mm-card narrow">
+    <div class="mm-head"><h3 id="gtAddTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 7h6"/><path d="M10 11h7"/><path d="M8 15h5"/><path d="M15 15h4"/></svg>Ajouter le planning au document</h3>
+      <button class="iconbtn" data-close title="Fermer (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mm-pane">
+      <p class="ps-sub" id="gtAddWhere"></p>
+      <div class="gt-orient">
+        <button class="gt-or" data-v="land"><span class="gt-or-ic land"></span><b>Paysage</b><span>page tournée, tout le planning en grand</span></button>
+        <button class="gt-or" data-v="port"><span class="gt-or-ic port"></span><b>Portrait</b><span>se lit sans tourner la page</span></button>
+      </div>
+    </div>
+    <div class="mm-foot"><button class="ps-btn" data-close>Annuler</button></div>
   </div>
 </div>
 
@@ -1003,6 +1141,7 @@ function cloneState(s){
   return {
     meta:{title:s.meta.title, subtitle:s.meta.subtitle, footer:s.meta.footer},
     logo:s.logo, logoOrig:s.logoOrig||null, logoCrop:s.logoCrop||null, photo:s.photo,
+    gantt: s.gantt ? JSON.parse(JSON.stringify(s.gantt)) : null,
     items: s.items.map(it => isChapter(it)
       ? {id:it.id, type:"jalon", title:it.title, off:!!it.off}
       : {id:it.id, type:it.type, name:it.name, off:!!it.off, images: it.images.slice()})
@@ -1012,7 +1151,7 @@ function histSig(s){
   return s.items.map(it => isChapter(it)
     ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")
     : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
-  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer;
+  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "");
 }
 function recordHistory(){
   const sig = histSig(state);
@@ -1033,6 +1172,7 @@ function restoreFrom(entry){
   state = cloneState(entry);
   lastSig=histSig(state); lastLogo=state.logo; lastPhoto=state.photo;
   markDirty(); renderSections(); renderDocument(); updateUndoUI();
+  if(typeof ganttSync==="function") ganttSync();
 }
 function undo(){ if(hIndex<=0) return; hIndex--; restoreFrom(history[hIndex]); }
 function redo(){ if(hIndex>=history.length-1) return; hIndex++; restoreFrom(history[hIndex]); }
@@ -2166,7 +2306,7 @@ function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asCl
    Les anciens .mmd (JSON), .doe et .json s'ouvrent toujours. */
 const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
-  return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo,
+  return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null,
     items: state.items.map(it=> isChapter(it) ? {id:it.id, type:"jalon", title:it.title, ...(it.off?{off:true}:{})} : {id:it.id, type:it.type, name:it.name, ...(it.off?{off:true}:{}),
       images: it.images.map(im=>{
         if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
@@ -2222,12 +2362,14 @@ async function applyDoc(obj){
     await yieldUI(); }
   state = {
     meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "", footer: obj.meta?.footer ?? "" },
-    logo: obj.logo ?? null, logoOrig: obj.logoOrig ?? null, logoCrop: obj.logoCrop ?? null, photo: obj.photo ?? null, items
+    logo: obj.logo ?? null, logoOrig: obj.logoOrig ?? null, logoCrop: obj.logoCrop ?? null, photo: obj.photo ?? null, items,
+    gantt: (obj.gantt && Array.isArray(obj.gantt.lanes)) ? obj.gantt : null
   };
   collapsedNodes.clear();
   state.items.forEach(i=>collapsedNodes.add(i.id));   // tout replié à l'ouverture
   activeItemId=null; activePageImg=null;
   renderAll(); initHistory(); mediaGC();
+  if(typeof ganttSync==="function") ganttSync();
   dirty=false; document.body.classList.remove("dirty");
   ensureThumbs();
   return true;
@@ -2242,7 +2384,7 @@ async function downloadMmd(name){
   try{
     if(!/\.(pdf|mmd)$/i.test(name)) name+=".pdf";
     const a=h("a"); a.href=URL.createObjectURL(await fileBlob(name));
-    a.download=name; a.click();
+    a.download=name; document.body.append(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 20000);
     markSaved();
   }finally{ hideBusy(); }
@@ -2581,6 +2723,7 @@ document.addEventListener("keydown", e=>{
     const open=[...document.querySelectorAll(".mm-modal")].reverse().find(m=>!m.hidden);
     if(open){ closeModal(open.id); return; }
     if(!$("#atelier").hidden){ closeAtelier(); return; }
+    if(Gantt.isOpen()){ if(!Gantt.deselect()) Gantt.close(); return; }
     if(mirrorOpen()){ setMirror(false); return; }
     if(toolMode){ setToolMode(toolMode); return; }
   }
@@ -2620,7 +2763,7 @@ const GI = {   // icônes (les mêmes que dans l'interface)
   image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
 };
 ["chap","jalon","sect","sous","text","crop","som","go","mirror","expand","collapse","hide","extract"].forEach(k=>{ GI["i_"+k]=svgIcon(k); });
-GI.atelier=icon('<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h5"/><path d="M13 2v6h6v3"/><path d="M14.7 14.3a2.6 2.6 0 0 0 3.5 3.5l2.8 2.8a1.4 1.4 0 0 1-2 2l-2.8-2.8a2.6 2.6 0 0 0-3.5-3.5z"/><path d="M14.7 14.3l-1-3 3 1"/>'); GI.eye=icon(EYE_ON); GI.eyeoff=icon(EYE_OFF);
+GI.atelier=icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5v-5h1.6a1.5 1.5 0 0 1 0 3H7.5"/><path d="M12 12.5v5h1.1a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/><path d="M17 17.5v-5h2M17 15h1.6"/>'); GI.gantt=icon('<path d="M3 3v18h18"/><path d="M7 7h6"/><path d="M10 11h7"/><path d="M8 15h5"/><path d="M15 15h4"/>'); GI.eye=icon(EYE_ON); GI.eyeoff=icon(EYE_OFF);
 const b_ = (k,c)=>`<span class="hg-btn ${c||""}">${GI[k]}</span>`;
 const GUIDE = [
   {id:"start", t:"Bienvenue", i:"start", h:`
@@ -2714,6 +2857,16 @@ const GUIDE = [
       <li><b>Utiliser le document en cours</b><p>Envoie le PDF final de ton document dans l'outil affiché : pour le compresser, y poser un filigrane, le caviarder avant de l'envoyer…</p></li>
     </ul>
     <p class="hg-tip">Échap ou la croix referme l'atelier ; ton travail en cours dans l'atelier est gardé jusqu'à la fermeture de MomoDOC.</p>`},
+  {id:"gantt", t:"Planning", i:"gantt", h:`
+    <p class="hg-intro">${b_("gantt","c-orange")} ouvre le Planning : un diagramme de Gantt enregistré avec ton document, à mettre dedans comme une page ou à télécharger.</p>
+    <ul class="hg-list">
+      <li><b>Lots, tâches, étapes clés</b><p>Chaque ligne est un lot (Terrassement, VRD…) : son nom se modifie directement, la pastille de couleur change sa teinte. Une tâche se crée avec le bouton Tâche ou d'un double-clic sur la frise ; elle se déplace à la souris (aussi d'un lot à l'autre) et s'allonge par ses bords. Une étape clé est un losange à une date (réception, OS…).</p></li>
+      <li><b>Daté ou non daté</b><p>Daté : les vraies dates du calendrier, et la date de début qui décale tout le planning d'un coup. Non daté : J1, J2… S1, S2… M1… à partir du début du planning, pour un planning de principe (mémoire technique, offre). On passe de l'un à l'autre sans rien perdre.</p></li>
+      <li><b>Navigation</b><p>Molette : zoom continu, de l'heure aux années. Maj + molette : défiler. Glisser le fond : se déplacer. Le magnétisme accroche les tâches à la graduation fine.</p></li>
+      <li><b>Au document</b><p>Ajoute le planning comme une page dans l'élément actif, en paysage (page tournée, tout le planning en grand) ou en portrait. Le logo et le numéro de page sont ceux du document.</p></li>
+      <li><b>PDF</b><p>Télécharge le planning tout de suite, en A4 paysage, avec le logo de la page de garde.</p></li>
+    </ul>
+    <p class="hg-tip">Un fichier de Gantt'o'Matic (.json) s'importe avec le bouton d'import du bandeau.</p>`},
   {id:"pdf", t:"Export PDF", i:"print", h:`
     <p class="hg-intro">${b_("print")} fabrique le PDF final, prêt à envoyer.</p>
     <ul class="hg-list">
@@ -3778,6 +3931,499 @@ window.addEventListener("drop", async e=>{
 
 /* infobulles maison aussi pour les autres boutons du bandeau */
 document.querySelectorAll("#toolbar .hbtn[title], #toolbar .btn-install[title]").forEach(b=>{ b.dataset.tip=b.title.replace(/ : /," | ").replace(" | ","|"); b.setAttribute("aria-label", b.title.split(" : ")[0].split(" (")[0]); b.removeAttribute("title"); });
+
+/* =====================================================================
+   PLANNING (diagramme de Gantt) — repris de GANTT'o'MATIC, aux couleurs de MomoDOC.
+   - frise à zoom continu (de l'heure aux années), lots, tâches, étapes clés, magnétisme
+   - daté (calendrier) ou non daté (J1, J2… S1, S2… M1…, depuis le début du planning)
+   - enregistré dans le document (state.gantt) ; ajouté au document comme une page, ou téléchargé en PDF
+   ===================================================================== */
+const Gantt = (()=>{
+  const HOUR=3600e3, DAY=86400e3, WEEK=7*DAY, MONTH=30.44*DAY, YEAR=365.25*DAY;
+  const RMONTH=30*DAY, RYEAR=365*DAY;          // non daté : mois de 30 j, années de 365 j
+  const ROW=46;
+  const MINZ=6/YEAR, MAXZ=90/HOUR;
+  const PALETTE=["#ff8a3d","#4c8dff","#36c08a","#9d7bff","#ff5d6c","#ffc24b","#2dd4bf","#94a3b8"];
+  const MOIS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+  const JOURS=["dim","lun","mar","mer","jeu","ven","sam"];
+  const $g = id=>document.getElementById(id);
+  const panel=$g("gantt"), rulerWrap=$g("gtRulerWrap"), ruler=$g("gtRuler"), rctx=ruler.getContext("2d");
+  const grid=$g("gtGrid"), gctx=grid.getContext("2d"), tl=$g("gtTl"), ov=$g("gtOv"), lanesEl=$g("gtLanes"), props=$g("gtProps");
+  let G=null;                              // = state.gantt
+  let pxPerMs=240/DAY, tStart=0, scrollY=0, snapOn=true, curLevel=null, sel=null;
+  let CW=0, CH=0, dpr=1, raf=0, histT=null;
+
+  const today0 = ()=>{ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); };
+  function blank(){
+    return {v:1, mode:"date", title:"Planning prévisionnel", origin:today0(),
+      lanes:[{id:"l1",name:"Terrassement",color:"#ff8a3d"},{id:"l2",name:"VRD",color:"#4c8dff"},{id:"l3",name:"Assainissement",color:"#36c08a"},{id:"l4",name:"Démolition",color:"#9d7bff"}],
+      pastilles:[]};
+  }
+  const nid = ()=>"p"+Math.random().toString(36).slice(2,9);
+  const rel = ()=>G && G.mode==="rel";
+  /* chaque modification : document modifié + annuler possible (regroupé) */
+  function touched(){
+    G.v=(G.v||0)+1; markDirty();
+    clearTimeout(histT); histT=setTimeout(recordHistory, 600);
+  }
+
+  /* ---------- graduations ---------- */
+  const U=(kind,n)=>({kind,n});
+  const LEVELS=[
+    {major:U("H",1), minor:U("H",1), top:U("D",1)}, {major:U("H",3), minor:U("H",1), top:U("D",1)},
+    {major:U("H",6), minor:U("H",1), top:U("D",1)}, {major:U("H",12),minor:U("H",3), top:U("D",1)},
+    {major:U("D",1), minor:U("H",6), top:U("Mo",1)}, {major:U("W",1), minor:U("D",1), top:U("Mo",1)},
+    {major:U("Mo",1),minor:U("W",1), top:U("Y",1)}, {major:U("Mo",3),minor:U("Mo",1),top:U("Y",1)},
+    {major:U("Y",1), minor:U("Mo",1),top:U("Y",5)}, {major:U("Y",5), minor:U("Y",1), top:U("Y",10)}];
+  const span = u => ({H:HOUR, D:DAY, W:WEEK, Mo: rel()?RMONTH:MONTH, Y: rel()?RYEAR:YEAR})[u.kind]*u.n;
+  function pickLevel(ppm, target){
+    const want=(target||112)/ppm; let best=LEVELS[0], bd=Infinity;
+    for(const lv of LEVELS){ const d=Math.abs(Math.log(span(lv.major))-Math.log(want)); if(d<bd){ bd=d; best=lv; } }
+    return best;
+  }
+  function floorU(t,u){
+    if(rel()){ const s=span(u), o=G.origin; return o+Math.floor((t-o)/s)*s; }
+    const d=new Date(t);
+    switch(u.kind){
+      case "H": d.setMinutes(0,0,0); d.setHours(d.getHours()-(d.getHours()%u.n)); break;
+      case "D": d.setHours(0,0,0,0); break;
+      case "W": d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); break;
+      case "Mo": d.setDate(1); d.setHours(0,0,0,0); d.setMonth(d.getMonth()-(d.getMonth()%u.n)); break;
+      case "Y": d.setMonth(0,1); d.setHours(0,0,0,0); d.setFullYear(d.getFullYear()-(d.getFullYear()%u.n)); break;
+    }
+    return d.getTime();
+  }
+  function nextU(t,u){
+    if(rel()) return t+span(u);
+    const d=new Date(t);
+    switch(u.kind){
+      case "H": d.setHours(d.getHours()+u.n); break;  case "D": d.setDate(d.getDate()+u.n); break;
+      case "W": d.setDate(d.getDate()+7*u.n); break;  case "Mo": d.setMonth(d.getMonth()+u.n); break;
+      case "Y": d.setFullYear(d.getFullYear()+u.n); break;
+    }
+    return d.getTime();
+  }
+  /* index relatif (1 = premier jour / première semaine…) */
+  const ridx=(t,s)=>Math.floor((t-G.origin)/s+1e-6)+1;
+  function fmtMajor(t,u){
+    if(rel()){
+      switch(u.kind){
+        case "H": return Math.round(((t-G.origin)%DAY+DAY)%DAY/HOUR)+"h";
+        case "D": return "J"+ridx(t,DAY);  case "W": return "S"+ridx(t,WEEK);
+        case "Mo": return u.n===3 ? "T"+ridx(t,3*RMONTH) : "M"+ridx(t,RMONTH);
+        case "Y": return u.n>1 ? "A"+ridx(t,RYEAR) : "A"+ridx(t,RYEAR);
+      }
+    }
+    const d=new Date(t);
+    switch(u.kind){
+      case "H": return String(d.getHours()).padStart(2,"0")+"h";
+      case "D": return JOURS[d.getDay()]+" "+d.getDate();
+      case "W": return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");
+      case "Mo": return u.n===3 ? "T"+(Math.floor(d.getMonth()/3)+1) : MOIS[d.getMonth()];
+      case "Y": return String(d.getFullYear());
+    }
+    return "";
+  }
+  function fmtTop(t,u){
+    if(rel()){
+      switch(u.kind){
+        case "D": return "Jour "+ridx(t,DAY)+" · semaine "+ridx(t,WEEK);
+        case "Mo": return "Mois "+ridx(t,RMONTH);
+        case "Y": return u.n>1 ? "Années "+ridx(t,RYEAR)+" à "+(ridx(t,RYEAR)+u.n-1) : "Année "+ridx(t,RYEAR);
+      }
+      return "";
+    }
+    const d=new Date(t);
+    switch(u.kind){
+      case "D": return d.getDate()+" "+MOIS[d.getMonth()]+" "+d.getFullYear();
+      case "Mo": return MOIS[d.getMonth()]+" "+d.getFullYear();
+      case "Y": return u.n>1 ? d.getFullYear()+"–"+(d.getFullYear()+u.n-1) : String(d.getFullYear());
+    }
+    return "";
+  }
+  function scaleName(u){
+    const m={H:"heure",D:"jour",W:"semaine",Mo:"mois",Y:"année"}[u.kind];
+    return (u.n>1? u.n+" ":"")+m+(u.n>1 && u.kind!=="Mo"?"s":"");
+  }
+  function fmtCursor(t){
+    if(rel()){ const dd=Math.floor((t-G.origin)/DAY); const hh=((t-G.origin)%DAY+DAY)%DAY; return "J"+(dd+1)+" · S"+(Math.floor(dd/7)+1)+" · "+String(Math.floor(hh/HOUR)).padStart(2,"0")+"h"+String(Math.floor(hh%HOUR/60000)).padStart(2,"0"); }
+    const d=new Date(t);
+    return d.toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"short",year:"numeric"})+" "+String(d.getHours()).padStart(2,"0")+"h"+String(d.getMinutes()).padStart(2,"0");
+  }
+
+  const t2x=t=>(t-tStart)*pxPerMs, x2t=x=>tStart+x/pxPerMs;
+
+  /* ---------- rendu écran ---------- */
+  function schedule(){ if(!raf) raf=requestAnimationFrame(draw); }
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,2); CW=tl.clientWidth; CH=tl.clientHeight;
+    for(const [c,w,h] of [[grid,CW,CH],[ruler,rulerWrap.clientWidth,rulerWrap.clientHeight]]){ c.width=Math.max(1,w*dpr); c.height=Math.max(1,h*dpr); c.style.width=w+"px"; c.style.height=h+"px"; }
+    gctx.setTransform(dpr,0,0,dpr,0,0); rctx.setTransform(dpr,0,0,dpr,0,0); schedule();
+  }
+  function draw(){
+    raf=0; if(!G || panel.hidden) return;
+    const lv=curLevel=pickLevel(pxPerMs);
+    const t0=x2t(-2), t1=x2t(CW+2), RH=ruler.height/dpr, RT=Math.round(RH*0.5);
+    gctx.clearRect(0,0,CW,CH);
+    G.lanes.forEach((l,i)=>{ const y=i*ROW-scrollY; if(y>CH||y+ROW<0) return; gctx.fillStyle=i%2?"#162032":"#111827"; gctx.fillRect(0,y,CW,ROW); });
+    const minorPx=span(lv.minor)*pxPerMs;
+    if(minorPx>5){
+      gctx.strokeStyle="rgba(148,163,184,"+Math.min(.35,(minorPx-5)/70)+")"; gctx.lineWidth=1; gctx.beginPath();
+      for(let t=floorU(t0,lv.minor); t<t1; t=nextU(t,lv.minor)){ const x=Math.round(t2x(t))+.5; gctx.moveTo(x,0); gctx.lineTo(x,CH); }
+      gctx.stroke();
+    }
+    gctx.strokeStyle="rgba(148,163,184,.3)"; gctx.beginPath();
+    for(let t=floorU(t0,lv.major); t<t1; t=nextU(t,lv.major)){ const x=Math.round(t2x(t))+.5; gctx.moveTo(x,0); gctx.lineTo(x,CH); }
+    gctx.stroke();
+    gctx.strokeStyle="rgba(255,255,255,.06)"; gctx.beginPath();
+    for(let i=0;i<=G.lanes.length;i++){ const y=Math.round(i*ROW-scrollY)+.5; gctx.moveTo(0,y); gctx.lineTo(CW,y); }
+    gctx.stroke();
+    // repère : aujourd'hui (daté) ou début J1 (non daté)
+    const xn=t2x(rel()?G.origin:Date.now());
+    if(xn>=-1 && xn<=CW+1){ gctx.strokeStyle=rel()?"#3b82f6":"#ff8300"; gctx.lineWidth=2; gctx.beginPath(); gctx.moveTo(xn,0); gctx.lineTo(xn,CH); gctx.stroke(); }
+    // règle
+    rctx.clearRect(0,0,CW,RH); rctx.fillStyle="#111827"; rctx.fillRect(0,0,CW,RH);
+    rctx.strokeStyle="rgba(255,255,255,.08)"; rctx.beginPath(); rctx.moveTo(0,RT+.5); rctx.lineTo(CW,RT+.5); rctx.stroke();
+    rctx.font="600 12px "+getComputedStyle(document.body).fontFamily; rctx.textBaseline="middle";
+    for(let t=floorU(t0,lv.top); t<t1; t=nextU(t,lv.top)){
+      const x=t2x(t), xe=t2x(nextU(t,lv.top));
+      rctx.strokeStyle="rgba(255,255,255,.14)"; rctx.beginPath(); rctx.moveTo(Math.round(x)+.5,0); rctx.lineTo(Math.round(x)+.5,RT); rctx.stroke();
+      const lbl=fmtTop(t,lv.top), w=rctx.measureText(lbl).width;
+      if(Math.min(xe,CW)-Math.max(x,0)-12>w-2){ rctx.fillStyle="#e5e7eb"; rctx.fillText(lbl, Math.min(Math.max(x,4)+8, Math.min(xe,CW)-4-w), RT/2); }
+    }
+    rctx.font="600 11px "+getComputedStyle(document.body).fontFamily;
+    for(let t=floorU(t0,lv.major); t<t1; t=nextU(t,lv.major)){
+      const x=t2x(t); rctx.strokeStyle="rgba(255,255,255,.18)"; rctx.beginPath(); rctx.moveTo(Math.round(x)+.5,RT); rctx.lineTo(Math.round(x)+.5,RH); rctx.stroke();
+      rctx.fillStyle="#9ca3af"; rctx.fillText(fmtMajor(t,lv.major), Math.round(x)+5, RT+(RH-RT)/2);
+    }
+    place();
+    $g("gtScale").textContent="échelle : "+scaleName(lv.major);
+    $g("gtCount").textContent=G.pastilles.length;
+  }
+
+  /* ---------- pastilles ---------- */
+  function build(){
+    ov.querySelectorAll(".gt-pas,.gt-mile").forEach(n=>n.remove());
+    for(const p of G.pastilles){
+      let el=document.createElement("div");
+      if(p.mile){ el.className="gt-mile"; el.innerHTML='<div class="dia"></div><div class="lab"></div>'; el.querySelector(".dia").style.background=p.color; el.querySelector(".lab").textContent=p.label; }
+      else{ el.className="gt-pas"; el.style.background=p.color; el.innerHTML='<div class="h l"></div><div class="ttl"></div><div class="h r"></div>'; el.querySelector(".ttl").textContent=p.label; }
+      el.dataset.id=p.id; ov.appendChild(el); drag(el,p);
+    }
+    place();
+  }
+  function place(){
+    for(const p of G.pastilles){
+      const el=ov.querySelector('[data-id="'+p.id+'"]'); if(!el) continue;
+      const y=p.lane*ROW-scrollY;
+      if(y+ROW<0||y>CH){ el.style.display="none"; continue; }
+      if(p.mile){ const x=t2x(p.start); if(x<-300||x>CW+300){ el.style.display="none"; continue; } el.style.display="flex"; el.style.left=(x-8)+"px"; el.style.top=(y+ROW/2-8)+"px"; }
+      else{ const x1=t2x(p.start), x2=t2x(p.end); if(x1>CW+2||x2<-2){ el.style.display="none"; continue; } el.style.display="flex"; el.style.left=x1+"px"; el.style.width=Math.max(x2-x1,8)+"px"; el.style.top=(y+ROW/2-13)+"px"; }
+      el.classList.toggle("sel", !!sel && sel.id===p.id);
+    }
+  }
+  function snapT(t){ if(!snapOn||!curLevel) return t; const u=curLevel.minor, f=floorU(t,u), n=nextU(f,u); return (t-f)<(n-t)?f:n; }
+  const snapMin=()=>curLevel? Math.max(span(curLevel.minor),HOUR) : HOUR;
+  function drag(el,p){
+    let mode=null, sx=0, sy=0, st=0, et=0, sl=0, moved=false;
+    const down=(e,m)=>{
+      if(e.button!==0) return;
+      e.stopPropagation(); e.preventDefault();
+      mode=m; sx=e.clientX; sy=e.clientY; st=p.start; et=p.end||p.start; sl=p.lane; moved=false;
+      select(p); el.setPointerCapture(e.pointerId);
+    };
+    el.addEventListener("pointermove",e=>{
+      if(!mode) return;
+      const dx=e.clientX-sx, dy=e.clientY-sy, dt=dx/pxPerMs; if(Math.abs(dx)+Math.abs(dy)>2) moved=true;
+      if(mode==="move"){ const dur=p.mile?0:et-st; p.start=snapT(st+dt); if(!p.mile) p.end=p.start+dur; p.lane=Math.max(0,Math.min(G.lanes.length-1, sl+Math.round(dy/ROW))); }
+      else if(mode==="l") p.start=Math.min(snapT(st+dt), p.end-snapMin());
+      else if(mode==="r") p.end=Math.max(snapT(et+dt), p.start+snapMin());
+      place(); if(sel&&sel.id===p.id) fill(p);
+    });
+    const up=()=>{ if(mode && moved) touched(); mode=null; };
+    el.addEventListener("pointerup",up); el.addEventListener("pointercancel",up); el.addEventListener("lostpointercapture",up);
+    el.addEventListener("pointerdown",e=>down(e, e.target.classList.contains("h") ? (e.target.classList.contains("l")?"l":"r") : "move"));
+  }
+
+  /* ---------- navigation ---------- */
+  function clamp(){
+    const minT = rel() ? G.origin-60*DAY : new Date(1990,0,1).getTime(), maxT=new Date(2100,0,1).getTime();
+    if(tStart<minT) tStart=minT;
+    if(x2t(CW)>maxT) tStart=maxT-CW/pxPerMs;
+    scrollY=Math.max(0,Math.min(Math.max(0,G.lanes.length*ROW-CH), scrollY));
+    lanesEl.style.transform="translateY("+(-scrollY)+"px)";
+  }
+  function wheel(e){
+    e.preventDefault();
+    if(e.shiftKey){ tStart+=e.deltaY/pxPerMs; clamp(); schedule(); return; }
+    const r=tl.getBoundingClientRect(), mx=e.clientX-r.left, tc=x2t(mx);
+    pxPerMs=Math.max(MINZ,Math.min(MAXZ,pxPerMs*Math.pow(1.0016,-e.deltaY))); tStart=tc-mx/pxPerMs; clamp(); schedule();
+  }
+  rulerWrap.addEventListener("wheel",wheel,{passive:false}); tl.addEventListener("wheel",wheel,{passive:false});
+  let pan=null;
+  ov.addEventListener("pointerdown",e=>{ if(e.target!==ov||e.button!==0) return; pan={x:e.clientX,y:e.clientY,t:tStart,s:scrollY}; ov.classList.add("panning"); ov.setPointerCapture(e.pointerId); select(null); });
+  ov.addEventListener("pointermove",e=>{ if(!pan) return; tStart=pan.t-(e.clientX-pan.x)/pxPerMs; scrollY=pan.s-(e.clientY-pan.y); clamp(); schedule(); });
+  const panEnd=()=>{ pan=null; ov.classList.remove("panning"); };
+  ov.addEventListener("pointerup",panEnd); ov.addEventListener("pointercancel",panEnd); ov.addEventListener("lostpointercapture",panEnd);
+  ov.addEventListener("dblclick",e=>{
+    if(e.target!==ov || !G.lanes.length) return;
+    const r=tl.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    const lane=Math.max(0,Math.min(G.lanes.length-1,Math.floor((my+scrollY)/ROW)));
+    const start=snapT(x2t(mx)), dur=Math.max(snapMin(), x2t(mx+140)-x2t(mx));
+    add({id:nid(),lane,label:"Nouvelle tâche",start,end:start+dur,color:G.lanes[lane].color,mile:false});
+  });
+  tl.addEventListener("pointermove",e=>{ if(!G) return; const r=tl.getBoundingClientRect(); $g("gtCur").textContent=fmtCursor(x2t(e.clientX-r.left)); });
+  function add(p){ G.pastilles.push(p); build(); select(p); schedule(); touched(); const i=$g("gtPLabel"); i.focus(); i.select(); }
+
+  /* ---------- propriétés ---------- */
+  const pColors=$g("gtPColors");
+  PALETTE.forEach(c=>{ const b=document.createElement("button"); b.style.background=c; b.dataset.c=c; b.title=c; b.onclick=()=>{ if(!sel) return; sel.color=c; build(); fill(sel); touched(); }; pColors.appendChild(b); });
+  function select(p){
+    const other = sel!==p; sel=p; props.classList.toggle("show",!!p);
+    if(p) fill(p, other);
+    if(other && props.contains(document.activeElement)) document.activeElement.blur();
+    place();
+  }
+  const toLocal=t=>{ const d=new Date(t-new Date(t).getTimezoneOffset()*60000); return d.toISOString().slice(0,16); };
+  function fill(p, force){
+    $g("gtPTitle").textContent = p.mile ? "Étape clé" : "Tâche";
+    if(force || document.activeElement!==$g("gtPLabel")) $g("gtPLabel").value=p.label;
+    $g("gtPType").querySelectorAll("button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="mile")===!!p.mile));
+    $g("gtPDate").hidden=rel(); $g("gtPRel").hidden=!rel();
+    $g("gtPEndRow").hidden=p.mile; $g("gtPDurRow").hidden=p.mile;
+    if(!rel()){ $g("gtPStart").value=toLocal(p.start); if(!p.mile) $g("gtPEnd").value=toLocal(p.end); }
+    else{
+      if(force || document.activeElement!==$g("gtPDay")) $g("gtPDay").value=Math.floor((p.start-G.origin)/DAY)+1;
+      if(!p.mile && (force || document.activeElement!==$g("gtPDur"))) $g("gtPDur").value=+((p.end-p.start)/DAY).toFixed(2);
+    }
+    [...pColors.children].forEach(b=>b.classList.toggle("on",b.dataset.c===p.color));
+  }
+  $g("gtPLabel").addEventListener("input",e=>{ if(!sel) return; sel.label=e.target.value; const el=ov.querySelector('[data-id="'+sel.id+'"] .ttl, [data-id="'+sel.id+'"] .lab'); if(el) el.textContent=sel.label; touched(); });
+  $g("gtPStart").addEventListener("change",e=>{ if(!sel) return; const t=new Date(e.target.value).getTime(); if(isNaN(t)) return; if(!sel.mile){ const d=sel.end-sel.start; sel.start=t; sel.end=t+d; } else sel.start=t; place(); touched(); });
+  $g("gtPEnd").addEventListener("change",e=>{ if(!sel) return; const t=new Date(e.target.value).getTime(); if(isNaN(t)) return; sel.end=Math.max(t,sel.start+HOUR); place(); touched(); });
+  $g("gtPDay").addEventListener("input",e=>{ if(!sel) return; const n=parseFloat(e.target.value); if(!isFinite(n)) return; const keep=((sel.start-G.origin)%DAY+DAY)%DAY, d=sel.mile?0:sel.end-sel.start; sel.start=G.origin+(Math.round(n)-1)*DAY+keep; if(!sel.mile) sel.end=sel.start+d; place(); touched(); });
+  $g("gtPDur").addEventListener("input",e=>{ if(!sel||sel.mile) return; const n=parseFloat(e.target.value); if(!(n>0)) return; sel.end=sel.start+n*DAY; place(); touched(); });
+  $g("gtPType").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b||!sel) return; const m=b.dataset.v==="mile"; if(m===!!sel.mile) return; sel.mile=m; if(!m) sel.end=sel.start+Math.max(snapMin(),DAY); build(); fill(sel); touched(); });
+  $g("gtPDel").onclick=()=>{ if(!sel) return; G.pastilles=G.pastilles.filter(x=>x.id!==sel.id); select(null); build(); schedule(); touched(); };
+  $g("gtPClose").onclick=()=>select(null);
+
+  /* ---------- lots ---------- */
+  function buildLanes(){
+    lanesEl.innerHTML="";
+    G.lanes.forEach((l,i)=>{
+      const row=h("div","gt-lane"); row.style.height=ROW+"px";
+      const dot=h("button","dot",{type:"button",title:"Couleur du lot"}); dot.style.background=l.color;
+      dot.onclick=()=>{ l.color=PALETTE[(PALETTE.indexOf(l.color)+1)%PALETTE.length]; buildLanes(); touched(); };
+      const nm=h("input",null,{type:"text",value:l.name,placeholder:"Nom du lot"});
+      nm.addEventListener("input",()=>{ l.name=nm.value; touched(); });
+      const del=h("button","iconbtn danger",{type:"button",title:"Supprimer ce lot et ses tâches",innerHTML:icon('<path d="M6 6l12 12M18 6L6 18"/>')});
+      del.onclick=()=>{
+        if(G.lanes.length<=1) return;
+        const n=G.pastilles.filter(p=>p.lane===i).length;
+        if(n && !confirm(`Supprimer le lot « ${l.name} » et ses ${n} élément(s) ?`)) return;
+        G.pastilles=G.pastilles.filter(p=>p.lane!==i).map(p=>({...p,lane:p.lane>i?p.lane-1:p.lane}));
+        G.lanes.splice(i,1); select(null); buildLanes(); build(); clamp(); schedule(); touched();
+      };
+      row.append(dot,nm,del); lanesEl.appendChild(row);
+    });
+    lanesEl.style.transform="translateY("+(-scrollY)+"px)";
+  }
+  $g("gtAddLane").onclick=()=>{ G.lanes.push({id:"l"+Date.now(),name:"Nouveau lot",color:PALETTE[G.lanes.length%PALETTE.length]}); buildLanes(); clamp(); schedule(); touched(); const ins=lanesEl.querySelectorAll("input"); const last=ins[ins.length-1]; if(last){ last.focus(); last.select(); } };
+
+  /* ---------- barre d'outils ---------- */
+  function zoomBtn(f){ const mx=CW/2, tc=x2t(mx); pxPerMs=Math.max(MINZ,Math.min(MAXZ,pxPerMs*f)); tStart=tc-mx/pxPerMs; clamp(); schedule(); }
+  $g("gtZin").onclick=()=>zoomBtn(1.4); $g("gtZout").onclick=()=>zoomBtn(1/1.4);
+  $g("gtToday").onclick=()=>{ tStart=(rel()?G.origin:Date.now())-(rel()?40/pxPerMs:(CW/2)/pxPerMs); clamp(); schedule(); };
+  function extent(){
+    if(!G.pastilles.length){ const a=rel()?G.origin:today0(); return [a, a+30*DAY]; }
+    let a=Infinity,b=-Infinity; for(const p of G.pastilles){ a=Math.min(a,p.start); b=Math.max(b,p.mile?p.start:p.end); }
+    if(b-a<DAY) b=a+DAY;
+    return [a,b];
+  }
+  function fit(){ let [a,b]=extent(); const pad=(b-a)*0.06||DAY; a-=pad; b+=pad; pxPerMs=Math.max(MINZ,Math.min(MAXZ,CW/(b-a))); tStart=a; clamp(); schedule(); }
+  $g("gtFit").onclick=fit;
+  $g("gtSnap").onclick=function(){ snapOn=!snapOn; this.classList.toggle("on",snapOn); };
+  $g("gtAddTask").onclick=()=>{ if(!G.lanes.length) return; const start=snapT(x2t(CW/3)), dur=Math.max(snapMin(),x2t(CW/3+150)-x2t(CW/3)); const lane=sel?sel.lane:0; add({id:nid(),lane,label:"Nouvelle tâche",start,end:start+dur,color:G.lanes[lane].color,mile:false}); };
+  $g("gtAddMile").onclick=()=>{ if(!G.lanes.length) return; const lane=sel?sel.lane:0; add({id:nid(),lane,label:"Étape clé",start:snapT(x2t(CW/2)),end:0,color:"#ff5d6c",mile:true}); };
+  $g("gtTitle").addEventListener("input",e=>{ G.title=e.target.value; touched(); });
+  const dateIn=t=>{ const d=new Date(t); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  /* daté / non daté : le planning reste le même, seules les graduations changent */
+  function setMode(m){
+    if(G.mode===m) return;
+    if(m==="rel"){
+      const [a]=extent(); const d=new Date(a); d.setHours(0,0,0,0); G.origin = G.pastilles.length ? d.getTime() : (G.origin||today0());
+    }else{
+      if(new Date(G.origin).getFullYear()<2005) shift(today0()-G.origin);       // planning « non daté » d'origine : posé à partir d'aujourd'hui
+    }
+    G.mode=m; syncBar(); select(sel); build(); schedule(); touched(); $g("gtToday").click();
+  }
+  function shift(dt){ G.pastilles.forEach(p=>{ p.start+=dt; if(!p.mile) p.end+=dt; }); G.origin+=dt; tStart+=dt; }
+  $g("gtMode").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) setMode(b.dataset.v); });
+  $g("gtStart").addEventListener("change",e=>{
+    const v=e.target.value; if(!v) return; const [y,mo,d]=v.split("-").map(Number); const t=new Date(y,mo-1,d).getTime();
+    const [a]=extent(); const first=new Date(a); first.setHours(0,0,0,0);
+    const dt=t-(G.pastilles.length?first.getTime():G.origin); if(!dt) return;
+    shift(dt); G.origin=t; build(); schedule(); touched(); toast("Planning décalé au "+new Date(t).toLocaleDateString("fr-FR"));
+  });
+  function syncBar(){
+    $g("gtMode").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.v===G.mode));
+    $g("gtStartWrap").hidden=rel();
+    const [a]=extent(); $g("gtStart").value=dateIn(G.pastilles.length?a:G.origin);
+    $g("gtTitle").value=G.title||"";
+    $g("gtToday").dataset.tip = rel() ? "Aller au début|J1" : "Aller à aujourd'hui|";
+    $g("gtLogo").innerHTML = state.logo ? `<img src="${state.logo}" alt="">` : "";
+  }
+
+  /* ---------- import (fichiers Gantt'o'Matic) ---------- */
+  $g("gtImport").onclick=()=>$g("gtFile").click();
+  $g("gtFile").addEventListener("change",async e=>{
+    const f=e.target.files[0]; e.target.value=""; if(!f) return;
+    try{
+      const d=JSON.parse(await f.text());
+      if(!Array.isArray(d.lanes) || !Array.isArray(d.pastilles)) throw new Error("ce n'est pas un planning");
+      if(G.pastilles.length && !confirm("Remplacer le planning actuel par celui du fichier ?")) return;
+      G.lanes=d.lanes.map((l,i)=>({id:l.id||"l"+i, name:String(l.name||"Lot"), color:l.color||PALETTE[i%PALETTE.length]}));
+      G.pastilles=d.pastilles.filter(p=>p && isFinite(p.start)).map(p=>({id:nid(), lane:Math.max(0,Math.min(G.lanes.length-1,p.lane|0)), label:String(p.label||""), start:+p.start, end:p.mile?0:+(p.end||p.start+DAY), color:p.color||"#ff8a3d", mile:!!p.mile}));
+      if(d.mode==="rel"){ G.mode="rel"; G.origin=+d.origin||G.origin; }
+      select(null); buildLanes(); build(); syncBar(); fit(); touched(); toast("Planning importé");
+    }catch(err){ alert("Fichier illisible : "+err.message); }
+  });
+
+  /* ---------- export : image claire, prête à imprimer ---------- */
+  function render(Wpx, Hpx, opts={}){
+    const c=document.createElement("canvas"); c.width=Wpx; c.height=Hpx; const x=c.getContext("2d");
+    const k=Wpx/1600;                                   // échelle des tailles de texte et marges
+    const F=s=>`${s*k}px Arial,Helvetica,sans-serif`;
+    x.fillStyle="#fff"; x.fillRect(0,0,Wpx,Hpx);
+    const M=24*k, titleH=opts.noTitle?0:56*k, leftW=Math.round(Math.min(330*k, Wpx*0.22)), RH=56*k;
+    let top=M;
+    if(!opts.noTitle){
+      x.fillStyle="#123a6b"; x.font="bold "+F(26); x.textBaseline="middle"; x.fillText(G.title||"Planning", M, top+titleH/2-6*k);
+      x.fillStyle="#6b7280"; x.font=F(14);
+      const [a,b]=extent();
+      const sub = rel() ? `Durée : ${Math.ceil((b-G.origin)/DAY)} jours (J1 à J${Math.ceil((b-G.origin)/DAY)})` : `Du ${new Date(a).toLocaleDateString("fr-FR")} au ${new Date(b).toLocaleDateString("fr-FR")}`;
+      x.textAlign="right"; x.fillText(sub, Wpx-M, top+titleH/2-6*k); x.textAlign="left";
+      top+=titleH;
+    }
+    const gx=M+leftW, gw=Wpx-M-gx, rows=Math.max(1,G.lanes.length);
+    const rowH=Math.min(110*k, (Hpx-M-top-RH)/rows), gh=rowH*rows;
+    let [a,b]=extent(); const pad=(b-a)*0.04||DAY; a-=pad; b+=pad;
+    const ppm=gw/(b-a), X=t=>gx+(t-a)*ppm;
+    const lv=pickLevel(ppm, 120*k);
+    // règle
+    x.fillStyle="#f3f4f6"; x.fillRect(gx,top,gw,RH);
+    x.strokeStyle="#d1d5db"; x.lineWidth=1*k; x.strokeRect(gx,top,gw,RH);
+    x.beginPath(); x.moveTo(gx,top+RH/2); x.lineTo(gx+gw,top+RH/2); x.stroke();
+    x.save(); x.beginPath(); x.rect(gx,top,gw,RH+gh); x.clip();
+    x.textBaseline="middle";
+    for(let t=floorU(a,lv.top); t<b; t=nextU(t,lv.top)){
+      const xa=X(t), xb=X(nextU(t,lv.top)); x.strokeStyle="#d1d5db"; x.beginPath(); x.moveTo(xa,top); x.lineTo(xa,top+RH/2); x.stroke();
+      const lbl=fmtTop(t,lv.top); x.font="bold "+F(13); x.fillStyle="#111827";
+      const w=x.measureText(lbl).width, l0=Math.max(xa,gx)+6*k; if(Math.min(xb,gx+gw)-l0>w) x.fillText(lbl,l0,top+RH/4);
+    }
+    x.font=F(12);
+    for(let t=floorU(a,lv.major); t<b; t=nextU(t,lv.major)){
+      const xa=X(t); x.strokeStyle="#d1d5db"; x.beginPath(); x.moveTo(xa,top+RH/2); x.lineTo(xa,top+RH+gh); x.stroke();
+      x.fillStyle="#4b5563"; x.fillText(fmtMajor(t,lv.major), xa+4*k, top+RH*0.75);
+    }
+    x.restore();
+    // lots
+    const y0=top+RH;
+    G.lanes.forEach((l,i)=>{
+      const y=y0+i*rowH;
+      if(i%2){ x.fillStyle="#f9fafb"; x.fillRect(M,y,leftW+gw,rowH); }
+      x.fillStyle=l.color; x.fillRect(M+8*k,y+rowH/2-6*k,12*k,12*k);
+      x.fillStyle="#111827"; x.font="bold "+F(14); x.textBaseline="middle";
+      let nm=l.name||""; while(nm.length>1 && x.measureText(nm).width>leftW-40*k) nm=nm.slice(0,-1);
+      x.fillText(nm!==l.name?nm+"…":nm, M+28*k, y+rowH/2);
+      x.strokeStyle="#e5e7eb"; x.lineWidth=1*k; x.beginPath(); x.moveTo(M,y+rowH); x.lineTo(gx+gw,y+rowH); x.stroke();
+    });
+    x.strokeStyle="#9ca3af"; x.lineWidth=1.2*k; x.strokeRect(M,top,leftW+gw,RH+gh); x.beginPath(); x.moveTo(gx,top); x.lineTo(gx,top+RH+gh); x.stroke();
+    // aujourd'hui (daté)
+    if(!rel()){ const xn=X(Date.now()); if(xn>gx && xn<gx+gw){ x.strokeStyle="#ff8300"; x.lineWidth=2*k; x.beginPath(); x.moveTo(xn,top); x.lineTo(xn,top+RH+gh); x.stroke(); } }
+    // barres et étapes clés
+    x.save(); x.beginPath(); x.rect(gx,y0,gw,gh); x.clip();
+    const bh=Math.min(28*k, rowH*0.62);
+    for(const p of G.pastilles){
+      if(p.lane>=G.lanes.length) continue;
+      const cy=y0+p.lane*rowH+rowH/2;
+      if(p.mile){
+        const xm=X(p.start), s=9*k; x.fillStyle=p.color; x.beginPath(); x.moveTo(xm,cy-s); x.lineTo(xm+s,cy); x.lineTo(xm,cy+s); x.lineTo(xm-s,cy); x.closePath(); x.fill();
+        x.fillStyle="#111827"; x.font="bold "+F(12); x.fillText(p.label||"", xm+s+5*k, cy);
+      }else{
+        const xa=X(p.start), w=Math.max(X(p.end)-xa, 4*k);
+        x.fillStyle=p.color; x.beginPath(); if(x.roundRect) x.roundRect(xa,cy-bh/2,w,bh,5*k); else x.rect(xa,cy-bh/2,w,bh); x.fill();
+        x.font="bold "+F(12); const lbl=p.label||"", tw=x.measureText(lbl).width;
+        if(tw+14*k<w){ x.fillStyle="#0b1220"; x.fillText(lbl, xa+7*k, cy); }
+        else{ x.fillStyle="#111827"; x.fillText(lbl, xa+w+5*k, cy); }
+      }
+    }
+    x.restore();
+    return c;
+  }
+  const blobOf=(c,type,q)=>new Promise(r=>c.toBlob(r,type,q));
+  /* ajout au document : une page pleine (paysage = image tournée) */
+  async function addToDoc(orient){
+    closeModal("gt-add");
+    const sec=atTargetSec(); if(!sec){ toast("Clique d'abord un jalon, une section ou une sous-section du document"); return; }
+    const ppmm=(settings.dpi||200)/25.4, W=Math.round(257*ppmm), H=Math.round(174*ppmm);   // zone utile d'une page A4, tournée
+    let c;
+    if(orient==="land"){
+      const land=render(W,H);
+      c=document.createElement("canvas"); c.width=H; c.height=W; const x=c.getContext("2d");
+      x.translate(H,0); x.rotate(Math.PI/2); x.drawImage(land,0,0); land.width=land.height=0;
+    }else c=render(H, Math.round(240*ppmm));
+    const blob=await blobOf(c,"image/png");
+    const im={id:uid(), src:mediaAdd(blob), thumb:thumbFromSource(c,c.width,c.height), name:(G.title||"Planning")};
+    c.width=c.height=0;
+    const k = (activePageImg && findPage(activePageImg) && findPage(activePageImg).sec===sec) ? findPage(activePageImg).k+1 : sec.images.length;
+    sec.images.splice(k,0,im); collapsedNodes.delete(sec.id); changed(); setActivePage(im.id);
+    toast("Planning ajouté au document"); close();
+    setTimeout(()=>setActivePage(im.id,{scroll:true}), 60);
+  }
+  async function downloadPdf(){
+    const { jsPDF } = window.jspdf; const pdf=new jsPDF({unit:"mm", format:"a4", orientation:"l", compress:true});
+    const ppmm=200/25.4, W=Math.round(277*ppmm), H=Math.round(178*ppmm);
+    const c=render(W,H); const data=c.toDataURL("image/png"); c.width=c.height=0;
+    if(state.logo){ try{ const li=await imgInfo(state.logo,null); addFit(pdf, li, 287-48, 7, 48, 14, "right"); }catch(e){} }
+    pdf.addImage(data,"PNG",10,24,277,178,undefined,"FAST");
+    pdf.setFont("helvetica","normal"); pdf.setFontSize(8); pdf.setTextColor(120,120,120);
+    pdf.text(pdfSafe((state.meta.title||"")+(state.meta.title?" - ":"")+"édité le "+new Date().toLocaleDateString("fr-FR")), 10, 205);
+    const name=((G.title||"Planning").replace(/[^\w\-À-ÿ ]+/g,"").trim().replace(/\s+/g,"_")||"Planning")+".pdf";
+    saveBlob(pdf.output("blob"), name);
+  }
+  $g("gtPdf").onclick=()=>downloadPdf().catch(e=>alert("PDF impossible : "+e.message));
+  $g("gtAdd").onclick=()=>{
+    const sec=atTargetSec(), n=numbering();
+    $g("gtAddWhere").textContent = sec ? `La page ira dans ${n[sec.id]||""} - ${sec.name||"(sans titre)"}${activePageImg && findPage(activePageImg) && findPage(activePageImg).sec===sec ? ", juste après la page active" : ", à la fin"}.` : "Choisis d'abord, dans la structure, l'élément qui recevra le planning (ferme le planning, clique un jalon, une section ou une sous-section).";
+    document.querySelectorAll("#gt-add .gt-or").forEach(b=>b.disabled=!sec);
+    openModal("gt-add");
+  };
+  document.querySelectorAll("#gt-add .gt-or").forEach(b=>b.addEventListener("click",()=>addToDoc(b.dataset.v)));
+
+  /* ---------- ouverture / fermeture ---------- */
+  function open(){
+    if(!state.gantt){ state.gantt=blank(); }
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();   // rien ne s'écrit dans le document derrière
+    G=state.gantt; panel.hidden=false; document.body.classList.add("atelier-open");
+    sel=null; props.classList.remove("show");
+    syncBar(); buildLanes(); build();
+    requestAnimationFrame(()=>{ resize(); fit(); });
+  }
+  function close(){ select(null); panel.hidden=true; document.body.classList.remove("atelier-open"); clearTimeout(histT); recordHistory(); }
+  function sync(){ if(panel.hidden) return; G=state.gantt||(state.gantt=blank()); sel=null; props.classList.remove("show"); syncBar(); buildLanes(); build(); schedule(); }
+  new ResizeObserver(()=>{ if(!panel.hidden){ resize(); clamp(); } }).observe(tl);
+  $g("btnGantt").addEventListener("click", open);
+  $g("gtClose").addEventListener("click", close);
+  document.addEventListener("keydown",e=>{
+    if(panel.hidden) return;
+    const typing=e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName);
+    if((e.key==="Delete"||e.key==="Backspace") && sel && !typing){ e.preventDefault(); $g("gtPDel").click(); }
+  });
+  wireTips(panel.querySelector(".gt-head"));
+  return {open, close, sync, isOpen:()=>!panel.hidden, deselect:()=>{ if(sel){ select(null); return true; } return false; }};
+})();
+function ganttSync(){ Gantt.sync(); }
 
 /* ============ Démarrage ============ */
 setupListDnD();
