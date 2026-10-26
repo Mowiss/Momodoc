@@ -687,7 +687,7 @@ requestAnimationFrame(frame);
     </div>
     <span class="file-label unsaved" id="docName" title="Document en cours">Nouveau document</span>
     <span class="dirty-dot" title="Modifications non enregistrées"></span>
-    <button class="hbtn" id="btnPrint" title="Exporter le document en PDF (sommaire cliquable et signets)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg></button>
+    <button class="hbtn" id="btnPrint" title="PDF à diffuser : le PDF final seul, sans les données d'édition (ni pages masquées, ni images entières des recadrages)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg></button>
     <span class="hsep"></span>
     <button class="hbtn c-blue3" id="btnGuide" title="Guide de MomoDOC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
     <button class="hbtn glyph" id="btnSettings" title="Paramètres : sauvegarde automatique, import, application"><span>⛯</span></button>
@@ -767,7 +767,7 @@ requestAnimationFrame(frame);
       <div class="mm-pane">
         <section class="mm-sec on" data-sec="save">
           <p class="ps-title">Enregistrement</p>
-          <p class="ps-intro">Ton document s'enregistre dans un fichier <b>.mmd</b> avec Ouvrir, Enregistrer et Enregistrer sous (menu disquette). En plus, MomoDOC garde des copies de secours automatiques dans ce navigateur, pour ne jamais perdre ton travail.</p>
+          <p class="ps-intro">Ton document s'enregistre en <b>PDF modifiable</b> (un vrai PDF qui garde tout ton travail MomoDOC) avec Ouvrir, Enregistrer et Enregistrer sous (menu disquette). En plus, MomoDOC garde des copies de secours automatiques dans ce navigateur, pour ne jamais perdre ton travail.</p>
           <div class="ps-row"><div><div class="ps-h">Sauvegarde automatique</div><div class="ps-sub">Une copie de secours dès que le document a changé, et quand tu changes d'onglet.</div></div>
             <label class="ps-switch"><input type="checkbox" id="psAsOn"><span></span></label></div>
           <div class="ps-row"><div><div class="ps-h">Fréquence</div><div class="ps-sub">Toutes les…</div></div>
@@ -788,10 +788,10 @@ requestAnimationFrame(frame);
         </section>
         <section class="mm-sec" data-sec="app">
           <p class="ps-title">Application</p>
-          <p class="ps-intro">MomoDOC peut s'installer comme une vraie application : une icône sur le bureau, sa propre fenêtre, et les fichiers .mmd qui s'ouvrent d'un double-clic.</p>
+          <p class="ps-intro">MomoDOC peut s'installer comme une vraie application : une icône sur le bureau, sa propre fenêtre, et les PDF modifiables et fichiers .mmd qui s'ouvrent d'un double-clic.</p>
           <div class="ps-row"><div><div class="ps-h">Installer MomoDOC</div><div class="ps-sub" id="psInstallNote"></div></div>
             <button class="ps-btn primary" id="psInstall">Installer</button></div>
-          <div class="ps-row"><div><div class="ps-h">Format de fichier</div><div class="ps-sub">.mmd — le document complet (structure, pages, page de garde). Les anciens fichiers .doe et .json s'ouvrent aussi.</div></div></div>
+          <div class="ps-row"><div><div class="ps-h">Format de fichier</div><div class="ps-sub">PDF modifiable : un vrai PDF qui contient aussi tout le document MomoDOC, rouvrable et modifiable. Le .mmd seul reste disponible dans « Enregistrer sous » ; les anciens .doe et .json s'ouvrent aussi.</div></div></div>
         </section>
       </div>
     </div>
@@ -861,7 +861,7 @@ requestAnimationFrame(frame);
 <input type="file" id="inPhoto" class="hidden-input">
 <input type="file" id="inSecImgs" class="hidden-input" multiple>
 <input type="file" id="inCrop" class="hidden-input">
-<input type="file" id="inJson" class="hidden-input" accept=".mmd,.doe,.json">
+<input type="file" id="inJson" class="hidden-input" accept=".pdf,.mmd,.doe,.json">
 
 <div id="busy" class="busy" style="display:none"><div class="busy-box"><div class="spinner"></div><span id="busyMsg">Traitement…</span></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2096,21 +2096,22 @@ function renderAll(){ renderSections(); renderDocument(); }
    Chrome / Edge : vrai fichier sur le disque, « Enregistrer » réécrit le même fichier.
    Autres navigateurs : Enregistrer = téléchargement, Ouvrir = sélecteur classique.
    ===================================================================== */
-const MMD_TYPES  = [{description:"Document MomoDOC (.mmd)", accept:{"application/x-momodoc":[".mmd"]}}];
-const OPEN_TYPES = [{description:"Documents MomoDOC (.mmd, anciens .doe et .json)", accept:{"application/x-momodoc":[".mmd"], "application/x-doe":[".doe"], "application/json":[".json"]}}];
+const SAVE_TYPES = [{description:"PDF modifiable MomoDOC (.pdf)", accept:{"application/pdf":[".pdf"]}}, {description:"Document MomoDOC seul (.mmd)", accept:{"application/x-momodoc":[".mmd"]}}];
+const OPEN_TYPES = [{description:"Documents MomoDOC (.pdf modifiable, .mmd, anciens .doe et .json)", accept:{"application/pdf":[".pdf"], "application/x-momodoc":[".mmd"], "application/x-doe":[".doe"], "application/json":[".json"]}}];
+const isOwnFile = n => /\.(pdf|mmd)$/i.test(n||"");
 const OPEN_OK = typeof window.showOpenFilePicker === "function";
 const SAVE_OK = typeof window.showSaveFilePicker === "function";
 let fileHandle=null, fileName=null, busySaving=false;
 
 function docBaseName(){ return (state.meta.title || "DOSSIER").replace(/[^\w\-À-ÿ ]+/g,"").trim().replace(/\s+/g,"_") || "DOSSIER"; }
-function suggestedName(){ return (fileName ? fileName.replace(/\.(mmd|doe|json)$/i,"") : docBaseName()) + ".mmd"; }
+function suggestedName(){ return (fileName ? fileName.replace(/\.(pdf|mmd|doe|json)$/i,"") : docBaseName()) + (fileName && /\.mmd$/i.test(fileName) ? ".mmd" : ".pdf"); }
 function updateTitle(){
   const el=$("#docName");
   el.textContent = fileName || "Nouveau document";
   el.classList.toggle("unsaved", !fileHandle);
   el.title = fileHandle ? `Document en cours : ${fileName}` : "Pas encore enregistré (Ctrl+S)";
   $("#ddFileName").textContent = fileName || "Nouveau document (pas encore enregistré)";
-  document.title = (fileName ? fileName.replace(/\.mmd$/i,"") + " - " : "") + "MomoDOC";
+  document.title = (fileName ? fileName.replace(/\.(pdf|mmd)$/i,"") + " - " : "") + "MomoDOC";
 }
 function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asClean(); updateTitle(); }
 
@@ -2131,25 +2132,34 @@ function docHeader(ref, withThumbs){
         return o;
       })}) };
 }
-async function packDoc(onProg){
+async function packDoc(onProg, pdfRefs){
   const media=[], idx=new Map();
   const ref=url=>{ if(idx.has(url)) return idx.get(url); const i=media.length; media.push(url); idx.set(url,i); return i; };
   const head=docHeader(ref, true), blobs=[];
-  for(let i=0;i<media.length;i++){ blobs.push(await srcBlob(media[i])); if(onProg && i%25===0){ onProg(i, media.length); await yieldUI(); } }
-  head.media=blobs.map(b=>({type:b.type||"image/jpeg", size:b.size}));
+  head.media=[];
+  for(let i=0;i<media.length;i++){
+    const b=await srcBlob(media[i]), r=pdfRefs && pdfRefs.get(media[i]);
+    if(r) head.media.push({type:b.type||"image/jpeg", size:0, pdf:r});       // déjà dans le PDF : on pointe dessus
+    else{ head.media.push({type:b.type||"image/jpeg", size:b.size}); blobs.push(b); }
+    if(onProg && i%25===0){ onProg(i, media.length); await yieldUI(); }
+  }
   const hj=new TextEncoder().encode(JSON.stringify(head));
   const pre=new TextEncoder().encode(MAGIC+String(hj.length).padStart(12,"0")+"\n");
   return new Blob([pre, hj, ...blobs], {type:"application/x-momodoc"});
 }
 /* lit un fichier : renvoie l'objet document (images déjà dans la médiathèque) ou null */
-async function readDoc(blob, onProg){
+async function readDoc(blob, onProg, host){
   const pre=new TextDecoder().decode(await blob.slice(0,22).arrayBuffer());
+  if(pre.startsWith("%PDF") && !host){ const d=await readHybridPdf(blob, onProg); return d || {foreignPdf:true}; }
   if(pre.startsWith(MAGIC)){
     const n=parseInt(pre.slice(9,21),10); if(!(n>0)) return null;
     const obj=JSON.parse(await blob.slice(22,22+n).text());
     let off=22+n; const urls=[], list=obj.media||[];
     for(let i=0;i<list.length;i++){
-      const m=list[i], part=blob.slice(off, off+m.size, m.type); off+=m.size;
+      const m=list[i];
+      let part;
+      if(m.pdf && host) part=host.slice(m.pdf[0], m.pdf[0]+m.pdf[1], m.type);
+      else{ part=blob.slice(off, off+m.size, m.type); off+=m.size; }
       urls.push(mediaAdd(new Blob([await part.arrayBuffer()],{type:m.type})));   // copie en mémoire : le fichier peut être réécrit ensuite
       if(onProg && i%20===0){ onProg(i+1, list.length); await yieldUI(); }
     }
@@ -2177,11 +2187,17 @@ async function applyDoc(obj){
   ensureThumbs();
   return true;
 }
+/* contenu du fichier à écrire selon son extension : PDF modifiable (par défaut) ou .mmd seul */
+async function fileBlob(name){
+  if(/\.mmd$/i.test(name)) return await packDoc((i,n)=>setBusy(`Enregistrement — image ${i}/${n}…`));
+  return await packHybridPdf(name, msg=>setBusy(msg));
+}
 async function downloadMmd(name){
   showBusy("Enregistrement…");
   try{
-    const a=h("a"); a.href=URL.createObjectURL(await packDoc((i,n)=>setBusy(`Enregistrement — image ${i}/${n}…`)));
-    a.download=/\.mmd$/i.test(name) ? name : name+".mmd"; a.click();
+    if(!/\.(pdf|mmd)$/i.test(name)) name+=".pdf";
+    const a=h("a"); a.href=URL.createObjectURL(await fileBlob(name));
+    a.download=name; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href), 20000);
     markSaved();
   }finally{ hideBusy(); }
@@ -2190,14 +2206,16 @@ async function downloadMmd(name){
 async function loadFile(file, handle){
   let ok=false;
   showBusy(`Ouverture de « ${file.name} »…`);
-  try{ ok=await applyDoc(await readDoc(file, (i,n)=>setBusy(`Ouverture — image ${i}/${n}…`))); }catch(e){ console.warn(e); ok=false; }
+  let foreign=false;
+  try{ const d=await readDoc(file, (i,n)=>setBusy(`Ouverture — image ${i}/${n}…`)); foreign=!!(d && d.foreignPdf); ok=!foreign && await applyDoc(d); }catch(e){ console.warn(e); ok=false; }
   finally{ hideBusy(); }
-  if(!ok){ alert(`« ${file.name} » n'a pas pu être ouvert : ce n'est pas un document MomoDOC (.mmd), ni un ancien .doe ou .json.`); return false; }
-  const isMmd=/\.mmd$/i.test(file.name);
-  fileHandle = (isMmd && handle) ? handle : null;
-  fileName = isMmd ? file.name : file.name.replace(/\.(doe|json)$/i,"") + ".mmd";
+  if(foreign){ alert(`« ${file.name} » est un PDF ordinaire : il ne contient pas de document MomoDOC modifiable.\n\nPour reprendre ses pages, importe-le dans un jalon, une section ou une sous-section (bouton « Importer des fichiers » ou glisser-déposer).`); return false; }
+  if(!ok){ alert(`« ${file.name} » n'a pas pu être ouvert : ce n'est pas un document MomoDOC (PDF modifiable ou .mmd), ni un ancien .doe ou .json.`); return false; }
+  const own=isOwnFile(file.name);
+  fileHandle = (own && handle) ? handle : null;
+  fileName = own ? file.name : file.name.replace(/\.(doe|json)$/i,"") + ".pdf";
   updateTitle(); asClean();
-  if(!isMmd) toast("Ancien fichier ouvert : « Enregistrer » le convertira en .mmd");
+  if(!own) toast("Ancien fichier ouvert : « Enregistrer » le convertira en PDF modifiable");
   return true;
 }
 async function filePerm(hnd, ask){
@@ -2207,7 +2225,7 @@ async function filePerm(hnd, ask){
 async function writeHandle(hnd){
   showBusy("Enregistrement…");
   try{
-    const blob=await packDoc((i,n)=>setBusy(`Enregistrement — image ${i}/${n}…`));
+    const blob=await fileBlob(hnd.name);
     setBusy("Écriture du fichier…");
     const w=await hnd.createWritable();
     await w.write(blob); await w.close();
@@ -2239,11 +2257,11 @@ async function saveDocAs(){
   if(!SAVE_OK){
     const name=prompt("Nom du fichier :", suggestedName());
     if(!name) return;
-    const n=name.trim(); await downloadMmd(n);
-    fileName=/\.mmd$/i.test(n) ? n : n+".mmd"; updateTitle(); return;
+    let n=name.trim(); if(!/\.(pdf|mmd)$/i.test(n)) n+=".pdf"; await downloadMmd(n);
+    fileName=n; updateTitle(); return;
   }
   let hnd;
-  try{ hnd=await window.showSaveFilePicker({id:"momodoc-save", startIn:startIn(), suggestedName:suggestedName(), types:MMD_TYPES, excludeAcceptAllOption:true}); }
+  try{ hnd=await window.showSaveFilePicker({id:"momodoc-save", startIn:startIn(), suggestedName:suggestedName(), types: /\.mmd$/i.test(suggestedName()) ? [SAVE_TYPES[1],SAVE_TYPES[0]] : SAVE_TYPES, excludeAcceptAllOption:true}); }
   catch(e){ if(e && e.name!=="AbortError") alert("Enregistrement impossible : "+e.message); return; }
   busySaving=true;
   try{ await writeHandle(hnd); fileHandle=hnd; fileName=hnd.name; updateTitle(); toast(`« ${fileName} » enregistré`); }
@@ -2369,7 +2387,7 @@ function scheduleAutosave(){
 async function openAutosaves(){
   await autosaveNow(false);
   const list=await asList()||[], box=$("#asList"); box.innerHTML="";
-  box.append(h("p","ps-intro",{innerHTML:`MomoDOC garde ici, dans ce navigateur, les ${AS_MAX} dernières versions de ton travail${settings.asOn?` (toutes les ${settings.asEvery>=60?"heures":settings.asEvery+" min"})`:" (sauvegarde automatique désactivée dans les Paramètres)"}. Elles ne remplacent pas l'enregistrement de ton fichier .mmd.`}));
+  box.append(h("p","ps-intro",{innerHTML:`MomoDOC garde ici, dans ce navigateur, les ${AS_MAX} dernières versions de ton travail${settings.asOn?` (toutes les ${settings.asEvery>=60?"heures":settings.asEvery+" min"})`:" (sauvegarde automatique désactivée dans les Paramètres)"}. Elles ne remplacent pas l'enregistrement de ton fichier.`}));
   if(!list.length) box.append(h("p","ps-sub",{textContent:"Aucune sauvegarde automatique pour l'instant : elles se font dès que le document change."}));
   list.forEach(e=>{
     const r=h("div","as-row"), t=h("div","t");
@@ -2427,7 +2445,7 @@ async function setupManifest(){
     name:"MomoDOC - Mise en forme de documents", short_name:"MomoDOC", lang:"fr",
     description:"Composer des documents (DOE, dossiers techniques, mémoires…) : page de garde, sommaire automatique, intercalaires, import PDF et images, export PDF.",
     id:scope, start_url:here, scope, display:"standalone", background_color:"#1e1e1e", theme_color:"#1f2937", icons,
-    file_handlers:[{action:here, accept:{"application/x-momodoc":[".mmd"]}, icons: i192?[{src:i192,sizes:"192x192",type:"image/png"}]:[], launch_type:"single-client"}]
+    file_handlers:[{action:here, accept:{"application/x-momodoc":[".mmd"], "application/pdf":[".pdf"]}, icons: i192?[{src:i192,sizes:"192x192",type:"image/png"}]:[], launch_type:"single-client"}]
   };
   const l=document.createElement("link"); l.rel="manifest";
   try{ l.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"})); }
@@ -2568,7 +2586,7 @@ const GUIDE = [
       <li><b>Construis la structure</b> avec les boutons de la plage Édition, en haut à gauche : chapitres, jalons, sections et sous-sections, puis importe tes fichiers ou écris tes pages de texte.</li>
       <li><b>Exporte le PDF</b> avec ${b_("print")}. Le sommaire, les numéros de page et les intercalaires sont calculés pour toi.</li>
     </ol>
-    <p class="hg-tip">Enregistre tôt avec <kbd>Ctrl</kbd>+<kbd>S</kbd> : ton document devient un fichier .mmd que tu pourras rouvrir et compléter au fil du chantier.</p>`},
+    <p class="hg-tip">Enregistre tôt avec <kbd>Ctrl</kbd>+<kbd>S</kbd> : ton document devient un PDF modifiable : un vrai PDF à envoyer, que MomoDOC sait rouvrir et compléter au fil du chantier.</p>`},
   {id:"struct", t:"Structure", i:"i_chap", h:`
     <p class="hg-intro">La colonne de gauche, c'est le plan de ton document, sur quatre niveaux. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront. Les boutons de création sont en haut du volet gauche, dans la plage Édition (chaque plage se replie d'un clic sur son titre).</p>
     <ul class="hg-list">
@@ -2625,15 +2643,15 @@ const GUIDE = [
     </ul>
     <p class="hg-tip">Le zoom de l'aperçu se règle avec les boutons en bas à droite ; « ajuster » remet la page à la largeur de l'écran.</p>`},
   {id:"file", t:"Fichier", i:"disk", h:`
-    <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton document complet (structure, pages, page de garde) tient dans un seul fichier <b>.mmd</b>.</p>
+    <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton document s'enregistre en <b>PDF modifiable</b>. C'est un vrai PDF, avec sommaire cliquable et signets, lisible partout et prêt à envoyer. Il contient aussi, en pièce jointe, tout ton travail MomoDOC : structure, pages de texte, recadrages, pages masquées. Rouvert dans MomoDOC, il redevient entièrement modifiable.</p>
     <ul class="hg-list">
-      <li><b>Ouvrir</b> <kbd>Ctrl</kbd>+<kbd>O</kbd><p>Rouvre un document .mmd. Les anciens fichiers .doe et .json s'ouvrent aussi : au premier enregistrement, MomoDOC te propose de les garder en .mmd, sans toucher à l'original.</p></li>
+      <li><b>Ouvrir</b> <kbd>Ctrl</kbd>+<kbd>O</kbd><p>Rouvre un PDF modifiable fait avec MomoDOC, ou un fichier .mmd. Les anciens .doe et .json s'ouvrent aussi : au premier enregistrement, ils deviennent un PDF modifiable, sans toucher à l'original. Un PDF ordinaire, lui, s'importe dans un jalon comme une pièce.</p></li>
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
-    <p class="hg-tip">Installée (⛯ Paramètres › Application), MomoDOC ouvre les fichiers .mmd d'un double-clic depuis l'explorateur.</p>`},
+    <p class="hg-tip">Enregistrer sous propose aussi le format .mmd seul (le document MomoDOC sans le PDF). Attention : un PDF modifiable transporte les pages masquées et les images entières des recadrages ; pour un PDF « propre » à diffuser sans elles, utilise l'export ${b_("print")}. Si quelqu'un repasse le PDF dans un autre outil (signature, compression, fusion), la partie modifiable peut se perdre : garde ton original.</p>`},
   {id:"pdf", t:"Export PDF", i:"print", h:`
     <p class="hg-intro">${b_("print")} fabrique le PDF final, prêt à envoyer.</p>
     <ul class="hg-list">
@@ -2666,6 +2684,89 @@ function buildGuide(){
   wireTabs(nav, body);
 }
 
+
+/* =====================================================================
+   PDF MODIFIABLE (format d'enregistrement de base)
+   Le fichier .pdf est un vrai PDF (sommaire cliquable, signets) qui contient en plus, en pièce jointe
+   (norme PDF, fichiers joints), le document MomoDOC complet : structure, textes, recadrages, pages masquées.
+   Les images de pages déjà présentes telles quelles dans le PDF (JPEG) ne sont pas recopiées : la pièce jointe
+   pointe directement sur elles. Rouvert dans MomoDOC, le PDF redevient entièrement modifiable.
+   ===================================================================== */
+const latin1 = new TextDecoder("latin1");
+/* repère les images JPEG du PDF produit : [{off, len}] (position des données dans le fichier) */
+function pdfJpegStreams(bytes, str){
+  const out=[]; const re=/\/Subtype\s*\/Image/g; let m;
+  while((m=re.exec(str))){
+    const objStart=str.lastIndexOf(" obj", m.index), dictEnd=str.indexOf("stream", m.index);
+    if(objStart<0 || dictEnd<0) continue;
+    const dict=str.slice(objStart, dictEnd);
+    if(!/\/Filter\s*\/DCTDecode/.test(dict) || /FlateDecode|\[/.test(dict.match(/\/Filter[^\/]*\/[A-Za-z]+/)?.[0]||"")) continue;
+    const L=dict.match(/\/Length\s+(\d+)(?!\s+\d+\s+R)/); if(!L) continue;
+    let s=dictEnd+6; if(str[s]==="\r") s++; if(str[s]==="\n") s++;
+    out.push({off:s, len:+L[1]});
+    re.lastIndex=s+(+L[1]);
+  }
+  return out;
+}
+const sameBytes=(a,b)=>{ if(a.length!==b.length) return false; for(let i=0;i<a.length;i+=1) if(a[i]!==b[i]) return false; return true; };
+/* images du document retrouvées à l'identique dans le PDF : Map(adresse -> [off, len]) */
+async function matchPdfImages(bytes, streams){
+  const byLen=new Map(); streams.forEach(s=>{ if(!byLen.has(s.len)) byLen.set(s.len,[]); byLen.get(s.len).push(s); });
+  const refs=new Map();
+  for(const it of state.items){ if(isChapter(it)) continue;
+    for(const im of it.images){ if(im.kind || !im.src || refs.has(im.src)) continue;
+      const b=mediaBlob(im.src); if(!b || b.type!=="image/jpeg") continue;
+      const cands=byLen.get(b.size); if(!cands) continue;
+      const data=new Uint8Array(await b.arrayBuffer());
+      const hit=cands.find(s=>sameBytes(bytes.subarray(s.off, s.off+s.len), data));
+      if(hit) refs.set(im.src, [hit.off, hit.len]);
+    }
+  }
+  return refs;
+}
+/* ajoute la pièce jointe par une « mise à jour incrémentale » (le PDF d'origine reste intact, octet pour octet) */
+function pdfAttach(bytes, str, mmd, name){
+  const tail=str.slice(-4096);
+  const sx=tail.match(/startxref\s+(\d+)\s+%%EOF\s*$/); if(!sx) throw new Error("PDF inattendu (startxref)");
+  const tr=tail.slice(tail.lastIndexOf("trailer"));
+  const size=+(tr.match(/\/Size\s+(\d+)/)||[])[1], root=+(tr.match(/\/Root\s+(\d+)\s+0\s+R/)||[])[1];
+  const info=tr.match(/\/Info\s+(\d+)\s+0\s+R/), id=tr.match(/\/ID\s*(\[[^\]]*\])/);
+  if(!size || !root) throw new Error("PDF inattendu (trailer)");
+  const cs=str.search(new RegExp("(^|[\\r\\n])"+root+"\\s+0\\s+obj")); if(cs<0) throw new Error("PDF inattendu (catalogue)");
+  const cobj=str.slice(cs, str.indexOf("endobj", cs));
+  let cat=cobj.slice(cobj.indexOf("<<")); cat=cat.slice(0, cat.lastIndexOf(">>")).replace(/\/Names\s+\d+\s+0\s+R/,"").replace(/\/AF\s*\[[^\]]*\]/,"");
+  const nE=size, nF=size+1, nN=size+2, safe=name.replace(/[()\\]/g,"_");
+  const enc=s=>new TextEncoder().encode(s);
+  const parts=[], offs={}; let pos=bytes.length;
+  const add=(p)=>{ parts.push(p); pos += (p.size!=null ? p.size : p.length); };
+  add(enc("\n"));
+  offs[nE]=pos; const h1=enc(`${nE} 0 obj\n<< /Type /EmbeddedFile /Subtype /application#2Fx-momodoc /Length ${mmd.size} /Params << /Size ${mmd.size} >> >>\nstream\n`);
+  add(h1); const mmdOff=pos; add(mmd); add(enc("\nendstream\nendobj\n"));
+  offs[nF]=pos; add(enc(`${nF} 0 obj\n<< /Type /Filespec /F (${safe}) /UF (${safe}) /EF << /F ${nE} 0 R >> /Desc (Document MomoDOC modifiable) /AFRelationship /Source >>\nendobj\n`));
+  offs[nN]=pos; add(enc(`${nN} 0 obj\n<< /Names [(${safe}) ${nF} 0 R] >>\nendobj\n`));
+  offs[root]=pos; add(enc(`${root} 0 obj\n${cat}\n/Names << /EmbeddedFiles ${nN} 0 R >>\n/AF [${nF} 0 R]\n>>\nendobj\n`));
+  add(enc(`%MOMODOC-MMD ${mmdOff} ${mmd.size}\n`));
+  const xref=pos, ent=n=>String(offs[n]).padStart(10,"0")+" 00000 n\r\n";
+  add(enc(`xref\n${root} 1\n${ent(root)}${nE} 3\n${ent(nE)}${ent(nF)}${ent(nN)}trailer\n<< /Size ${size+3} /Root ${root} 0 R${info?` /Info ${info[1]} 0 R`:""}${id?` /ID ${id[1]}`:""} /Prev ${sx[1]} >>\nstartxref\n${xref}\n%%EOF\n`));
+  return new Blob([bytes, ...parts], {type:"application/pdf"});
+}
+/* fabrique le PDF modifiable complet */
+async function packHybridPdf(name, onProg){
+  const pdf=await buildPdf((i,n)=>onProg && onProg(`Mise en page — page ${i}/${n}…`));
+  if(onProg) onProg("Assemblage du PDF…"); await yieldUI();
+  const bytes=new Uint8Array(pdf.output("arraybuffer")), str=latin1.decode(bytes);
+  const refs=await matchPdfImages(bytes, pdfJpegStreams(bytes, str));
+  if(onProg) onProg("Ajout du document modifiable…"); await yieldUI();
+  const mmd=await packDoc(null, refs);
+  return pdfAttach(bytes, str, mmd, (name||"document").replace(/\.pdf$/i,"")+".mmd");
+}
+/* lit le document caché dans un PDF MomoDOC ; null si ce n'en est pas un */
+async function readHybridPdf(blob, onProg){
+  const tail=latin1.decode(await blob.slice(Math.max(0, blob.size-8192)).arrayBuffer());
+  const all=[...tail.matchAll(/%MOMODOC-MMD (\d+) (\d+)/g)]; if(!all.length) return null;
+  const m=all[all.length-1], off=+m[1], len=+m[2];
+  return await readDoc(blob.slice(off, off+len), onProg, blob);
+}
 
 /* =====================================================================
    TRAITEMENT DE TEXTE : pages de texte éditées directement dans l'aperçu, page par page.
