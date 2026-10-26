@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MomoDOC - Dossiers d'Ouvrage Exécuté</title>
+<title>MomoDOC</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 1230'%3E%3Cpath fill='%23808080' d='M7 8L424 587L837 8V835H700V438L424 824L145 437V835H7Z'/%3E%3Cpath fill='%23808080' d='M7 385L424 964L837 385V1212H700V815L424 1201L145 814V1212H7Z'/%3E%3Cg fill='%23ff8300' fill-rule='evenodd'%3E%3Cpath d='M878 20H936V168H1215V20H1272V318Q1272 346 1244 346H906Q878 346 878 318Z'/%3E%3Cpath d='M906 362H1244Q1272 362 1272 390V751Q1272 779 1244 779H906Q878 779 878 751V390Q878 362 906 362ZM936 541V601H1215V541Z'/%3E%3Cpath d='M950 796H1198Q1272 796 1272 880V1213H878V880Q878 796 950 796ZM936 978Q936 974 950 974H1201Q1215 974 1215 978V1035H936Z'/%3E%3C/g%3E%3C/svg%3E">
 <meta name="theme-color" content="#1f2937">
 <style>
@@ -299,6 +299,32 @@
   .hg-fmts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .hg-fmts span{background:var(--card);border:1px solid var(--line-2);border-radius:5px;padding:2px 8px;font:600 12px ui-monospace,monospace;color:#bef264}
 
+  /* élément actif, page active */
+  .jalon.is-active{outline:2px solid #93c5fd;outline-offset:1px}
+  .node-card.is-active{border-color:var(--accent-2)}
+  .node-card.is-active>.sec-top{background:#1e3a5f}
+  .thumb{cursor:pointer}
+  .thumb.is-active{outline:3px solid var(--accent-2);outline-offset:-1px}
+  .page.is-active{outline:4px solid var(--accent-2)}
+  .page-content-img{cursor:pointer}
+
+  /* déplacer la page */
+  .mv-cur{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:12px}
+  .mv-cur img{width:46px;height:60px;object-fit:cover;border:1px solid var(--line-2);border-radius:3px;background:#fff;flex:0 0 46px}
+  .mv-opt{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:13.5px;color:var(--ink)}
+  .mv-opt:has(input[name=mvMode]:checked){border-color:var(--accent-2);background:rgba(59,130,246,.08)}
+  .mv-opt>input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex:0 0 16px}
+  .mv-opt b{color:#fff}
+  .mv-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;color:#cbd5e1}
+  .mv-in{background:var(--btn);color:#fff;border:1px solid var(--line-2);border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;outline:none}
+  .mv-in:focus{border-color:var(--accent-2)}
+  select.mv-in{width:100%;max-width:26rem}
+  .mv-num{width:5.2rem;text-align:right}
+  .mv-r{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .mv-r input{accent-color:var(--accent)}
+  .mv-hint{font-size:13px;margin:10px 2px 0;color:#bfdbfe;min-height:1.3em}
+  .mv-hint.err{color:var(--danger)}
+
   /* sauvegardes auto */
   .as-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:var(--card)}
   .as-row .t{flex:1;min-width:0}
@@ -325,9 +351,9 @@
 <!-- Animation d'ouverture : les 2 M de MOMO se superposent ; DOC se construit par des feuilles qui s'empilent -->
 <style>
 #md-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;
-  background:radial-gradient(circle at 50% 50%,#ffffff 0%,#eef2f6 55%,#dde4ec 100%);animation:mds-out .5s ease-in 4.3s forwards}
+  background:radial-gradient(circle at 50% 50%,#ffffff 0%,#eef2f6 55%,#dde4ec 100%);animation:mds-out .5s ease-in 4.35s forwards}
 #md-splash.mds-skip{animation:mds-out .25s ease-in forwards}
-#md-splash .mds-box{position:relative;width:min(30vmin,300px);aspect-ratio:1280/1230;animation:mds-pulse .45s ease-out 3.95s both}
+#md-splash .mds-box{position:relative;width:min(30vmin,300px);aspect-ratio:1280/1230;animation:mds-pulse .45s ease-out 4s both}
 @keyframes mds-pulse{0%,100%{transform:scale(1)}40%{transform:scale(1.05)}}
 #md-splash .mds-p{position:absolute;inset:0;will-change:transform,opacity}
 #md-splash .mds-p svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -355,8 +381,7 @@
 /* DOC : des feuilles vues de profil (par la tranche) tombent en virevoltant comme des feuilles au vent,
    se posent à plat et s'empilent : la ramette se reforme et dessine D, O, C (découpés dans la pile) */
 #md-splash .mds-doc{overflow:visible}
-#md-splash .mds-fly rect, #md-splash .mds-pile rect{fill:#ff8300}
-#md-splash .mds-fly rect{transform-box:fill-box;transform-origin:50% 50%}
+#md-splash .mds-pile rect{fill:#ff8300}
 #md-splash .mds-solid{opacity:0}
 #md-splash .mds-glow{position:absolute;left:50%;top:50%;width:10%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) scale(0);
   border:2px solid rgba(255,131,0,.35);opacity:0;animation:mds-ring .7s ease-out 1.25s both}
@@ -385,30 +410,57 @@
 function done(){if(s&&s.parentNode)s.parentNode.removeChild(s);s=null;}
 function skip(){if(s&&!s.classList.contains('mds-skip')){s.classList.add('mds-skip');setTimeout(done,300);}}
 s.addEventListener('animationend',function(e){if(e.target===s&&e.animationName==='mds-out')done();});
-setTimeout(done,5000);
+setTimeout(done,5100);
 ['mousedown','keydown','touchstart','wheel'].forEach(function(ev){window.addEventListener(ev,skip,{once:true,capture:true,passive:true});});
-if(matchMedia('(prefers-reduced-motion: reduce)').matches||!Element.prototype.animate)return;
-/* la ramette : N feuilles vues par la tranche ; elles se posent de bas en haut sur la colonne DOC (y 20 -> 1213) */
+if(matchMedia('(prefers-reduced-motion: reduce)').matches||!window.requestAnimationFrame)return;
+/* la ramette : N feuilles souples vues par la tranche ; elles planent, se courbent, ondulent, puis se posent
+   à plat de bas en haut sur la colonne DOC (y 20 -> 1213) ; la pile est découpée à la forme des lettres */
 var NS='http://www.w3.org/2000/svg',fly=s.querySelector('.mds-fly'),pile=s.querySelector('.mds-pile'),solid=s.querySelector('.mds-solid');
-var N=40,TOP=20,BOT=1213,X=878,W=394,pitch=(BOT-TOP)/N,TH=pitch*.72,T0=1350,STEP=32,last=[];
+var N=40,TOP=20,BOT=1213,X=878,W=394,HW=W/2,pitch=(BOT-TOP)/N,TH=pitch*.7,T0=1350,STEP=32,SETTLE=210,sheets=[],landed=0,t0=performance.now();
 function rnd(a,b){return a+Math.random()*(b-a);}
-for(var i=0;i<N;i++)(function(i){
-  var y=BOT-(i+1)*pitch+(pitch-TH)/2;
-  var r=document.createElementNS(NS,'rect');r.setAttribute('x',X);r.setAttribute('y',y);r.setAttribute('width',W);r.setAttribute('height',TH);r.setAttribute('rx',3);
-  r.style.opacity='0';fly.appendChild(r);
-  /* chute de feuille au vent : grands balancements qui s'amortissent, la feuille s'incline puis se pose à plat */
-  var dir=Math.random()<.75?1:-1,a=rnd(230,360)*dir,rot=rnd(16,28)*dir,h0=-(1150+rnd(0,260))-y*.35,dur=rnd(860,1000);
-  var an=r.animate([
-    {opacity:0,transform:'translate('+a+'px,'+h0+'px) rotate('+rot+'deg)'},
-    {opacity:1,transform:'translate('+(-a*.62)+'px,'+(h0*.66)+'px) rotate('+(-rot*.8)+'deg)',offset:.3},
-    {opacity:1,transform:'translate('+(a*.36)+'px,'+(h0*.3)+'px) rotate('+(rot*.55)+'deg)',offset:.6},
-    {opacity:1,transform:'translate('+(-a*.12)+'px,'+(h0*.07)+'px) rotate('+(-rot*.22)+'deg)',offset:.85},
-    {opacity:1,transform:'translate(0px,0px) rotate(0deg)'}
-  ],{duration:dur,delay:T0+i*STEP,easing:'cubic-bezier(.33,.08,.42,1)',fill:'both'});
-  last.push(an.finished.then(function(){ var q=r.cloneNode();q.style.opacity='';pile.appendChild(q);r.remove(); }).catch(function(){}));
-})(i);
-/* la ramette posée se tasse : lettres pleines */
-Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease-out',fill:'forwards'}); });
+for(var i=0;i<N;i++){
+  var cy=BOT-(i+1)*pitch+pitch/2, dir=Math.random()<.75?1:-1;
+  var el=document.createElementNS(NS,'path');
+  el.setAttribute('fill','none');el.setAttribute('stroke','#ff8300');el.setAttribute('stroke-width',TH);el.setAttribute('stroke-linecap','butt');el.setAttribute('opacity','0');
+  fly.appendChild(el);
+  sheets.push({el:el,cy:cy,start:T0+i*STEP,dur:rnd(850,980),a:rnd(230,360)*dir,rot:rnd(18,30)*dir,h0:-(1150+rnd(0,260))-cy*.3,
+    cyc:rnd(1.55,2.15),ph:rnd(-.4,.4),sag:rnd(55,85),wav:rnd(35,55)*dir,state:0});
+}
+/* ligne médiane de la feuille (repère local, centre en 0,0) : sag = creux au centre, w = ondulation en S */
+function shape(sg,w){ return 'M'+(-HW)+' '+(-.6*sg+.4*w)+'C'+(-HW/3)+' '+(.6*sg+w)+' '+(HW/3)+' '+(.6*sg-w)+' '+HW+' '+(-.6*sg-.4*w); }
+function land(o){
+  var r=document.createElementNS(NS,'rect');
+  r.setAttribute('x',X);r.setAttribute('y',o.cy-TH/2);r.setAttribute('width',W);r.setAttribute('height',TH);
+  pile.appendChild(r); o.el.remove(); o.state=2; landed++;
+  if(landed===N && solid && solid.animate) solid.animate([{opacity:0},{opacity:1}],{duration:260,easing:'ease-out',fill:'forwards'});
+}
+function frame(now){
+  if(!s) return;
+  var t=now-t0, busy=false;
+  for(var k=0;k<N;k++){
+    var o=sheets[k]; if(o.state===2) continue; busy=true;
+    var p=(t-o.start)/o.dur; if(p<0) continue;
+    var x,y,rot,sg,w,op=1;
+    if(p<1){
+      var A=Math.pow(1-p,1.1), th=2*Math.PI*o.cyc*p+o.ph;
+      y=o.h0*Math.pow(1-p,1.35);                       /* elle plane : de plus en plus lentement */
+      x=o.a*A*Math.cos(th);                            /* balancement au vent, qui s'amortit */
+      rot=o.rot*A*Math.sin(th);                        /* elle s'incline dans le sens du mouvement */
+      sg=o.sag*(.35+.65*A)*(1+.25*Math.sin(2*th));     /* l'air la creuse au centre */
+      w=o.wav*A*Math.cos(th);                          /* les bords suivent avec un temps de retard */
+      op=Math.min(1,p*8);
+    }else{
+      var q=(t-o.start-o.dur)/SETTLE;                  /* posée : elle s'aplatit avec un petit rebond souple */
+      if(q>=1){ land(o); continue; }
+      x=0;y=0;rot=0;w=0; sg=o.sag*.35*Math.exp(-3.2*q)*Math.cos(2.6*Math.PI*q);
+    }
+    o.el.setAttribute('opacity',op);
+    o.el.setAttribute('d',shape(sg,w));
+    o.el.setAttribute('transform','translate('+(X+HW+x)+' '+(o.cy+y)+') rotate('+rot+')');
+  }
+  if(busy) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
 })();</script>
 
 <header class="mhead" id="toolbar">
@@ -419,7 +471,8 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
       <button class="hbtn" id="btnRedo" title="Rétablir (Ctrl+Y)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg></button>
     </div>
     <div class="hgrp">
-      <button class="hbtn c-sky" id="btnSommaire" title="Aller au sommaire du dossier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg></button>
+      <button class="hbtn c-sky" id="btnSommaire" title="Aller au sommaire du document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg></button>
+      <button class="hbtn c-amber" id="btnMovePage" title="Déplacer la page active (clique d'abord une page dans l'aperçu ou une vignette)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13 3v5h5"/><path d="M18 8v3"/><path d="M15 17h7"/><path d="M19 14l3 3-3 3"/></svg></button>
     </div>
   </div>
   <div class="side">
@@ -428,7 +481,7 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
     <div class="dd">
       <button class="hbtn c-blue" id="btnFile" title="Fichier : Ouvrir, Enregistrer, Enregistrer sous, sauvegardes automatiques" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg></button>
       <div class="dd-menu" id="fileMenu" role="menu" hidden>
-        <div class="dd-file">Dossier en cours : <b id="ddFileName">Nouveau dossier</b></div>
+        <div class="dd-file">Document en cours : <b id="ddFileName">Nouveau document</b></div>
         <button role="menuitem" id="miOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Ouvrir…<span class="kb">Ctrl+O</span></button>
         <button role="menuitem" id="miSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Enregistrer<span class="kb">Ctrl+S</span></button>
         <button role="menuitem" id="miSaveAs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v4"/><path d="M7 3v5h8"/><path d="M17.5 14.5l3 3L15 23h-3v-3z"/></svg>Enregistrer sous…<span class="kb">Ctrl+Maj+S</span></button>
@@ -436,9 +489,9 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
         <button role="menuitem" id="miAutosaves" title="Les dernières versions gardées automatiquement dans ce navigateur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Sauvegardes automatiques…</button>
       </div>
     </div>
-    <span class="file-label unsaved" id="docName" title="Dossier en cours">Nouveau dossier</span>
+    <span class="file-label unsaved" id="docName" title="Document en cours">Nouveau document</span>
     <span class="dirty-dot" title="Modifications non enregistrées"></span>
-    <button class="hbtn" id="btnPrint" title="Exporter le dossier en PDF (sommaire cliquable et signets)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg></button>
+    <button class="hbtn" id="btnPrint" title="Exporter le document en PDF (sommaire cliquable et signets)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg></button>
     <span class="hsep"></span>
     <button class="hbtn c-blue3" id="btnGuide" title="Guide de MomoDOC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
     <button class="hbtn glyph" id="btnSettings" title="Paramètres : sauvegarde automatique, import, application"><span>⛯</span></button>
@@ -449,7 +502,7 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
   <aside class="panel">
     <div class="panel-section">
       <div class="sections-head">
-        <h2>Structure du dossier</h2>
+        <h2>Structure du document</h2>
         <button class="minibtn" id="btnCollapseAll" style="padding:4px 8px;font-size:11.5px">Tout déplier</button>
       </div>
       <div class="addrow">
@@ -489,8 +542,8 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
       <div class="mm-pane">
         <section class="mm-sec on" data-sec="save">
           <p class="ps-title">Enregistrement</p>
-          <p class="ps-intro">Ton dossier s'enregistre dans un fichier <b>.mmd</b> avec Ouvrir, Enregistrer et Enregistrer sous (menu disquette). En plus, MomoDOC garde des copies de secours automatiques dans ce navigateur, pour ne jamais perdre ton travail.</p>
-          <div class="ps-row"><div><div class="ps-h">Sauvegarde automatique</div><div class="ps-sub">Une copie de secours dès que le dossier a changé, et quand tu changes d'onglet.</div></div>
+          <p class="ps-intro">Ton document s'enregistre dans un fichier <b>.mmd</b> avec Ouvrir, Enregistrer et Enregistrer sous (menu disquette). En plus, MomoDOC garde des copies de secours automatiques dans ce navigateur, pour ne jamais perdre ton travail.</p>
+          <div class="ps-row"><div><div class="ps-h">Sauvegarde automatique</div><div class="ps-sub">Une copie de secours dès que le document a changé, et quand tu changes d'onglet.</div></div>
             <label class="ps-switch"><input type="checkbox" id="psAsOn"><span></span></label></div>
           <div class="ps-row"><div><div class="ps-h">Fréquence</div><div class="ps-sub">Toutes les…</div></div>
             <div class="ps-seg" id="psAsEvery"><button data-v="1">1 min</button><button data-v="2">2 min</button><button data-v="5">5 min</button><button data-v="10">10 min</button><button data-v="15">15 min</button><button data-v="30">30 min</button><button data-v="60">1 h</button></div></div>
@@ -499,7 +552,7 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
         </section>
         <section class="mm-sec" data-sec="import">
           <p class="ps-title">Import</p>
-          <p class="ps-intro">Chaque fichier importé devient une ou plusieurs pages du dossier : une page par image, une page par page de PDF ou de TIFF multipage. Les formats que le PDF ne sait pas contenir directement sont convertis à l'import.</p>
+          <p class="ps-intro">Chaque fichier importé devient une ou plusieurs pages du document : une page par image, une page par page de PDF ou de TIFF multipage. Les formats que le PDF ne sait pas contenir directement sont convertis à l'import.</p>
           <div class="ps-row"><div><div class="ps-h">Résolution des pages</div><div class="ps-sub">Plus elle est haute, plus les plans sont nets… et plus le fichier .mmd est lourd.</div></div>
             <div class="ps-seg" id="psDpi"><button data-v="150">150 ppp</button><button data-v="200">200 ppp</button><button data-v="300">300 ppp</button></div></div>
           <div class="ps-row" style="display:block"><div class="ps-h">Formats acceptés</div>
@@ -513,7 +566,7 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
           <p class="ps-intro">MomoDOC peut s'installer comme une vraie application : une icône sur le bureau, sa propre fenêtre, et les fichiers .mmd qui s'ouvrent d'un double-clic.</p>
           <div class="ps-row"><div><div class="ps-h">Installer MomoDOC</div><div class="ps-sub" id="psInstallNote"></div></div>
             <button class="ps-btn primary" id="psInstall">Installer</button></div>
-          <div class="ps-row"><div><div class="ps-h">Format de fichier</div><div class="ps-sub">.mmd — le dossier complet (structure, pages, page de garde). Les anciens fichiers .doe et .json s'ouvrent aussi.</div></div></div>
+          <div class="ps-row"><div><div class="ps-h">Format de fichier</div><div class="ps-sub">.mmd — le document complet (structure, pages, page de garde). Les anciens fichiers .doe et .json s'ouvrent aussi.</div></div></div>
         </section>
       </div>
     </div>
@@ -530,6 +583,24 @@ Promise.all(last).then(function(){ if(solid&&solid.animate) solid.animate([{opac
       <nav class="mm-tabs" data-tabs="hg" id="hgTabs"></nav>
       <div class="mm-pane" id="hgBody"></div>
     </div>
+  </div>
+</div>
+
+<!-- ======= Déplacer la page active ======= -->
+<div class="mm-modal" id="mv-modal" role="dialog" aria-modal="true" aria-labelledby="mvTitle" hidden>
+  <div class="mm-card narrow">
+    <div class="mm-head"><h3 id="mvTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13 3v5h5"/><path d="M18 8v3"/><path d="M15 17h7"/><path d="M19 14l3 3-3 3"/></svg>Déplacer la page</h3>
+      <button class="iconbtn" data-close title="Fermer (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mm-pane">
+      <div class="mv-cur"><img id="mvThumb" alt=""><div><div class="ps-h" id="mvWhat">Page</div><div class="ps-sub" id="mvWhere"></div></div></div>
+      <label class="mv-opt"><input type="radio" name="mvMode" value="to" checked><span><b>Vers un emplacement</b>
+        <span class="mv-line"><select id="mvTarget" class="mv-in"></select></span>
+        <span class="mv-line"><label class="mv-r"><input type="radio" name="mvPos" value="end" checked> à la fin</label><label class="mv-r"><input type="radio" name="mvPos" value="start"> au début</label></span></span></label>
+      <label class="mv-opt"><input type="radio" name="mvMode" value="between"><span><b>Entre deux pages</b>
+        <span class="mv-line">entre la page N° <input type="number" id="mvA" class="mv-in mv-num" min="1"> et la page N° <input type="number" id="mvB" class="mv-in mv-num" min="2"></span></span></label>
+      <p class="mv-hint" id="mvHint"></p>
+    </div>
+    <div class="mm-foot"><button class="ps-btn" data-close>Annuler</button><button class="ps-btn primary" id="mvGo">Déplacer</button></div>
   </div>
 </div>
 
@@ -566,7 +637,7 @@ function newState(){
   return {
     meta:{
       title:"",
-      subtitle:"DOSSIER D'OUVRAGE EXÉCUTÉ",
+      subtitle:"",
       footer:"SAS ANDRÉ TP – 1729 Route de Briançon – 05000 LA ROCHETTE\n04.92.51.20.45 – www.andretp.com"
     },
     logo:null,        // dataURL – repris en haut à droite de chaque page
@@ -658,8 +729,20 @@ function scrollToItem(id){
   if(id!=null && Object.prototype.hasOwnProperty.call(itemPageMap,id)) scrollToPageIndex(itemPageMap[id]);
 }
 function scrollToSommaire(){ const s=doc.querySelector(".page-sommaire"); if(s) s.scrollIntoView({behavior:"smooth", block:"start"}); }
+/* élément actif (jalon / section / sous-section) : c'est là que les nouveaux éléments se créent */
+let activeItemId = null, activePageImg = null, docPages = [], docToc = [];
+function setActiveItem(id){
+  activeItemId = id;
+  document.querySelectorAll("#sectionsList .is-active").forEach(e=>e.classList.remove("is-active"));
+  if(id){ const el=document.querySelector(`#sectionsList [data-id="${id}"]`); if(el) el.classList.add("is-active"); }
+}
 function wireRowNav(el, id){
-  el.addEventListener("click", e=>{ if(e.target.closest("input,button,.grip,a")) return; scrollToItem(id); });
+  el.addEventListener("click", e=>{
+    if(e.target.closest("button,.grip,a")) return;
+    setActiveItem(id);
+    if(e.target.closest("input")) return;
+    scrollToItem(id);
+  });
 }
 
 /* ---- helpers (liste à plat : jalons + sections + sous-sections) ---- */
@@ -684,7 +767,7 @@ function renderSections(){
   const list = $("#sectionsList");
   list.innerHTML = "";
   if(state.items.length === 0){
-    list.append(h("div","empty-note",{textContent:"Le dossier est vide. Commence par un jalon (un chapitre), puis ajoute des sections pour y importer tes pièces."}));
+    list.append(h("div","empty-note",{textContent:"Le document est vide. Commence par un jalon (un chapitre), puis ajoute des sections pour y importer tes pièces."}));
     return;
   }
   let jc=0, sc=0, ssc=0, curSecNum="";
@@ -746,7 +829,7 @@ function deleteBtn(item){
 }
 
 function renderJalon(item, num, group){
-  const row = h("div","jalon drag-item"); row.dataset.id = item.id;
+  const row = h("div","jalon drag-item"+(item.id===activeItemId?" is-active":"")); row.dataset.id = item.id;
   row.append(makeGrip(row, item));
   const caret = h("button","iconbtn sec-caret jalon-caret",{innerHTML:icon('<path d="M6 9l6 6 6-6"/>'), title:"Réduire / déplier le jalon"});
   caret.onclick = ()=>{ collapsedNodes.has(item.id)?collapsedNodes.delete(item.id):collapsedNodes.add(item.id); group.classList.toggle("collapsed"); updateCollapseLabel(); };
@@ -756,6 +839,7 @@ function renderJalon(item, num, group){
   const title = h("input","jalon-title",{value:item.title, type:"text", placeholder:"Titre du chapitre (jalon)"});
   title.addEventListener("input", ()=>{ item.title = title.value; markDirty(); renderDocument(); });
   title.addEventListener("change", recordHistory);
+  title.addEventListener("focus", ()=>setActiveItem(item.id));
   row.append(title);
   row.append(deleteBtn(item));
   wireRowNav(row, item.id);
@@ -763,7 +847,8 @@ function renderJalon(item, num, group){
 }
 
 function renderLeafCard(sec, number, kind, groupEl){
-  const card = h("div","node-card "+kind+" sec-card drag-item"); card.dataset.id = sec.id;
+  const card = h("div","node-card "+kind+" sec-card drag-item"+(sec.id===activeItemId?" is-active":"")); card.dataset.id = sec.id;
+  card.addEventListener("click", e=>{ if(!e.target.closest(".grip")) setActiveItem(sec.id); });
   const target = groupEl || card;                 // section -> replie le groupe (corps + sous-sections)
   if(collapsedNodes.has(sec.id)) target.classList.add("collapsed");
 
@@ -777,6 +862,7 @@ function renderLeafCard(sec, number, kind, groupEl){
   const name = h("input","sec-name",{value:sec.name, type:"text", placeholder: kind==="soussection" ? "Titre de la sous-section" : "Titre de la section"});
   name.addEventListener("input", ()=>{ sec.name = name.value; markDirty(); renderDocument(); });
   name.addEventListener("change", recordHistory);
+  name.addEventListener("focus", ()=>setActiveItem(sec.id));
   top.append(name);
   top.append(h("span","sec-count",{textContent:`${sec.images.length} p.`}));
   top.append(deleteBtn(sec));
@@ -796,7 +882,8 @@ function renderLeafCard(sec, number, kind, groupEl){
   if(sec.images.length){
     const grid = h("div","thumbs");
     sec.images.forEach((img, idx)=>{
-      const t = h("div","thumb",{draggable:true});
+      const t = h("div","thumb"+(img.id===activePageImg?" is-active":""),{draggable:true, title:"Clic : page active (à déplacer avec le bouton du bandeau)"}); t.dataset.img = img.id;
+      t.addEventListener("click", e=>{ if(e.target.closest(".del")) return; setActivePage(img.id, {scroll:true}); });
       t.innerHTML = `<img src="${img.src}" alt=""><span class="num">${idx+1}</span>`;
       const x = h("button","del",{innerHTML:icon('<path d="M6 6l12 12M18 6L6 18"/>'), title:"Supprimer"});
       x.onclick = (e)=>{ e.stopPropagation(); sec.images.splice(idx,1); changed(); };
@@ -851,6 +938,7 @@ function setupListDnD(){
 }
 
 function changed(){ markDirty(); renderSections(); renderDocument(); recordHistory(); }
+
 
 
 /* ============ Import : PDF, JPEG, PNG, TIFF, BMP, JPEG XR, HEIC, WEBP ============ */
@@ -1104,12 +1192,12 @@ function buildCover(){
   logoZone.addEventListener("click", ()=> $("#inLogo").click());
   wireDrop(logoZone, async files=>{ const f=[...files][0]; if(f){ const src=await fileToSingleImage(f,true); if(src){ state.logo=src; changed(); } } });
 
-  const title = h("div","cov-title ph"); title.contentEditable="true"; title.dataset.ph="Titre du dossier";
+  const title = h("div","cov-title ph"); title.contentEditable="true"; title.dataset.ph="Titre du document";
   title.textContent = state.meta.title;
   title.addEventListener("input", ()=>{ state.meta.title = title.textContent.trim(); markDirty(); });
   title.addEventListener("blur", recordHistory);
 
-  const sub = h("div","cov-sub ph"); sub.contentEditable="true"; sub.dataset.ph="Sous-titre";
+  const sub = h("div","cov-sub ph"); sub.contentEditable="true"; sub.dataset.ph="Type de document";
   sub.textContent = state.meta.subtitle;
   sub.addEventListener("input", ()=>{ state.meta.subtitle = sub.textContent.trim(); markDirty(); });
   sub.addEventListener("blur", recordHistory);
@@ -1171,8 +1259,11 @@ function buildSommaire(entries){
 }
 
 function buildImagePage(p, pageNumber){
-  const page = pageEl("page-content-img");
+  const page = pageEl("page-content-img"+(p.imgId===activePageImg?" is-active":""));
   if(p.itemId) page.id = "doe-"+p.itemId;
+  page.dataset.img = p.imgId;
+  page.title = "Clic : page active (à déplacer avec le bouton du bandeau)";
+  page.addEventListener("click", ()=>setActivePage(p.imgId));
   addLogoAndNum(page, pageNumber);
   if(p.first){                          // 1re page : bandeau haut-gauche
     const head = h("div","sec-head");
@@ -1215,11 +1306,11 @@ function buildDocModel(){
     }else if(item.type==="section"){
       sc++; ssc=0; const num = jc>0 ? `${jc}.${sc}` : `${sc}`; curSecNum = num; curSecName = item.name;
       toc.push({depth:1, kind:"section", number:num, title:item.name, offset:pages.length, page:0, itemId:item.id});
-      item.images.forEach((img,ii)=> pages.push({type:"image", src:img.src, secNum:num, secTitle:item.name, first: ii===0, itemId: ii===0 ? item.id : null}));
+      item.images.forEach((img,ii)=> pages.push({type:"image", src:img.src, secNum:num, secTitle:item.name, first: ii===0, itemId: ii===0 ? item.id : null, imgId:img.id, secId:item.id}));
     }else{ // soussection
       ssc++; const num = curSecNum ? `${curSecNum}.${ssc}` : `${ssc}`;
       toc.push({depth:2, kind:"section", number:num, title:item.name, offset:pages.length, page:0, itemId:item.id});
-      item.images.forEach((img,ii)=> pages.push({type:"image", src:img.src, secNum:num, secTitle:item.name, first: ii===0, itemId: ii===0 ? item.id : null, parent:{num:curSecNum, title:curSecName}}));
+      item.images.forEach((img,ii)=> pages.push({type:"image", src:img.src, secNum:num, secTitle:item.name, first: ii===0, itemId: ii===0 ? item.id : null, imgId:img.id, secId:item.id, parent:{num:curSecNum, title:curSecName}}));
     }
   });
   return {toc, pages};
@@ -1248,6 +1339,11 @@ function renderDocument(){
   const domBase = 1 + S;
   toc.forEach(en=>{ if(en.itemId!=null) itemPageMap[en.itemId] = domBase + en.offset; });
   if(somPages[0]) somPages[0].page.id = "doe-sommaire";
+
+  // pages numérotées (pour « déplacer entre la page N et la page N+1 »)
+  docPages = pages.map((p,idx)=>({no:contentStart+idx, type:p.type, imgId:p.imgId, secId:p.secId, itemId:p.itemId}));
+  docToc = toc.map(en=>({id:en.itemId, number:en.number, title:en.title, kind:en.kind, depth:en.depth, page:en.page}));
+  if(typeof updateMoveBtn==="function") updateMoveBtn();
 
   // 5) Pages de contenu
   pages.forEach((p,idx)=>{
@@ -1493,7 +1589,7 @@ async function exportPDF(){
   try{
     const pdf = await buildPdf((i,n)=> setBusy(`Génération du PDF — page ${i}/${n}…`));
     setBusy("Enregistrement…"); await yieldUI();
-    const name = (state.meta.title || "DOE").replace(/[^\w\-À-ÿ ]+/g,"").trim().replace(/\s+/g,"_") || "DOE";
+    const name = (state.meta.title || "DOCUMENT").replace(/[^\w\-À-ÿ ]+/g,"").trim().replace(/\s+/g,"_") || "DOCUMENT";
     pdf.save(name + ".pdf");
   }catch(err){
     alert("Échec de la génération du PDF : " + (err && err.message ? err.message : err));
@@ -1506,6 +1602,7 @@ function currentAutoScale(){
   const canvas=$("#canvas");
   return Math.min(1,(canvas.clientWidth-56)/A4_PX);
 }
+
 
 
 /* ============ Réglages (enregistrés sur ce poste) ============ */
@@ -1528,8 +1625,8 @@ function renderAll(){ renderSections(); renderDocument(); }
    Chrome / Edge : vrai fichier sur le disque, « Enregistrer » réécrit le même fichier.
    Autres navigateurs : Enregistrer = téléchargement, Ouvrir = sélecteur classique.
    ===================================================================== */
-const MMD_TYPES  = [{description:"Dossier MomoDOC (.mmd)", accept:{"application/x-momodoc":[".mmd"]}}];
-const OPEN_TYPES = [{description:"Dossiers MomoDOC (.mmd, anciens .doe et .json)", accept:{"application/x-momodoc":[".mmd"], "application/x-doe":[".doe"], "application/json":[".json"]}}];
+const MMD_TYPES  = [{description:"Document MomoDOC (.mmd)", accept:{"application/x-momodoc":[".mmd"]}}];
+const OPEN_TYPES = [{description:"Documents MomoDOC (.mmd, anciens .doe et .json)", accept:{"application/x-momodoc":[".mmd"], "application/x-doe":[".doe"], "application/json":[".json"]}}];
 const OPEN_OK = typeof window.showOpenFilePicker === "function";
 const SAVE_OK = typeof window.showSaveFilePicker === "function";
 let fileHandle=null, fileName=null, busySaving=false;
@@ -1539,10 +1636,10 @@ function serialize(){ return JSON.stringify(Object.assign({app:"MomoDOC", format
 function suggestedName(){ return (fileName ? fileName.replace(/\.(mmd|doe|json)$/i,"") : docBaseName()) + ".mmd"; }
 function updateTitle(){
   const el=$("#docName");
-  el.textContent = fileName || "Nouveau dossier";
+  el.textContent = fileName || "Nouveau document";
   el.classList.toggle("unsaved", !fileHandle);
-  el.title = fileHandle ? `Dossier en cours : ${fileName}` : "Pas encore enregistré (Ctrl+S)";
-  $("#ddFileName").textContent = fileName || "Nouveau dossier (pas encore enregistré)";
+  el.title = fileHandle ? `Document en cours : ${fileName}` : "Pas encore enregistré (Ctrl+S)";
+  $("#ddFileName").textContent = fileName || "Nouveau document (pas encore enregistré)";
   document.title = (fileName ? fileName.replace(/\.mmd$/i,"") + " - " : "") + "MomoDOC";
 }
 function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asClean(); updateTitle(); }
@@ -1558,7 +1655,7 @@ function loadText(text){
   try{ obj=JSON.parse(text); }catch(e){ return false; }
   if(!obj || typeof obj!=="object" || (!("items" in obj) && !("tree" in obj) && !("sections" in obj))) return false;
   state = {
-    meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "DOSSIER D'OUVRAGE EXÉCUTÉ", footer: obj.meta?.footer ?? "" },
+    meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "", footer: obj.meta?.footer ?? "" },
     logo: obj.logo ?? null, photo: obj.photo ?? null, items: toItems(obj)
   };
   collapsedNodes.clear();
@@ -1571,7 +1668,7 @@ function loadText(text){
 async function loadFile(file, handle){
   let ok=false;
   try{ ok=loadText(await file.text()); }catch(e){ ok=false; }
-  if(!ok){ alert(`« ${file.name} » n'a pas pu être ouvert : ce n'est pas un dossier MomoDOC (.mmd), ni un ancien .doe ou .json.`); return false; }
+  if(!ok){ alert(`« ${file.name} » n'a pas pu être ouvert : ce n'est pas un document MomoDOC (.mmd), ni un ancien .doe ou .json.`); return false; }
   const isMmd=/\.mmd$/i.test(file.name);
   fileHandle = (isMmd && handle) ? handle : null;
   fileName = isMmd ? file.name : file.name.replace(/\.(doe|json)$/i,"") + ".mmd";
@@ -1591,7 +1688,7 @@ async function writeHandle(hnd){
 const startIn = ()=> fileHandle || "documents";
 
 async function openDoc(){
-  if(dirty && hasContent() && !confirm("Ouvrir un autre dossier ? Les modifications non enregistrées seront perdues.")) return;
+  if(dirty && hasContent() && !confirm("Ouvrir un autre document ? Les modifications non enregistrées seront perdues.")) return;
   if(!OPEN_OK){ $("#inJson").click(); return; }
   let hnd;
   try{ [hnd]=await window.showOpenFilePicker({id:"momodoc-open", startIn:startIn(), multiple:false, types:OPEN_TYPES}); }
@@ -1649,7 +1746,7 @@ async function autosaveNow(force){
     const data=serialize(), sig=data.length+":"+hIndex+":"+(fileName||"");
     if(!force && sig===asLastSig) return false;
     const list=await asList(); if(list===null) return false;
-    const e={t:Date.now(), name:fileName||"Dossier sans nom", title:state.meta.title||"", n:pageCount(), unsaved:dirty, data};
+    const e={t:Date.now(), name:fileName||"Document sans nom", title:state.meta.title||"", n:pageCount(), unsaved:dirty, data};
     if(list.length && list[0].data===data){ list[0].t=e.t; list[0].unsaved=e.unsaved; } else list.unshift(e);
     const big=data.length>20e6;                 // gros dossiers : on en garde moins pour ne pas remplir le navigateur
     await asPut(list.slice(0, big?3:AS_MAX)); asLastSig=sig; return true;
@@ -1659,16 +1756,16 @@ async function autosaveNow(force){
 const asWhen = t=>{ const d=new Date(t), z=n=>String(n).padStart(2,"0"); return z(d.getDate())+"/"+z(d.getMonth()+1)+" à "+d.getHours()+"h"+z(d.getMinutes()); };
 function asRestore(e){
   if(!e || !loadText(e.data)) return;
-  fileHandle=null; fileName = e.name==="Dossier sans nom" ? null : e.name;
+  fileHandle=null; fileName = (e.name==="Document sans nom"||e.name==="Dossier sans nom") ? null : e.name;
   markDirtyTitle(); asClean();
-  toast(`Dossier récupéré (sauvegarde du ${asWhen(e.t)}) : pense à l'enregistrer`);
+  toast(`Document récupéré (sauvegarde du ${asWhen(e.t)}) : pense à l'enregistrer`);
 }
 function markDirtyTitle(){ markDirty(); updateTitle(); }
 function asBanner(e){
   const old=$("#as-banner"); if(old) old.remove();
   const b=h("div","as-banner"); b.id="as-banner"; b.setAttribute("role","alert");
   b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>`;
-  b.append(h("span",null,{innerHTML:`Un dossier non enregistré a été retrouvé : <b>${escapeHtml(e.title||e.name)}</b>, ${e.n} page(s), sauvegardé automatiquement le ${asWhen(e.t)}.`}));
+  b.append(h("span",null,{innerHTML:`Un document non enregistré a été retrouvé : <b>${escapeHtml(e.title||e.name)}</b>, ${e.n} page(s), sauvegardé automatiquement le ${asWhen(e.t)}.`}));
   const yes=h("button","ps-btn primary",{textContent:"Récupérer"}), no=h("button","ps-btn",{textContent:"Ignorer"});
   yes.onclick=()=>{ b.remove(); asRestore(e); }; no.onclick=()=>{ b.remove(); asClean(); };
   b.append(yes,no); document.body.append(b);
@@ -1689,14 +1786,14 @@ async function openAutosaves(){
   await autosaveNow(false);
   const list=await asList()||[], box=$("#asList"); box.innerHTML="";
   box.append(h("p","ps-intro",{innerHTML:`MomoDOC garde ici, dans ce navigateur, les ${AS_MAX} dernières versions de ton travail${settings.asOn?` (toutes les ${settings.asEvery>=60?"heures":settings.asEvery+" min"})`:" (sauvegarde automatique désactivée dans les Paramètres)"}. Elles ne remplacent pas l'enregistrement de ton fichier .mmd.`}));
-  if(!list.length) box.append(h("p","ps-sub",{textContent:"Aucune sauvegarde automatique pour l'instant : elles se font dès que le dossier change."}));
+  if(!list.length) box.append(h("p","ps-sub",{textContent:"Aucune sauvegarde automatique pour l'instant : elles se font dès que le document change."}));
   list.forEach(e=>{
     const r=h("div","as-row"), t=h("div","t");
     t.append(h("div","n",{textContent:e.title ? `${e.title} — ${e.name}` : e.name}));
     t.append(h("div","d",{innerHTML:`${asWhen(e.t)} · ${e.n} page(s)${e.unsaved?' · <span class="u">non enregistré</span>':""}`}));
     const b=h("button","ps-btn primary",{textContent:"Rouvrir"});
     b.onclick=()=>{
-      if(dirty && hasContent() && !confirm(`Le dossier en cours a des modifications non enregistrées. Le remplacer par la sauvegarde du ${asWhen(e.t)} ?`)) return;
+      if(dirty && hasContent() && !confirm(`Le document en cours a des modifications non enregistrées. Le remplacer par la sauvegarde du ${asWhen(e.t)} ?`)) return;
       closeModal("as-modal"); asRestore(e);
     };
     r.append(t,b); box.append(r);
@@ -1743,8 +1840,8 @@ async function setupManifest(){
   const [i192,i512,iMask,iApple]=await Promise.all([logoIcon(192),logoIcon(512),logoIcon(512,true),logoIcon(180)]);
   const icons=[]; if(i192) icons.push({src:i192,sizes:"192x192",type:"image/png"}); if(i512) icons.push({src:i512,sizes:"512x512",type:"image/png"}); if(iMask) icons.push({src:iMask,sizes:"512x512",type:"image/png",purpose:"maskable"});
   const manifest={
-    name:"MomoDOC - Dossiers d'Ouvrage Exécuté", short_name:"MomoDOC", lang:"fr",
-    description:"Composer des DOE : page de garde, sommaire automatique, intercalaires, import PDF et images, export PDF.",
+    name:"MomoDOC - Mise en forme de documents", short_name:"MomoDOC", lang:"fr",
+    description:"Composer des documents (DOE, dossiers techniques, mémoires…) : page de garde, sommaire automatique, intercalaires, import PDF et images, export PDF.",
     id:scope, start_url:here, scope, display:"standalone", background_color:"#1e1e1e", theme_color:"#1f2937", icons,
     file_handlers:[{action:here, accept:{"application/x-momodoc":[".mmd"]}, icons: i192?[{src:i192,sizes:"192x192",type:"image/png"}]:[], launch_type:"single-client"}]
   };
@@ -1823,15 +1920,152 @@ $("#btnRedo").addEventListener("click", redo);
 $("#btnSommaire").addEventListener("click", scrollToSommaire);
 
 /* structure */
-/* un élément ajouté reste replié, mais ses conteneurs (jalon, section) s'ouvrent pour qu'on le voie */
+/* Création dans l'élément actif :
+   - jalon : juste après le chapitre actif (sinon à la fin)
+   - section : à la fin du chapitre actif, ou juste après la section active (avec ses sous-sections)
+   - sous-section : à la fin de la section active, ou juste après la sous-section active
+   Un élément ajouté reste replié, mais ses conteneurs s'ouvrent pour qu'on le voie, et il devient l'élément actif. */
+const IT = ()=>state.items;
+const idxOf = id => IT().findIndex(i=>i.id===id);
+function jalonIndexFor(k){ for(let i=k;i>=0;i--) if(IT()[i].type==="jalon") return i; return -1; }
+function sectionIndexFor(k){ for(let i=k;i>=0;i--){ const t=IT()[i].type; if(t==="section") return i; if(t==="jalon") return -1; } return -1; }
+function endOfJalon(j){ let i=j+1; while(i<IT().length && IT()[i].type!=="jalon") i++; return i; }
+function endOfSection(s){ let i=s+1; while(i<IT().length && IT()[i].type==="soussection") i++; return i; }
+function insertPosition(type){
+  const a = activeItemId ? idxOf(activeItemId) : -1;
+  if(type==="jalon"){
+    const j = a>=0 ? jalonIndexFor(a) : -1;
+    return {pos: j>=0 ? endOfJalon(j) : IT().length};
+  }
+  if(type==="section"){
+    if(a<0) return {pos:IT().length};
+    if(IT()[a].type==="jalon") return {pos:endOfJalon(a)};
+    const s=sectionIndexFor(a);
+    if(s>=0) return {pos:endOfSection(s)};
+    return {pos:a+1};
+  }
+  // sous-section : il lui faut une section
+  if(a<0){ const s=sectionIndexFor(IT().length-1); return s>=0 ? {pos:endOfSection(s)} : {err:true}; }
+  const t=IT()[a].type;
+  if(t==="soussection") return {pos:a+1};
+  if(t==="section") return {pos:endOfSection(a)};
+  const end=endOfJalon(a), s=sectionIndexFor(end-1);       // jalon actif : dans sa dernière section
+  return (s>a) ? {pos:endOfSection(s)} : {err:true};
+}
 function addItem(it){
-  const lastOf=t=>{ for(let i=state.items.length-1;i>=0;i--){ if(state.items[i].type===t) return state.items[i]; if(t==="section" && state.items[i].type==="jalon") return null; } return null; };
-  if(it.type!=="jalon"){ const j=lastOf("jalon"); if(j) collapsedNodes.delete(j.id); }
-  if(it.type==="soussection"){ const s=lastOf("section"); if(s) collapsedNodes.delete(s.id); }
-  collapsedNodes.add(it.id); state.items.push(it); changed();
-  const el=document.querySelector(`[data-id="${it.id}"]`);
+  const where=insertPosition(it.type);
+  if(where.err){ toast("Une sous-section se range dans une section : ajoute ou choisis d'abord une section"); return; }
+  IT().splice(where.pos, 0, it);
+  const k=where.pos, j=jalonIndexFor(k-1), s=sectionIndexFor(k-1);
+  if(it.type!=="jalon" && j>=0) collapsedNodes.delete(IT()[j].id);
+  if(it.type==="soussection" && s>=0) collapsedNodes.delete(IT()[s].id);
+  collapsedNodes.add(it.id);
+  activeItemId=it.id;
+  changed();
+  const el=document.querySelector(`#sectionsList [data-id="${it.id}"]`);
   if(el){ el.scrollIntoView({block:"nearest"}); const inp=el.querySelector("input"); if(inp) inp.focus(); }
 }
+
+/* ============ Page active + déplacement ============ */
+function findImg(id){ for(const it of IT()) if(it.type!=="jalon"){ const k=it.images.findIndex(x=>x.id===id); if(k>=0) return {sec:it, k}; } return null; }
+function setActivePage(imgId, opts={}){
+  activePageImg = findImg(imgId) ? imgId : null;
+  document.querySelectorAll(".page.is-active, .thumb.is-active").forEach(e=>e.classList.remove("is-active"));
+  if(!activePageImg){ updateMoveBtn(); return; }
+  document.querySelectorAll(`[data-img="${activePageImg}"]`).forEach(e=>e.classList.add("is-active"));
+  const f=findImg(activePageImg); if(f) setActiveItem(f.sec.id);
+  if(opts.scroll){ const p=doc.querySelector(`.page[data-img="${activePageImg}"]`); if(p) p.scrollIntoView({behavior:"smooth", block:"start"}); }
+  updateMoveBtn();
+}
+function pageInView(){   // page de contenu au centre de l'aperçu
+  const c=$("#canvas").getBoundingClientRect(), mid=c.top+c.height/2; let best=null, bd=1e9;
+  doc.querySelectorAll(".page[data-img]").forEach(p=>{ const r=p.getBoundingClientRect(); const d = (mid>=r.top && mid<=r.bottom) ? 0 : Math.min(Math.abs(r.top-mid),Math.abs(r.bottom-mid)); if(d<bd){ bd=d; best=p.dataset.img; } });
+  return best;
+}
+function updateMoveBtn(){ const b=$("#btnMovePage"); if(b) b.disabled = !docPages.some(p=>p.type==="image"); }
+const tocOf = id => docToc.find(t=>t.id===id);
+function labelOf(id){ const t=tocOf(id); return t ? `${t.number} - ${t.title||"(sans titre)"}` : "?"; }
+
+let mvImg=null;
+function openMove(){
+  if(activePageImg && !findImg(activePageImg)) activePageImg=null;
+  mvImg = activePageImg || pageInView();
+  if(!mvImg){ toast("Aucune page à déplacer : importe d'abord des fichiers dans une section"); return; }
+  setActivePage(mvImg);
+  const f=findImg(mvImg), pg=docPages.find(p=>p.imgId===mvImg);
+  $("#mvThumb").src=f.sec.images[f.k].src;
+  $("#mvWhat").textContent=`Page N° ${pg.no}`;
+  $("#mvWhere").textContent=`${labelOf(f.sec.id)} · page ${f.k+1} sur ${f.sec.images.length}`;
+  // emplacements possibles : sections et sous-sections, rangées par jalon
+  const sel=$("#mvTarget"); sel.innerHTML=""; let grp=null;
+  docToc.forEach(t=>{
+    if(t.kind==="chapter"){ grp=h("optgroup"); grp.label=`${t.number} - ${t.title||"(sans titre)"}`; sel.append(grp); return; }
+    const it=findItem(t.id); if(!it) return;
+    const o=h("option",null,{value:t.id, textContent:`${t.depth===2?"   ":""}${t.number} - ${t.title||"(sans titre)"} (${it.images.length} p.)`});
+    if(t.id===f.sec.id) o.selected=true;
+    (grp||sel).append(o);
+  });
+  $("#mvA").value=pg.no; $("#mvB").value=pg.no+1;
+  $("#mvA").max=$("#mvB").max=docPages.length?docPages[docPages.length-1].no:1;
+  document.querySelector('input[name=mvMode][value="to"]').checked=true;
+  updateMoveHint();
+  openModal("mv-modal");
+}
+/* calcule la destination ; renvoie {secId, after|before|index} ou {err} */
+function moveDest(){
+  const mode=document.querySelector("input[name=mvMode]:checked").value;
+  if(mode==="to"){
+    const secId=$("#mvTarget").value; if(!secId) return {err:"Choisis une section ou une sous-section."};
+    return {secId, at: document.querySelector("input[name=mvPos]:checked").value};
+  }
+  const a=parseInt($("#mvA").value,10), b=parseInt($("#mvB").value,10);
+  if(!Number.isInteger(a) || !Number.isInteger(b)) return {err:"Indique deux numéros de page."};
+  if(b!==a+1) return {err:"Les deux numéros doivent se suivre (par exemple entre la page 12 et la page 13)."};
+  const pa=docPages.find(p=>p.no===a), pb=docPages.find(p=>p.no===b);
+  if(pa && pa.type==="image") return {secId:pa.secId, after:pa.imgId};
+  if(pb && pb.type==="image") return {secId:pb.secId, before:pb.imgId};
+  if(pa && pa.type==="divider" || pb && pb.type==="divider") return {err:"Il n'y a pas de section à cet endroit : la page doit aller dans une section (pas sur un intercalaire)."};
+  return {err:`Les pages de contenu vont de la page ${docPages.length?docPages[0].no:"?"} à la page ${docPages.length?docPages[docPages.length-1].no:"?"}.`};
+}
+function updateMoveHint(){
+  const d=moveDest(), el=$("#mvHint");
+  el.classList.toggle("err", !!d.err);
+  if(d.err){ el.textContent=d.err; $("#mvGo").disabled=true; return; }
+  $("#mvGo").disabled=false;
+  if(d.after===mvImg || d.before===mvImg){ el.textContent="La page est déjà à cet endroit."; $("#mvGo").disabled=true; return; }
+  const where=labelOf(d.secId);
+  if(d.at) el.textContent=`→ ${d.at==="start"?"au début":"à la fin"} de ${where}`;
+  else if(d.after) el.textContent=`→ dans ${where}, juste après la page N° ${docPages.find(p=>p.imgId===d.after).no}`;
+  else el.textContent=`→ dans ${where}, juste avant la page N° ${docPages.find(p=>p.imgId===d.before).no}`;
+}
+function doMove(){
+  const d=moveDest(); if(d.err || !mvImg) return;
+  const src=findImg(mvImg), tgt=findItem(d.secId); if(!src || !tgt) return;
+  if(d.after===mvImg || d.before===mvImg){ closeModal("mv-modal"); return; }
+  const [img]=src.sec.images.splice(src.k,1);
+  let k;
+  if(d.at) k = d.at==="start" ? 0 : tgt.images.length;
+  else if(d.after) k = tgt.images.findIndex(x=>x.id===d.after)+1;
+  else k = tgt.images.findIndex(x=>x.id===d.before);
+  tgt.images.splice(Math.max(0,Math.min(k,tgt.images.length)),0,img);
+  collapsedNodes.delete(tgt.id);
+  closeModal("mv-modal");
+  changed();
+  setActivePage(img.id, {scroll:true});
+  const pg=docPages.find(p=>p.imgId===img.id);
+  toast(`Page déplacée dans ${labelOf(tgt.id)} (page N° ${pg?pg.no:"?"})`);
+}
+$("#btnMovePage").addEventListener("click", openMove);
+$("#mvGo").addEventListener("click", doMove);
+["#mvTarget","#mvA","#mvB"].forEach(s=>$(s).addEventListener("input", e=>{
+  if(s==="#mvA" && e.target.value!=="") $("#mvB").value=+e.target.value+1;
+  if(s==="#mvB" && e.target.value!=="") $("#mvA").value=+e.target.value-1;
+  document.querySelector(`input[name=mvMode][value="${s==="#mvTarget"?"to":"between"}"]`).checked=true;
+  updateMoveHint();
+}));
+["#mvA","#mvB","#mvTarget"].forEach(s=>$(s).addEventListener("focus", ()=>{ document.querySelector(`input[name=mvMode][value="${s==="#mvTarget"?"to":"between"}"]`).checked=true; updateMoveHint(); }));
+document.querySelectorAll("input[name=mvMode], input[name=mvPos]").forEach(r=>r.addEventListener("change", updateMoveHint));
+$("#mv-modal").addEventListener("keydown", e=>{ if(e.key==="Enter" && !$("#mvGo").disabled){ e.preventDefault(); doMove(); } });
 $("#btnAddJalon").addEventListener("click", ()=>addItem(newJalon()));
 $("#btnAddSection").addEventListener("click", ()=>addItem(newSection()));
 $("#btnAddSub").addEventListener("click", ()=>addItem(newSous()));
@@ -1890,39 +2124,42 @@ const GI = {   // icônes (les mêmes que dans l'interface)
   start:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>',
   cover:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8"/><rect x="8" y="14" width="8" height="5"/></svg>',
   keys:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>',
+  move:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13 3v5h5"/><path d="M18 8v3"/><path d="M15 17h7"/><path d="M19 14l3 3-3 3"/></svg>',
   image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
 };
 const b_ = (k,c)=>`<span class="hg-btn ${c||""}">${GI[k]}</span>`;
 const GUIDE = [
   {id:"start", t:"Bienvenue", i:"start", h:`
-    <p class="hg-intro">MomoDOC sert à monter un DOE propre et complet : une page de garde à ton image, un sommaire qui se met à jour tout seul, des intercalaires entre les chapitres, et toutes tes pièces (PV, fiches techniques, plans, photos…) mises en page avec ton logo et la pagination. À la fin, un seul PDF, avec un sommaire cliquable.</p>
+    <p class="hg-intro">MomoDOC sert à monter un document propre et complet à partir de pièces éparses : un DOE, un dossier technique, un mémoire, un recueil de fiches produits ou de PV… Une page de garde à ton image, un sommaire qui se met à jour tout seul, des intercalaires entre les chapitres, et toutes tes pièces (PV, fiches techniques, plans, photos…) mises en page avec ton logo et la pagination. À la fin, un seul PDF, avec un sommaire cliquable.</p>
     <p class="hg-sub">En trois étapes</p>
     <ol class="hg-steps">
-      <li><b>Remplis la page de garde</b> : clique directement sur la première page pour importer le logo, taper le titre et ajouter la photo du chantier.</li>
+      <li><b>Remplis la page de garde</b> : clique directement sur la première page pour importer le logo, taper le titre, le type de document (DOE, mémoire technique…) et ajouter la photo du chantier.</li>
       <li><b>Construis la structure</b> à gauche : des jalons (les chapitres), des sections et des sous-sections, puis importe tes fichiers dans chaque section.</li>
       <li><b>Exporte le PDF</b> avec ${b_("print")}. Le sommaire, les numéros de page et les intercalaires sont calculés pour toi.</li>
     </ol>
-    <p class="hg-tip">Enregistre tôt avec <kbd>Ctrl</kbd>+<kbd>S</kbd> : ton dossier devient un fichier .mmd que tu pourras rouvrir et compléter au fil du chantier.</p>`},
+    <p class="hg-tip">Enregistre tôt avec <kbd>Ctrl</kbd>+<kbd>S</kbd> : ton document devient un fichier .mmd que tu pourras rouvrir et compléter au fil du chantier.</p>`},
   {id:"struct", t:"Structure", i:"jalon", h:`
-    <p class="hg-intro">La colonne de gauche, c'est le plan de ton dossier. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront.</p>
+    <p class="hg-intro">La colonne de gauche, c'est le plan de ton document. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront.</p>
     <ul class="hg-list">
-      <li><b>${b_("jalon","c-blue")} Jalon</b><p>Un chapitre du DOE (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque jalon crée automatiquement sa page intercalaire, avec son numéro et son titre, et ouvre une nouvelle numérotation : les sections qui suivent deviennent 1.1, 1.2, 1.3…</p></li>
+      <li><b>${b_("jalon","c-blue")} Jalon</b><p>Un chapitre du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque jalon crée automatiquement sa page intercalaire, avec son numéro et son titre, et ouvre une nouvelle numérotation : les sections qui suivent deviennent 1.1, 1.2, 1.3…</p></li>
       <li><b>${b_("section","c-blue")} Section</b><p>Un ensemble de pages : un Kbis, une attestation, un rapport d'essais… C'est là que tu importes tes fichiers. La première page de chaque section porte son numéro et son nom en haut à gauche.</p></li>
       <li><b>${b_("sous")} Sous-section</b><p>Pour découper une section en plusieurs pièces (1.1.1, 1.1.2…). Elle se range sous la section qui la précède. Sur sa première page, le nom de la section s'affiche, puis celui de la sous-section en italique juste en dessous.</p></li>
     </ul>
     <p class="hg-sub">Ranger et organiser</p>
     <ul class="hg-list">
+      <li><b>Créer au bon endroit</b><p>Clique sur un jalon, une section ou une sous-section : elle se surligne en bleu, c'est l'élément actif. Les boutons Jalon, Section et Sous-sect. créent le nouvel élément à cet endroit : une section se range dans le jalon actif, une sous-section dans la section active, un jalon juste après le chapitre actif. Sans élément actif, tout s'ajoute à la fin.</p></li>
       <li><b>${b_("grip")} Déplacer</b><p>Attrape un élément par sa poignée et glisse-le à sa place : une ligne bleue montre où il va se poser. Pour ranger une section dans un chapitre, il suffit de la poser sous le bon jalon.</p></li>
-      <li><b>${b_("caret")} Replier</b><p>Chaque niveau se replie : un jalon replié cache ses sections, une section repliée cache ses pages et ses sous-sections. À l'ouverture d'un dossier, tout est replié pour garder une vue claire ; « Tout déplier » ouvre tout d'un coup.</p></li>
+      <li><b>${b_("caret")} Replier</b><p>Chaque niveau se replie : un jalon replié cache ses sections, une section repliée cache ses pages et ses sous-sections. À l'ouverture d'un document, tout est replié pour garder une vue claire ; « Tout déplier » ouvre tout d'un coup.</p></li>
       <li><b>${b_("x","c-red")} ${b_("trash","c-red")} Supprimer</b><p>La croix supprime une section ou une sous-section, avec ses pages. La corbeille supprime un jalon, mais garde les sections qui étaient dessous.</p></li>
-      <li><b>Aller à une page</b><p>Clique sur une ligne de la structure (son numéro, son icône ou le fond de la ligne) : l'aperçu saute directement à cet endroit du dossier. ${b_("som","c-sky")} te ramène au sommaire.</p></li>
+      <li><b>Aller à une page</b><p>Clique sur une ligne de la structure (son numéro, son icône ou le fond de la ligne) : l'aperçu saute directement à cet endroit du document. ${b_("som","c-sky")} te ramène au sommaire.</p></li>
+      <li><b>${b_("move","c-amber")} Déplacer une page</b><p>Clique une page dans l'aperçu (ou sa vignette) : elle s'entoure de bleu, c'est la page active. Le bouton ${b_("move","c-amber")} du bandeau ouvre une fenêtre où tu choisis où l'envoyer : dans une section ou une sous-section (au début ou à la fin), ou bien entre deux numéros de page, par exemple entre la page 12 et la page 13. La destination s'affiche avant de valider.</p></li>
     </ul>`},
   {id:"import", t:"Importer", i:"image", h:`
     <p class="hg-intro">Déplie une section et utilise ${b_("imp")} <b>Importer des fichiers</b>, ou glisse-les directement dans la zone en pointillés. Tu peux en déposer plusieurs à la fois, et mélanger les formats.</p>
     <p class="hg-sub">Formats acceptés</p>
     <div class="hg-fmts"><span>PDF</span><span>JPEG</span><span>PNG</span><span>TIFF</span><span>BMP</span><span>WEBP</span><span>HEIC</span><span>JPEG XR</span></div>
     <ul class="hg-list" style="margin-top:12px">
-      <li><b>Une page par image</b><p>Chaque image devient une page du dossier, avec ton logo en haut à droite et son numéro en bas à droite.</p></li>
+      <li><b>Une page par image</b><p>Chaque image devient une page du document, avec ton logo en haut à droite et son numéro en bas à droite.</p></li>
       <li><b>PDF et TIFF page par page</b><p>Un PDF de 40 pages donne 40 pages dans la section, dans le même ordre. Pareil pour un TIFF multipage, comme ceux qui sortent souvent des scanners.</p></li>
       <li><b>Photos de téléphone</b><p>Les photos HEIC des iPhone et les formats moins courants (WEBP, BMP, JPEG XR) sont convertis à l'import : tu n'as rien à préparer avant.</p></li>
       <li><b>Réorganiser les pages</b><p>Les vignettes d'une section se déplacent à la souris pour changer l'ordre ; la petite croix au survol retire une page.</p></li>
@@ -1932,19 +2169,19 @@ const GUIDE = [
   {id:"page", t:"Mise en page", i:"cover", h:`
     <p class="hg-intro">L'aperçu à droite, c'est exactement ce que contiendra ton PDF, page par page, au format A4.</p>
     <ul class="hg-list">
-      <li><b>Page de garde</b><p>Tout s'édite en cliquant dessus : le logo (cadre du haut), le titre, le sous-titre, la photo du chantier et le pied de page avec tes coordonnées.</p></li>
+      <li><b>Page de garde</b><p>Tout s'édite en cliquant dessus : le logo (cadre du haut), le titre, le type de document (DOE, dossier technique, mémoire…), la photo du chantier et le pied de page avec tes coordonnées. Une case laissée vide n'apparaît pas dans le PDF.</p></li>
       <li><b>Logo et numéros</b><p>Le logo importé sur la page de garde est repris en haut à droite de chaque page de contenu, et le numéro de page s'affiche en bas à droite.</p></li>
       <li><b>Sommaire automatique</b><p>Il liste les jalons, sections et sous-sections avec leur numéro de page, et se met à jour à chaque changement. Au-delà de 30 lignes, il continue sur une page suivante.</p></li>
       <li><b>Intercalaires</b><p>Chaque jalon ouvre son chapitre par une page de séparation à son titre.</p></li>
     </ul>
     <p class="hg-tip">Le zoom de l'aperçu se règle avec les boutons en bas à droite ; « ajuster » remet la page à la largeur de l'écran.</p>`},
   {id:"file", t:"Fichier", i:"disk", h:`
-    <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton dossier complet (structure, pages, page de garde) tient dans un seul fichier <b>.mmd</b>.</p>
+    <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton document complet (structure, pages, page de garde) tient dans un seul fichier <b>.mmd</b>.</p>
     <ul class="hg-list">
-      <li><b>Ouvrir</b> <kbd>Ctrl</kbd>+<kbd>O</kbd><p>Rouvre un dossier .mmd. Les anciens fichiers .doe et .json s'ouvrent aussi : au premier enregistrement, MomoDOC te propose de les garder en .mmd, sans toucher à l'original.</p></li>
+      <li><b>Ouvrir</b> <kbd>Ctrl</kbd>+<kbd>O</kbd><p>Rouvre un document .mmd. Les anciens fichiers .doe et .json s'ouvrent aussi : au premier enregistrement, MomoDOC te propose de les garder en .mmd, sans toucher à l'original.</p></li>
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
-      <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton dossier à la prochaine ouverture.</p></li>
+      <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
     <p class="hg-tip">Installée (⛯ Paramètres › Application), MomoDOC ouvre les fichiers .mmd d'un double-clic depuis l'explorateur.</p>`},
@@ -1955,13 +2192,13 @@ const GUIDE = [
       <li><b>Signets</b><p>Le panneau des signets du lecteur PDF reprend toute la structure (jalons, sections, sous-sections) pour naviguer sans repasser par le sommaire.</p></li>
       <li><b>Fidèle à l'aperçu</b><p>Mêmes pages, mêmes numéros, mêmes intercalaires que ce que tu vois à l'écran.</p></li>
     </ul>
-    <p class="hg-tip">Sur un gros dossier, la fabrication prend quelques secondes : l'avancement s'affiche page par page.</p>`},
+    <p class="hg-tip">Sur un gros document, la fabrication prend quelques secondes : l'avancement s'affiche page par page.</p>`},
   {id:"keys", t:"Raccourcis", i:"keys", h:`
     <p class="hg-intro">Les touches qui font gagner du temps.</p>
     <table class="hg-keys">
       <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Enregistrer</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd></td><td>Enregistrer sous</td></tr>
-      <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Ouvrir un dossier</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Ouvrir un document</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Annuler la dernière action ${b_("undo")}</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Rétablir ${b_("redo")}</td></tr>
       <tr><td><kbd>Échap</kbd></td><td>Fermer une fenêtre ou un menu</td></tr>
