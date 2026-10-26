@@ -374,7 +374,7 @@
   .tb svg{width:22px;height:22px}
   .t-chap{color:#60a5fa} .t-jalon{color:#93c5fd} .t-sect{color:#a5b4fc} .t-sous{color:#c4b5fd}
   .t-text{color:#fcd34d} .t-crop{color:#6ee7b7} .t-som{color:#7dd3fc} .t-go{color:#7dd3fc} .t-move{color:#fcd34d}
-  .t-exp,.t-col{color:#e5e7eb} .t-mir{color:#ff9a3c}
+  .t-exp,.t-col{color:#e5e7eb} .t-hide{color:#fbbf24} .t-mir{color:#ff9a3c}
   /* infobulle */
   .tip{position:fixed;z-index:120;max-width:16rem;background:#0b1220;border:1px solid var(--line-2);color:var(--ink);border-radius:6px;padding:7px 9px;font-size:12px;line-height:1.4;pointer-events:none}
   .tip b{display:block;color:#fff;font-size:12.5px;margin-bottom:2px}
@@ -528,15 +528,21 @@
   .thumb .iconbtn.eye svg{width:13px;height:13px}
   .thumb:hover .iconbtn.eye,.thumb .iconbtn.eye.off{opacity:1}
   .thumb .iconbtn.eye.off{color:#fbbf24}
-  .thumb.is-off>img,.thumb.is-off>.thumb-text{opacity:.3}
-  .page.is-off>*:not(.off-badge){opacity:.32}
-  .page.is-off{outline-style:dashed}
-  .off-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:8px;background:#111827;color:#fbbf24;border-radius:8px;padding:10px 16px;font:600 15px var(--ui);pointer-events:none;z-index:4}
-  .off-badge svg{width:20px;height:20px}
-  .page-text.is-off .tx-edit{opacity:.45}
+  /* page masquée : simplement assombrie dans l'aperçu */
+  .page.is-off::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:rgba(17,24,39,.55)}
+  .page.is-off.is-active{outline:4px solid var(--accent-2)}
+  .off-badge{position:absolute;top:10mm;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;background:#1f2937;color:#fbbf24;border-radius:20px;padding:6px 14px;font:600 12.5px var(--ui);pointer-events:none;z-index:4;white-space:nowrap}
+  .off-badge svg{width:16px;height:16px}
+  .thumb.is-off,.thumb.is-text.is-off{background:#4b5563}
+  .thumb.is-off>img,.thumb.is-off>.thumb-text{filter:brightness(.4)}
   .mr-row.mr-off{opacity:.45}
   .mr-row.mr-off .mr-t{text-decoration:line-through}
   .mv-node.off{opacity:.55}
+  /* outil Masquer actif : curseur et pages repérables */
+  body.hide-mode #document .page[data-img], body.hide-mode #document .page-divider, body.hide-mode #sectionsList .thumb{cursor:pointer}
+  body.hide-mode #document .page[data-img]:hover, body.hide-mode #document .page-divider:hover{outline:4px solid #fbbf24}
+  body.hide-mode #sectionsList .thumb:hover{outline:3px solid #fbbf24;outline-offset:-1px}
+  body.hide-mode .tx-edit{pointer-events:none}
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
   @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
@@ -708,8 +714,8 @@ requestAnimationFrame(frame);
           <button class="tb t-som" id="tbSom" data-ic="som" data-tip="Retour au sommaire|Fait défiler l'aperçu jusqu'au sommaire"></button>
           <button class="tb t-go" id="tbGo" data-ic="go" data-tip="Aller à la page N°|Saute directement à un numéro de page"></button>
           <button class="tb t-move" id="tbMove" data-ic="move" data-tip="Déplacer vers…|Envoie la page active vers un autre emplacement"></button>
-          <button class="tb t-exp" id="tbExpand" data-ic="expand" data-tip="Tout déplier|Ouvre tous les niveaux de la structure"></button>
-          <button class="tb t-col" id="tbCollapse" data-ic="collapse" data-tip="Tout réduire|Replie toute la structure"></button>
+          <button class="tb t-exp" id="tbFold" data-ic="expand" data-tip="Tout déplier|Ouvre tous les niveaux de la structure"></button>
+          <button class="tb t-hide" id="tbHide" data-ic="hide" data-tip="Masquer|Outil : clique les pages (dans l'aperçu ou les vignettes) à griser ; une page masquée ne sort ni à l'impression ni au sommaire. Re-clic pour la remettre. Échap pour quitter l'outil"></button>
           <button class="tb t-mir" id="tbMirror" data-ic="mirror" data-tip="Déplacement miroir|Ouvre un second sommaire à droite : glisse un élément ou une page depuis la gauche et pose-le où tu veux"></button>
         </div>
       </div>
@@ -939,6 +945,7 @@ const ICONS = {
   move:'<path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13 3v5h5"/><path d="M18 8v3"/><path d="M15 17h7"/><path d="M19 14l3 3-3 3"/>',
   expand:'<path d="M7 14l5 5 5-5"/><path d="M7 10l5-5 5 5"/>',
   collapse:'<path d="M7 19l5-5 5 5"/><path d="M7 5l5 5 5-5"/>',
+  hide:'<path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.2 3.1"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/>',
   mirror:'<rect x="2" y="4" width="7" height="16" rx="1"/><rect x="15" y="4" width="7" height="16" rx="1"/><path d="M9.5 12h5"/><path d="M12.5 10l2 2-2 2"/>',
   page:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>'
 };
@@ -1088,6 +1095,16 @@ function renderSections(){
     }
   });
   if(typeof renderMirror==="function") renderMirror();
+  updateFoldBtn();
+}
+/* un seul bouton : « Tout déplier » tant que tout est replié, « Tout réduire » dès qu'un élément est ouvert */
+function updateFoldBtn(){
+  const b=document.getElementById("tbFold"); if(!b) return;
+  const open=IT().some(i=>!collapsedNodes.has(i.id));
+  const k=open?"collapse":"expand"; if(b.dataset.ic===k && b.firstChild) return;
+  b.dataset.ic=k; b.innerHTML=svgIcon(k);
+  b.dataset.tip = open ? "Tout réduire|Replie toute la structure" : "Tout déplier|Ouvre tous les niveaux de la structure";
+  b.setAttribute("aria-label", open ? "Tout réduire" : "Tout déplier");
 }
 
 function makeGrip(row, item){
@@ -1124,7 +1141,7 @@ function renderChapter(item, num, group){
   const row = h("div","jalon drag-item"+(item.id===activeItemId?" is-active":"")); row.dataset.id = item.id;
   row.append(makeGrip(row, item));
   const caret = h("button","iconbtn sec-caret jalon-caret",{innerHTML:icon('<path d="M6 9l6 6 6-6"/>'), title:"Réduire / déplier le chapitre"});
-  caret.onclick = ()=>{ collapsedNodes.has(item.id)?collapsedNodes.delete(item.id):collapsedNodes.add(item.id); group.classList.toggle("collapsed"); };
+  caret.onclick = ()=>{ collapsedNodes.has(item.id)?collapsedNodes.delete(item.id):collapsedNodes.add(item.id); group.classList.toggle("collapsed"); updateFoldBtn(); };
   row.append(caret);
   row.append(iconSpan(svgIcon("chap")));
   row.append(h("span","jalon-num",{textContent:num}));
@@ -1153,7 +1170,7 @@ function renderLeafCard(sec, number, L, groupEl){
   const top = h("div","sec-top");
   top.append(makeGrip(card, sec));
   const caret = h("button","iconbtn sec-caret",{innerHTML:icon('<path d="M6 9l6 6 6-6"/>'), title:"Réduire / déplier"});
-  caret.onclick = ()=>{ collapsedNodes.has(sec.id)?collapsedNodes.delete(sec.id):collapsedNodes.add(sec.id); groupEl.classList.toggle("collapsed"); };
+  caret.onclick = ()=>{ collapsedNodes.has(sec.id)?collapsedNodes.delete(sec.id):collapsedNodes.add(sec.id); groupEl.classList.toggle("collapsed"); updateFoldBtn(); };
   top.append(caret);
   top.append(iconSpan(svgIcon(LEVEL_ICON[L])));
   top.append(h("span","node-num",{textContent:number}));
@@ -2502,6 +2519,7 @@ document.addEventListener("keydown", e=>{
     if(open){ closeModal(open.id); return; }
     if(!$("#gotoPop").hidden){ $("#gotoPop").hidden=true; return; }
     if(mirrorOpen()){ setMirror(false); return; }
+    if(hideMode){ setHideMode(false); return; }
   }
   if(!(e.ctrlKey||e.metaKey)) return;
   const t=e.target, editing=t && (t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable);
@@ -2538,7 +2556,7 @@ const GI = {   // icônes (les mêmes que dans l'interface)
   move:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13 3v5h5"/><path d="M18 8v3"/><path d="M15 17h7"/><path d="M19 14l3 3-3 3"/></svg>',
   image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
 };
-["chap","jalon","sect","sous","text","crop","som","go","mirror","expand","collapse"].forEach(k=>{ GI["i_"+k]=svgIcon(k); });
+["chap","jalon","sect","sous","text","crop","som","go","mirror","expand","collapse","hide"].forEach(k=>{ GI["i_"+k]=svgIcon(k); });
 GI.eye=icon(EYE_ON); GI.eyeoff=icon(EYE_OFF);
 const b_ = (k,c)=>`<span class="hg-btn ${c||""}">${GI[k]}</span>`;
 const GUIDE = [
@@ -2580,7 +2598,8 @@ const GUIDE = [
       <li><b>${b_("i_som","c-sky")} Retour au sommaire</b><p>L'aperçu remonte au sommaire. Un clic sur une ligne du sommaire, ou sur un élément de la structure, saute à sa page.</p></li>
       <li><b>${b_("i_go","c-sky")} Aller à la page N°</b><p>Tape un numéro de page : l'aperçu y va directement (1 = page de garde).</p></li>
       <li><b>${b_("move","c-amber")} Déplacer vers…</b><p>Clique une page (dans l'aperçu ou sa vignette), puis ce bouton : choisis l'élément de destination dans la liste, puis clique entre deux vignettes pour placer la page. La destination s'affiche avant de valider.</p></li>
-      <li><b>${b_("i_expand")} ${b_("i_collapse")} Tout déplier / Tout réduire</b><p>Ouvre ou referme tous les niveaux de la structure d'un coup.</p></li>
+      <li><b>${b_("i_expand")} ${b_("i_collapse")} Tout déplier / Tout réduire</b><p>Un seul bouton : il ouvre tous les niveaux de la structure d'un coup, et devient « Tout réduire » dès qu'un élément est ouvert.</p></li>
+      <li><b>${b_("eyeoff","c-amber")} Masquer</b><p>Un outil : une fois activé (bouton en bleu), chaque clic sur une page, dans l'aperçu ou sur sa vignette, la grise ; un nouveau clic la remet. Une page masquée reste dans ton document, grisée dans l'aperçu avec la mention « Non imprimée », mais elle ne sort pas dans le PDF et n'apparaît pas au sommaire. Un clic sur l'intercalaire masque tout le chapitre. Échap ou un nouveau clic sur le bouton pour quitter l'outil.</p></li>
       <li><b>${b_("i_mirror","c-orange")} Déplacement miroir</b><p>Ouvre à droite un second sommaire. Attrape un élément (par sa poignée) ou une page (par sa vignette) dans la structure de gauche et pose-le où tu veux dans le tiroir : une ligne orange montre l'endroit, ce que tu déplaces est grisé. Au lâcher, le déplacement est fait et le tiroir se referme. Idéal pour envoyer en un geste un chapitre du début à la fin d'un document de 500 pages. Une page lâchée sur un élément fermé va à sa fin ; garde-la un instant au-dessus pour l'ouvrir et viser une page précise.</p></li>
     </ul>
     <p class="hg-tip">Tu peux aussi lâcher des fichiers directement sur une page de l'aperçu : ils s'insèrent juste après elle.</p>`},
@@ -3002,8 +3021,29 @@ $("#tbSous").addEventListener("click", ()=>addItem(3));
 $("#tbText").addEventListener("click", addTextPage);
 $("#tbCrop").addEventListener("click", startCrop);
 $("#tbSom").addEventListener("click", scrollToSommaire);
-$("#tbExpand").addEventListener("click", ()=>{ collapsedNodes.clear(); renderSections(); });
-$("#tbCollapse").addEventListener("click", ()=>{ state.items.forEach(i=>collapsedNodes.add(i.id)); renderSections(); });
+$("#tbFold").addEventListener("click", ()=>{
+  if(IT().some(i=>!collapsedNodes.has(i.id))) state.items.forEach(i=>collapsedNodes.add(i.id)); else collapsedNodes.clear();
+  hideTip(); renderSections();
+});
+
+/* ---------- outil MASQUER : chaque clic sur une page (aperçu ou vignette) la grise / la remet ---------- */
+let hideMode=false;
+function setHideMode(on){
+  hideMode=on; document.body.classList.toggle("hide-mode", on); $("#tbHide").classList.toggle("on", on);
+  if(on){ if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); toast("Outil Masquer : clique les pages à griser (re-clic pour les remettre). Échap pour quitter"); }
+}
+$("#tbHide").addEventListener("click", ()=>setHideMode(!hideMode));
+function hideClick(e){
+  if(!hideMode) return;
+  const pg=e.target.closest(".page[data-img], #sectionsList .thumb[data-img]");
+  const dv=!pg && e.target.closest(".page-divider[id]");
+  if(!pg && !dv) return;
+  e.preventDefault(); e.stopPropagation();
+  if(e.type!=="click") return;
+  if(pg){ const f=findPage(pg.dataset.img); if(f) togglePageOff(f.sec, f.img.id); }
+  else{ const it=findItem(dv.id.replace(/^doe-/,"")); if(it) toggleItemOff(it); }
+}
+["mousedown","click"].forEach(t=>{ doc.addEventListener(t, hideClick, true); $("#sectionsList").addEventListener(t, hideClick, true); });
 
 /* ---------- page active ---------- */
 function findImg(id){ const f=findPage(id); return f ? {sec:f.sec, k:f.k} : null; }
