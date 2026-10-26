@@ -516,6 +516,27 @@
   .cr-box i[data-h=n]{left:calc(50% - 6px);top:-7px;cursor:ns-resize} .cr-box i[data-h=s]{left:calc(50% - 6px);bottom:-7px;cursor:ns-resize}
   .cr-box i[data-h=e]{right:-7px;top:calc(50% - 6px);cursor:ew-resize} .cr-box i[data-h=w]{left:-7px;top:calc(50% - 6px);cursor:ew-resize}
   .cr-help{margin:0;padding:8px 16px;font-size:12px;color:var(--muted)}
+
+  /* ===== pages / éléments non imprimés (œil barré) ===== */
+  .iconbtn.eye{color:var(--muted)}
+  .iconbtn.eye.off{color:#fbbf24}
+  .jalon .iconbtn.eye.off{color:#fde68a}
+  .is-hidden>.jalon,.is-hidden>.node-card{opacity:.55}
+  .is-hidden>.jalon .jalon-title,.is-hidden>.node-card .sec-name{text-decoration:line-through;text-decoration-color:rgba(251,191,36,.7)}
+  .is-hidden>.jalon .iconbtn.eye,.is-hidden>.node-card>.sec-top .iconbtn.eye{opacity:1}
+  .thumb .iconbtn.eye{position:absolute;left:2px;bottom:2px;width:20px;height:20px;padding:0;background:rgba(17,24,39,.85);color:#e5e7eb;opacity:0;transition:opacity .12s}
+  .thumb .iconbtn.eye svg{width:13px;height:13px}
+  .thumb:hover .iconbtn.eye,.thumb .iconbtn.eye.off{opacity:1}
+  .thumb .iconbtn.eye.off{color:#fbbf24}
+  .thumb.is-off>img,.thumb.is-off>.thumb-text{opacity:.3}
+  .page.is-off>*:not(.off-badge){opacity:.32}
+  .page.is-off{outline-style:dashed}
+  .off-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:8px;background:#111827;color:#fbbf24;border-radius:8px;padding:10px 16px;font:600 15px var(--ui);pointer-events:none;z-index:4}
+  .off-badge svg{width:20px;height:20px}
+  .page-text.is-off .tx-edit{opacity:.45}
+  .mr-row.mr-off{opacity:.45}
+  .mr-row.mr-off .mr-t{text-decoration:line-through}
+  .mv-node.off{opacity:.55}
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
   @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
@@ -932,14 +953,14 @@ function cloneState(s){
     meta:{title:s.meta.title, subtitle:s.meta.subtitle, footer:s.meta.footer},
     logo:s.logo, logoOrig:s.logoOrig||null, logoCrop:s.logoCrop||null, photo:s.photo,
     items: s.items.map(it => isChapter(it)
-      ? {id:it.id, type:"jalon", title:it.title}
-      : {id:it.id, type:it.type, name:it.name, images: it.images.slice()})
+      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off}
+      : {id:it.id, type:it.type, name:it.name, off:!!it.off, images: it.images.slice()})
   };
 }
 function histSig(s){
   return s.items.map(it => isChapter(it)
-    ? "J|"+it.id+"|"+it.title
-    : it.type+"|"+it.id+"|"+it.name+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
+    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")
+    : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
   ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer;
 }
 function recordHistory(){
@@ -1005,11 +1026,31 @@ const idxOf = id => IT().findIndex(i=>i.id===id);
 /* fin du « bloc » d'un élément : lui + tout ce qui est plus profond juste après */
 function blockEnd(i){ const L=lvl(IT()[i]); let j=i+1; while(j<IT().length && lvl(IT()[j])>L) j++; return j; }
 /* numéros 1 / 1.1 / 1.1.1 / 1.1.1.1 (les niveaux absents ne laissent pas de zéro) */
+/* éléments masqués (œil barré) : eux-mêmes et tout ce qu'ils contiennent ne sortent pas à l'impression */
+function hiddenIds(){
+  const out=new Set(), stack=[];          // stack[L] = vrai si le niveau L est masqué
+  IT().forEach(it=>{ const L=lvl(it); stack.length=L; const off=!!it.off || stack.some(Boolean); stack[L]=off; if(off) out.add(it.id); });
+  return out;
+}
+/* numéros des éléments imprimés (les éléments masqués n'en prennent pas : « – ») */
 function numbering(){
-  const c=[0,0,0,0], out={};
-  IT().forEach(it=>{ const L=lvl(it); c[L]++; for(let k=L+1;k<4;k++) c[k]=0;
+  const c=[0,0,0,0], out={}, hid=hiddenIds();
+  IT().forEach(it=>{ if(hid.has(it.id)){ out[it.id]="–"; return; } const L=lvl(it); c[L]++; for(let k=L+1;k<4;k++) c[k]=0;
     const parts=c.slice(0,L+1); while(parts.length>1 && parts[0]===0) parts.shift(); out[it.id]=parts.join("."); });
   return out;
+}
+const EYE_ON='<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', EYE_OFF='<path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.2 3.1"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/>';
+function eyeBtn(on, what, onClick){
+  const b=h("button","iconbtn eye"+(on?"":" off"),{type:"button", innerHTML:icon(on?EYE_ON:EYE_OFF), title: on ? `Imprimé — clic pour retirer ${what} de l'impression` : `Non imprimé — clic pour remettre ${what} dans l'impression`});
+  b.setAttribute("aria-pressed", String(!on));
+  b.addEventListener("click", e=>{ e.stopPropagation(); onClick(); });
+  return b;
+}
+function toggleItemOff(item){ item.off=!item.off; changed(); toast(item.off ? `« ${itemTitle(item)||"(sans titre)"} » ne sera pas imprimé` : `« ${itemTitle(item)||"(sans titre)"} » sera imprimé`); }
+function togglePageOff(sec, id){
+  const k=sec.images.findIndex(x=>x.id===id); if(k<0) return;
+  const im=sec.images[k]; sec.images[k]={...im, off:!im.off, v:(im.v||0)+1}; changed();
+  toast(sec.images[k].off ? "Page retirée de l'impression" : "Page remise dans l'impression");
 }
 function countImages(item){ return isChapter(item) ? 0 : item.images.length; }
 function gripIcon(){ return `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>`; }
@@ -1026,20 +1067,20 @@ function renderSections(){
     if(typeof renderMirror==="function") renderMirror();
     return;
   }
-  const nums = numbering();
+  const nums = numbering(), hid = hiddenIds();
   const ctx = [];            // ctx[L] = conteneur des enfants de l'élément courant de niveau L
   IT().forEach(item=>{
     const L=lvl(item);
     let parent=list; for(let k=L-1;k>=0;k--){ if(ctx[k]){ parent=ctx[k]; break; } }
     ctx.length=L;            // on quitte les niveaux plus profonds
     if(L===0){
-      const group = h("div","jalon-group");
+      const group = h("div","jalon-group"+(hid.has(item.id)?" is-hidden":""));
       if(collapsedNodes.has(item.id)) group.classList.add("collapsed");
       group.append(renderChapter(item, nums[item.id], group));
       const kids = h("div","jalon-sections"); group.append(kids);
       parent.append(group); ctx[0]=kids;
     }else{
-      const group = h("div","node-group lvl"+L);
+      const group = h("div","node-group lvl"+L+(hid.has(item.id)?" is-hidden":""));
       if(collapsedNodes.has(item.id)) group.classList.add("collapsed");
       group.append(renderLeafCard(item, nums[item.id], L, group));
       if(L<3){ const kids=h("div","node-subs"); group.append(kids); ctx[L]=kids; }
@@ -1092,6 +1133,7 @@ function renderChapter(item, num, group){
   title.addEventListener("change", recordHistory);
   title.addEventListener("focus", ()=>setActiveItem(item.id));
   row.append(title);
+  row.append(eyeBtn(!item.off, "ce chapitre", ()=>toggleItemOff(item)));
   row.append(deleteBtn(item));
   wireRowNav(row, item.id);
   return row;
@@ -1121,6 +1163,7 @@ function renderLeafCard(sec, number, L, groupEl){
   name.addEventListener("focus", ()=>setActiveItem(sec.id));
   top.append(name);
   top.append(h("span","sec-count",{textContent:`${sec.images.length} p.`}));
+  top.append(eyeBtn(!sec.off, "cet élément et son contenu", ()=>toggleItemOff(sec)));
   top.append(deleteBtn(sec));
   wireRowNav(top, sec.id);
   card.append(top);
@@ -1141,6 +1184,8 @@ function renderLeafCard(sec, number, L, groupEl){
       const t = h("div","thumb"+(img.kind==="text"?" is-text":"")+(img.id===activePageImg?" is-active":""),{draggable:true, title:"Clic : page active · glisser : changer l'ordre (ou vers le tiroir miroir)"}); t.dataset.img = img.id;
       t.addEventListener("click", e=>{ if(e.target.closest(".del")) return; setActivePage(img.id, {scroll:true}); });
       t.innerHTML = thumbFor(img)+`<span class="num">${idx+1}</span>`;
+      if(img.off) t.classList.add("is-off");
+      t.append(eyeBtn(!img.off, "cette page", ()=>togglePageOff(sec, img.id)));
       const x = h("button","del",{innerHTML:icon('<path d="M6 6l12 12M18 6L6 18"/>'), title:"Supprimer cette page"});
       x.onclick = (e)=>{ e.stopPropagation(); sec.images.splice(idx,1); changed(); };
       t.append(x);
@@ -1678,23 +1723,32 @@ function buildDividerPage(p){            // intercalaire de chapitre (ni logo ni
 
 // Construit en un seul parcours : entrées du sommaire + liste ordonnée des pages.
 // Un chapitre => une page intercalaire ; un jalon / une section / une sous-section => ses pages (images ou texte).
+// Les éléments et les pages masqués (œil barré) restent dans la liste avec off:true, mais sans numéro ni entrée au sommaire.
 function buildDocModel(){
-  const toc=[], pages=[], nums=numbering(), chain=[];
+  const toc=[], all=[], pages=[], nums=numbering(), hid=hiddenIds(), chain=[];
+  let seq=0;
+  const push=p=>{ if(p.off){ p.seq=null; } else { p.seq=seq++; } pages.push(p); };
   state.items.forEach(item=>{
-    const L=lvl(item), num=nums[item.id];
+    const L=lvl(item), num=nums[item.id], off=hid.has(item.id);
     if(L===0){
       chain.length=0;
-      const offset=pages.length;
-      pages.push({type:"divider", number:num, title:item.title, itemId:item.id});
-      toc.push({depth:0, kind:"chapter", number:num, title:item.title, offset, page:0, itemId:item.id});
+      const en={depth:0, kind:"chapter", number:num, title:item.title, offset:seq, page:0, itemId:item.id, off};
+      all.push(en); if(!off) toc.push(en);
+      push({type:"divider", number:num, title:item.title, itemId:item.id, off});
       return;
     }
     chain.length=L; chain[L]={num, title:item.name};
     const ch=chain.slice(1).filter(Boolean);
-    toc.push({depth:L, kind:"section", number:num, title:item.name, offset:pages.length, page:0, itemId:item.id});
-    item.images.forEach((img,ii)=> pages.push({type: img.kind==="text"?"text":"image", src:img.src, thumb:img.thumb, html:img.html, chain:ch, first: ii===0, itemId: ii===0 ? item.id : null, imgId:img.id, secId:item.id}));
+    const en={depth:L, kind:"section", number:num, title:item.name, offset:seq, page:0, itemId:item.id, off};
+    all.push(en); if(!off) toc.push(en);
+    let first=true;
+    item.images.forEach((img,ii)=>{
+      const pOff = off || !!img.off;
+      push({type: img.kind==="text"?"text":"image", src:img.src, thumb:img.thumb, html:img.html, chain:ch, first: pOff ? ii===0 : first, itemId: ii===0 ? item.id : null, imgId:img.id, secId:item.id, off:pOff});
+      if(!pOff) first=false;
+    });
   });
-  return {toc, pages};
+  return {toc, pages, all};
 }
 
 function renderDocument(){
@@ -1704,35 +1758,35 @@ function renderDocument(){
   // 1) Couverture (page 1)
   doc.append(buildCover());
 
-  // 2) Modèle : entrées sommaire + pages (intercalaires + images)
-  const {toc, pages} = buildDocModel();
+  // 2) Modèle : entrées sommaire + pages (intercalaires + images + texte)
+  const {toc, pages, all} = buildDocModel();
 
-  // 3) Sommaire (le nb de pages sommaire ne dépend que du nb d'entrées)
+  // 3) Sommaire (le nb de pages sommaire ne dépend que du nb d'entrées imprimées)
   const somPages = buildSommaire(toc);
   const S = somPages.length;
 
-  // 4) Numéros de page absolus : couverture=1 ; sommaire=2..1+S ; contenu à partir de S+2
+  // 4) Numéros de page absolus : couverture=1 ; sommaire=2..1+S ; contenu à partir de S+2 (pages masquées : sans numéro)
   const contentStart = 1 + S + 1;
-  toc.forEach(en=>{ en.page = contentStart + en.offset; });
+  all.forEach(en=>{ en.page = contentStart + en.offset; });
   doc.querySelectorAll(".toc-row .toc-page").forEach((el,i)=>{ if(toc[i]) el.textContent = toc[i].page; });
-
-  // carte id d'élément -> index DOM de sa 1re page (cover=0, sommaire=1..S, contenu=1+S..)
-  itemPageMap = {};
-  const domBase = 1 + S;
-  toc.forEach(en=>{ if(en.itemId!=null) itemPageMap[en.itemId] = domBase + en.offset; });
   if(somPages[0]) somPages[0].page.id = "doe-sommaire";
 
-  // pages numérotées (pour « déplacer entre la page N et la page N+1 »)
-  docPages = pages.map((p,idx)=>({no:contentStart+idx, type:p.type, imgId:p.imgId, secId:p.secId, itemId:p.itemId}));
-  docToc = toc.map(en=>({id:en.itemId, number:en.number, title:en.title, kind:en.kind, depth:en.depth, page:en.page}));
+  // 5) Pages de contenu ; carte id d'élément -> index DOM de sa 1re page
+  itemPageMap = {};
+  const domBase = 1 + S;
+  pages.forEach((p,idx)=>{
+    const num = p.seq==null ? null : contentStart + p.seq;
+    const el = p.type==="divider" ? buildDividerPage(p) : p.type==="text" ? buildTextPage(p, num) : buildImagePage(p, num);
+    if(p.off){ el.classList.add("is-off"); el.append(h("div","off-badge",{innerHTML:icon(EYE_OFF)+"Non imprimée"})); }
+    if(p.itemId && !(p.itemId in itemPageMap)) itemPageMap[p.itemId] = domBase + idx;
+    doc.append(el);
+  });
+  all.forEach(en=>{ if(!(en.itemId in itemPageMap)){ const nx=pages.findIndex((p,i)=>p.seq!=null && p.seq>=en.offset); itemPageMap[en.itemId] = domBase + (nx<0 ? pages.length-1 : nx); } });
+
+  docPages = pages.map(p=>({no: p.seq==null ? null : contentStart+p.seq, type:p.type, imgId:p.imgId, secId:p.secId, itemId:p.itemId, off:p.off}));
+  docToc = all.map(en=>({id:en.itemId, number:en.number, title:en.title, kind:en.kind, depth:en.depth, page:en.page, off:en.off}));
   if(typeof updateMoveBtn==="function") updateMoveBtn();
   if(typeof updateTxBar==="function") updateTxBar();
-
-  // 5) Pages de contenu
-  pages.forEach((p,idx)=>{
-    const num = contentStart + idx;
-    doc.append(p.type==="divider" ? buildDividerPage(p) : p.type==="text" ? buildTextPage(p, num) : buildImagePage(p, num));
-  });
 
   applyZoom();
 }
@@ -1765,21 +1819,22 @@ function wireDrop(el, onFiles){
 
 function normPage(im){
   if(!im) return null;
-  if(im.kind==="text") return {id:im.id||uid(), kind:"text", html:String(im.html||"")};
+  if(im.kind==="text") return {id:im.id||uid(), kind:"text", html:String(im.html||""), ...(im.off?{off:true}:{})};
   if(!im.src) return null;
   const o={id:im.id||uid(), src:im.src, name:im.name||""};
   if(im.thumb) o.thumb=im.thumb;
+  if(im.off) o.off=true;
   if(im.orig){ o.orig=im.orig; o.crop=im.crop||null; o.rot=im.rot||0; }
   return o;
 }
 function normSection(n, type){
-  return { id:n.id||uid(), type: (type && LEVEL[type]>0) ? type : "section", name:n.name ?? n.title ?? "", images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[] };
+  return { id:n.id||uid(), type: (type && LEVEL[type]>0) ? type : "section", name:n.name ?? n.title ?? "", ...(n.off?{off:true}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[] };
 }
 function toItems(obj){
   if(Array.isArray(obj.items)){
     return obj.items.map(n=>{
       if(!n) return null;
-      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??""};
+      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.off?{off:true}:{})};
       return normSection(n, n.type);
     }).filter(Boolean);
   }
@@ -1860,7 +1915,7 @@ async function buildPdf(onProgress){
   const cache = new Map();
   const logo = state.logo ? await imgInfo(state.logo, cache) : null;
 
-  const {toc, pages} = buildDocModel();
+  const model = buildDocModel(), toc = model.toc, pages = model.pages.filter(p=>!p.off);
   const S = Math.max(1, Math.ceil(toc.length / TOC_ROWS_PER_PAGE));
   const contentStart = 1 + S + 1;
   toc.forEach(en=>{ en.page = contentStart + en.offset; });
@@ -2049,10 +2104,11 @@ function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asCl
 const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
   return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo,
-    items: state.items.map(it=> isChapter(it) ? {id:it.id, type:"jalon", title:it.title} : {id:it.id, type:it.type, name:it.name,
+    items: state.items.map(it=> isChapter(it) ? {id:it.id, type:"jalon", title:it.title, ...(it.off?{off:true}:{})} : {id:it.id, type:it.type, name:it.name, ...(it.off?{off:true}:{}),
       images: it.images.map(im=>{
-        if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||""};
+        if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
         const o={id:im.id, name:im.name||"", m:ref(im.src)};
+        if(im.off) o.off=true;
         if(withThumbs && im.thumb) o.thumb=im.thumb;
         if(im.orig){ o.o=ref(im.orig); o.crop=im.crop; o.rot=im.rot||0; }
         return o;
@@ -2483,6 +2539,7 @@ const GI = {   // icônes (les mêmes que dans l'interface)
   image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
 };
 ["chap","jalon","sect","sous","text","crop","som","go","mirror","expand","collapse"].forEach(k=>{ GI["i_"+k]=svgIcon(k); });
+GI.eye=icon(EYE_ON); GI.eyeoff=icon(EYE_OFF);
 const b_ = (k,c)=>`<span class="hg-btn ${c||""}">${GI[k]}</span>`;
 const GUIDE = [
   {id:"start", t:"Bienvenue", i:"start", h:`
@@ -2507,6 +2564,7 @@ const GUIDE = [
       <li><b>Créer au bon endroit</b><p>Clique sur un élément de la structure : il se surligne en bleu, c'est l'élément actif. Un nouveau jalon se range dans le chapitre actif, une section dans le jalon actif, une sous-section dans la section active. Sans élément actif, tout s'ajoute à la fin.</p></li>
       <li><b>${b_("grip")} Déplacer</b><p>Attrape un élément par sa poignée et glisse-le à sa place : une ligne bleue montre où il va se poser. Il emporte tout son contenu avec lui.</p></li>
       <li><b>${b_("caret")} Replier</b><p>Chaque niveau se replie. À l'ouverture d'un document, tout est replié pour garder une vue claire.</p></li>
+      <li><b>${b_("eye")} ${b_("eyeoff","c-amber")} Imprimer ou non</b><p>L'œil, sur chaque élément et sur chaque vignette, dit si c'est imprimé. Œil barré : la page (ou l'élément avec tout son contenu) reste dans ton document mais ne sort pas dans le PDF final ; elle n'a plus de numéro, ni de ligne au sommaire, et les numéros suivants se recalent. Dans l'aperçu, elle reste visible, grisée, avec la mention « Non imprimée ». Un clic sur l'œil la remet.</p></li>
       <li><b>${b_("x","c-red")} ${b_("trash","c-red")} Supprimer</b><p>La croix supprime un jalon, une section ou une sous-section, avec ce qu'il contient. La corbeille supprime un chapitre, mais garde ce qui était dessous.</p></li>
     </ul>`},
   {id:"tools", t:"Texte et recadrage", i:"i_text", h:`
@@ -2976,18 +3034,22 @@ function pageThumb(img){ return img.kind==="text" ? svgIcon("text") : `<img src=
 
 /* ---------- Aller à la page N° ---------- */
 const gotoPop=$("#gotoPop");
-function lastPageNo(){ return pagesList().length; }
+const pgNo = pg => pg && pg.no!=null ? pg.no : "–";
+function somCount(){ return doc.querySelectorAll(".page-sommaire").length; }
+function lastPageNo(){ return 1 + somCount() + docPages.filter(p=>p.no!=null).length; }
+/* index dans l'aperçu de la page imprimée N° n (les pages masquées n'ont pas de numéro) */
+function domIndexOfNo(n){ const S=somCount(); if(n<=1+S) return n-1; const i=docPages.findIndex(p=>p.no===n); return i<0 ? -1 : 1+S+i; }
 function openGoto(){
   const r=$("#tbGo").getBoundingClientRect();
   gotoPop.hidden=false; gotoPop.style.left=Math.min(r.left, innerWidth-gotoPop.offsetWidth-8)+"px"; gotoPop.style.top=(r.bottom+6)+"px";
-  const n=lastPageNo(); $("#gotoNum").max=n; $("#gotoMax").textContent=`Le document fait ${n} page${n>1?"s":""} (1 = page de garde).`;
+  const n=lastPageNo(); $("#gotoNum").max=n; const off=docPages.filter(p=>p.no==null).length; $("#gotoMax").textContent=`Le document imprimé fait ${n} page${n>1?"s":""} (1 = page de garde)${off?` ; ${off} page${off>1?"s":""} non imprimée${off>1?"s":""}`:""}.`;
   $("#gotoNum").value=""; $("#gotoNum").focus();
 }
 function doGoto(){
   const n=parseInt($("#gotoNum").value,10), max=lastPageNo();
   if(!Number.isInteger(n) || n<1 || n>max){ $("#gotoMax").textContent=`Indique un numéro entre 1 et ${max}.`; return; }
-  gotoPop.hidden=true; scrollToPageIndex(n-1);
-  const p=pagesList()[n-1]; if(p && p.dataset.img) setActivePage(p.dataset.img);
+  const di=domIndexOfNo(n); gotoPop.hidden=true; if(di<0) return; scrollToPageIndex(di);
+  const p=pagesList()[di]; if(p && p.dataset.img) setActivePage(p.dataset.img);
 }
 $("#tbGo").addEventListener("click", e=>{ e.stopPropagation(); gotoPop.hidden ? openGoto() : (gotoPop.hidden=true); });
 $("#gotoGo").addEventListener("click", doGoto);
@@ -3003,12 +3065,12 @@ function openMove(){
   setActivePage(mvImg);
   const f=findImg(mvImg), pg=docPages.find(p=>p.imgId===mvImg);
   $("#mvThumb").innerHTML=pageThumb(f.sec.images[f.k]);
-  $("#mvWhat").textContent=`Page N° ${pg?pg.no:"?"}`;
+  $("#mvWhat").textContent=`Page N° ${pgNo(pg)}`;
   $("#mvWhere").textContent=`${labelOf(f.sec.id)} · page ${f.k+1} sur ${f.sec.images.length}`;
   const tree=$("#mvTree"); tree.innerHTML="";
   docToc.forEach(t=>{
     const it=findItem(t.id); if(!it) return;
-    const row=h("div","mv-node"+(t.kind==="chapter"?" chap":"")); row.dataset.id=t.id;
+    const row=h("div","mv-node"+(t.kind==="chapter"?" chap":"")+(t.off?" off":"")); row.dataset.id=t.id;
     row.style.paddingLeft=(8+t.depth*16)+"px";
     row.innerHTML=`<span class="mv-ni">${svgIcon(LEVEL_ICON[t.depth])}</span><span class="mv-nn">${t.number}</span><span class="mv-nt">${escapeHtml(t.title||"(sans titre)")}</span>`+(t.kind==="chapter"?"":`<span class="mv-nc">${it.images.length} p.</span>`);
     if(t.kind!=="chapter") row.addEventListener("click", ()=>mvPick(t.id));
@@ -3028,7 +3090,7 @@ function mvPick(secId, slot){
   else sec.images.forEach((im,k)=>{
     strip.append(slotEl(k));
     const pg=docPages.find(p=>p.imgId===im.id);
-    const c=h("div","mv-pg"+(im.id===mvImg?" me":""),{innerHTML:`<div class="mv-pt">${pageThumb(im)}</div>${pg?pg.no:""}`});
+    const c=h("div","mv-pg"+(im.id===mvImg?" me":""),{innerHTML:`<div class="mv-pt">${pageThumb(im)}</div>${pgNo(pg)}`});
     strip.append(c);
     if(k===sec.images.length-1) strip.append(slotEl(k+1));
   });
@@ -3043,7 +3105,7 @@ function mvHint(){
   const where=labelOf(mvSec);
   if(mvSlot===0) el.textContent=`→ au début de ${where}`;
   else if(mvSlot>=n) el.textContent=`→ à la fin de ${where}`;
-  else{ const pg=docPages.find(p=>p.imgId===sec.images[mvSlot-1].id); el.textContent=`→ dans ${where}, juste après la page N° ${pg?pg.no:"?"}`; }
+  else{ const pg=docPages.find(p=>p.imgId===sec.images[mvSlot-1].id); el.textContent=`→ dans ${where}, juste après la page N° ${pgNo(pg)}`; }
 }
 /* déplacement d'une page : dest = {secId, before|after|at:'start'|'end'|index} */
 function movePageTo(imgId, dest){
@@ -3068,7 +3130,7 @@ function doMove(){
   closeModal("mv-modal");
   setActivePage(mvImg, {scroll:true});
   const pg=docPages.find(p=>p.imgId===mvImg);
-  toast(`Page déplacée dans ${labelOf(mvSec)} (page N° ${pg?pg.no:"?"})`);
+  toast(`Page déplacée dans ${labelOf(mvSec)} (page N° ${pgNo(pg)})`);
 }
 $("#tbMove").addEventListener("click", openMove);
 $("#mvGo").addEventListener("click", doMove);
@@ -3270,7 +3332,7 @@ function renderMirror(){
   const nums=numbering();
   IT().forEach(it=>{
     const L=lvl(it), n=countImages(it), shut=!mrOpenNodes.has(it.id);
-    const row=h("div","mr-row lvl"+L+(L>0&&shut?" shut":"")); row.dataset.id=it.id; row.dataset.lvl=L;
+    const row=h("div","mr-row lvl"+L+(L>0&&shut?" shut":"")+(nums[it.id]==="–"?" mr-off":"")); row.dataset.id=it.id; row.dataset.lvl=L;
     row.style.marginLeft=(L*12)+"px";
     const car=h("button","mr-car"+(L===0||!n?" none":""),{type:"button",innerHTML:icon('<path d="M6 9l6 6 6-6"/>'),title:"Voir / cacher les pages"});
     car.onclick=()=>{ mrOpenNodes.has(it.id)?mrOpenNodes.delete(it.id):mrOpenNodes.add(it.id); renderMirror(); markGhost(); };
@@ -3280,9 +3342,9 @@ function renderMirror(){
     if(L>0 && !shut){
       it.images.forEach(im=>{
         const pg=docPages.find(p=>p.imgId===im.id);
-        const pr=h("div","mr-row pg"); pr.dataset.img=im.id; pr.dataset.sec=it.id;
+        const pr=h("div","mr-row pg"+(pg&&pg.no==null?" mr-off":"")); pr.dataset.img=im.id; pr.dataset.sec=it.id;
         pr.style.marginLeft=(L*12+22)+"px";
-        pr.innerHTML=`<span class="mr-th">${pageThumb(im)}</span><span class="mr-t">Page N° ${pg?pg.no:"?"}${im.kind==="text"?" · texte":""}</span>`;
+        pr.innerHTML=`<span class="mr-th">${pageThumb(im)}</span><span class="mr-t">Page N° ${pgNo(pg)}${im.kind==="text"?" · texte":""}</span>`;
         mrList.append(pr);
       });
     }
@@ -3342,7 +3404,7 @@ mrList.addEventListener("drop", e=>{
   }else{
     if(t.mode==="into") ok=movePageTo(p.id, {secId:t.row.dataset.id});
     else ok=movePageTo(p.id, {secId:t.row.dataset.sec, [t.mode]:t.row.dataset.img});
-    if(ok){ const pg=docPages.find(q=>q.imgId===p.id); msg=`Page déplacée (page N° ${pg?pg.no:"?"})`; }
+    if(ok){ const pg=docPages.find(q=>q.imgId===p.id); msg=`Page déplacée (page N° ${pgNo(pg)})`; }
   }
   dragPayload=null;
   if(ok){
