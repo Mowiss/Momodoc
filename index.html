@@ -643,7 +643,21 @@
   .gt-or-ic{display:block;border:2px solid #93c5fd;border-radius:3px;background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(147,197,253,.35) 5px 7px)}
   .gt-or-ic.land{width:46px;height:33px}
   .gt-or-ic.port{width:33px;height:46px}
-  #gt-add{z-index:95}
+  #gt-print{z-index:95}
+  .mm-card.gt-pcard{width:min(76rem,100%);max-height:calc(100vh - 24px)}
+  .gt-pbody{flex:1;min-height:0;display:flex;gap:0;overflow:hidden}
+  .gt-pleft{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;background:#0b0f16;overflow:auto}
+  .gt-prv{display:grid;gap:6px;align-items:start;justify-content:center}
+  .gt-pv{display:block;background:#fff;border:1px solid #374151}
+  .gt-pinfo{font-size:12.5px;color:#bfdbfe;font-weight:600}
+  .gt-pright{flex:0 0 300px;padding:12px 16px 16px;overflow:auto;border-left:1px solid var(--line)}
+  .gt-pright label{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 5px}
+  .gt-pright label span{color:#93c5fd;text-transform:none;letter-spacing:0}
+  .gt-pright input[type=range]{width:100%;accent-color:var(--accent-2)}
+  .gt-hint{margin:3px 0 0;font-size:11.5px;color:var(--muted);line-height:1.4}
+  .gt-seg.wrap{flex-wrap:wrap}
+  .gt-seg.wrap button{flex:1 1 45%}
+  .gt-reset{margin-top:14px;width:100%}
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
   @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
@@ -1012,18 +1026,30 @@ requestAnimationFrame(frame);
   </div>
   <div class="gt-status"><span class="gt-scale" id="gtScale">échelle</span><span>Curseur : <b id="gtCur">—</b></span><span class="gt-grow"></span><span><b id="gtCount">0</b> élément(s) · molette = zoom · Maj+molette = défiler · glisser le fond = naviguer · double-clic = nouvelle tâche</span></div>
 </div>
-<div class="mm-modal" id="gt-add" role="dialog" aria-modal="true" aria-labelledby="gtAddTitle" hidden>
-  <div class="mm-card narrow">
-    <div class="mm-head"><h3 id="gtAddTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 7h6"/><path d="M10 11h7"/><path d="M8 15h5"/><path d="M15 15h4"/></svg>Ajouter le planning au document</h3>
+<div class="mm-modal" id="gt-print" role="dialog" aria-modal="true" aria-labelledby="gtPrTitle" hidden>
+  <div class="mm-card gt-pcard">
+    <div class="mm-head"><h3 id="gtPrTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg>Mise en page du planning</h3>
       <button class="iconbtn" data-close title="Fermer (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="mm-pane">
-      <p class="ps-sub" id="gtAddWhere"></p>
-      <div class="gt-orient">
-        <button class="gt-or" data-v="land"><span class="gt-or-ic land"></span><b>Paysage</b><span>page tournée, tout le planning en grand</span></button>
-        <button class="gt-or" data-v="port"><span class="gt-or-ic port"></span><b>Portrait</b><span>se lit sans tourner la page</span></button>
+    <div class="gt-pbody">
+      <div class="gt-pleft"><div class="gt-prv" id="gtPrv"></div><div class="gt-pinfo" id="gtPrInfo"></div></div>
+      <div class="gt-pright">
+        <label>Destination</label>
+        <div class="gt-seg full" id="gtPrDest"><button data-v="pdf">PDF à télécharger</button><button data-v="doc">Pages du document</button></div>
+        <div id="gtPrFmtRow"><label>Format</label><div class="gt-seg full wrap" id="gtPrFmt"><button data-v="a4l">A4 paysage</button><button data-v="a4p">A4 portrait</button><button data-v="a3l">A3 paysage</button><button data-v="a3p">A3 portrait</button></div></div>
+        <div id="gtPrDocfRow"><label>Page du document</label><div class="gt-seg full" id="gtPrDocf"><button data-v="land">Paysage (tournée)</button><button data-v="port">Portrait</button></div></div>
+        <label>Largeur — étirement de la frise <span id="gtPrWfV"></span></label>
+        <input type="range" id="gtPrWf" min="1" max="6" step="0.25">
+        <p class="gt-hint">×1 : tout le planning tient en largeur ; ×2 : deux fois plus large, sur deux pages côte à côte.</p>
+        <label>Hauteur des lignes <span id="gtPrHfV"></span></label>
+        <input type="range" id="gtPrHf" min="0.4" max="3" step="0.05">
+        <p class="gt-hint">Plus haut : lignes plus lisibles ; si elles ne tiennent plus, la suite part sur une page en dessous.</p>
+        <label>Taille du texte <span id="gtPrTfV"></span></label>
+        <input type="range" id="gtPrTf" min="0.6" max="1.8" step="0.05">
+        <button class="ps-btn gt-reset" id="gtPrReset">Réglages par défaut</button>
+        <p class="ps-sub" id="gtPrWhere"></p>
       </div>
     </div>
-    <div class="mm-foot"><button class="ps-btn" data-close>Annuler</button></div>
+    <div class="mm-foot"><button class="ps-btn" data-close>Annuler</button><button class="ps-btn primary" id="gtPrGo">Télécharger le PDF</button></div>
   </div>
 </div>
 
@@ -2864,7 +2890,8 @@ const GUIDE = [
       <li><b>Daté ou non daté</b><p>Daté : les vraies dates du calendrier, et la date de début qui décale tout le planning d'un coup. Non daté : J1, J2… S1, S2… M1… à partir du début du planning, pour un planning de principe (mémoire technique, offre). On passe de l'un à l'autre sans rien perdre.</p></li>
       <li><b>Navigation</b><p>Molette : zoom continu, de l'heure aux années. Maj + molette : défiler. Glisser le fond : se déplacer. Le magnétisme accroche les tâches à la graduation fine.</p></li>
       <li><b>Au document</b><p>Ajoute le planning comme une page dans l'élément actif, en paysage (page tournée, tout le planning en grand) ou en portrait. Le logo et le numéro de page sont ceux du document.</p></li>
-      <li><b>PDF</b><p>Télécharge le planning tout de suite, en A4 paysage, avec le logo de la page de garde.</p></li>
+      <li><b>PDF</b><p>Télécharge le planning tout de suite, avec le logo de la page de garde.</p></li>
+      <li><b>Mise en page d'impression</b><p>PDF et Au document ouvrent la même fenêtre, avec l'aperçu de toutes les pages : le format (A4 / A3, paysage / portrait, ou page du document), l'étirement en largeur (×2 = le planning s'étale sur deux pages côte à côte, pour les plannings longs), la hauteur des lignes (si elles ne tiennent plus, la suite part sur une page en dessous) et la taille du texte. Chaque page reprend les lots, la règle et le titre. Les réglages sont gardés avec le planning.</p></li>
     </ul>
     <p class="hg-tip">Un fichier de Gantt'o'Matic (.json) s'importe avec le bouton d'import du bandeau.</p>`},
   {id:"pdf", t:"Export PDF", i:"print", h:`
@@ -4289,72 +4316,90 @@ const Gantt = (()=>{
     }catch(err){ alert("Fichier illisible : "+err.message); }
   });
 
-  /* ---------- export : image claire, prête à imprimer ---------- */
-  function render(Wpx, Hpx, opts={}){
+  /* ---------- export : mise en page d'impression (format, étirement en largeur, hauteur des lignes, texte) ----------
+     Le planning est découpé en pages : en largeur si on l'étire (×2 = deux pages côte à côte), en hauteur si les lignes
+     ne tiennent pas. Chaque page reprend la colonne des lots, la règle et le titre (avec « page x/n »). */
+  const FORMATS={ a4l:{w:297,h:210,label:"A4 paysage"}, a4p:{w:210,h:297,label:"A4 portrait"}, a3l:{w:420,h:297,label:"A3 paysage"}, a3p:{w:297,h:420,label:"A3 portrait"} };
+  const DOCF={ land:{w:257,h:174,rot:true,label:"Paysage (page tournée)"}, port:{w:174,h:240,rot:false,label:"Portrait"} };
+  function pr(){ return G.print || (G.print={dest:"pdf", fmt:"a4l", docf:"land", wf:1, hf:1, tf:1}); }
+  /* zone imprimable (mm) selon la destination */
+  function areaMM(o){
+    if(o.dest==="doc") return DOCF[o.docf];
+    const f=FORMATS[o.fmt]; return {w:f.w-20, h:f.h-32};       // marges + bandeau logo
+  }
+  /* calcule le découpage ; renvoie {pages:[{ta,tb,l0,l1}], ...géométrie} pour une zone de Wpx × Hpx */
+  function layout(Wpx, Hpx, ppmm, o){
+    const k=ppmm*277/1600*(o.tf||1);
+    const M=12*k, titleH=56*k, RH=56*k, leftW=Math.round(Math.min(330*k, Wpx*0.26));
+    const top=M+titleH, gw=Wpx-2*M-leftW, availH=Hpx-top-RH-M;
+    let [a,b]=extent(); const pad=(b-a)*0.03||DAY; a-=pad; b+=pad;
+    const nx=Math.max(1, Math.ceil((o.wf||1)-1e-6)), ppm=gw*(o.wf||1)/(b-a), tPage=gw/ppm;
+    const rows=Math.max(1,G.lanes.length);
+    const base=Math.max(30*k, Math.min(110*k, availH/rows));
+    const rowH=Math.max(14*k, base*(o.hf||1));
+    const per=Math.max(1, Math.floor(availH/rowH+1e-6)), ny=Math.ceil(rows/per);
+    const pages=[];
+    for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) pages.push({ta:a+i*tPage, tb:a+(i+1)*tPage, l0:j*per, l1:Math.min(rows,(j+1)*per), i, j});
+    return {pages, nx, ny, k, M, titleH, RH, leftW, top, gw, ppm, rowH, a, b};
+  }
+  function render(Wpx, Hpx, L, pg, n){
     const c=document.createElement("canvas"); c.width=Wpx; c.height=Hpx; const x=c.getContext("2d");
-    const k=Wpx/1600;                                   // échelle des tailles de texte et marges
+    const {k,M,titleH,RH,leftW,top,gw,ppm,rowH}=L, ta=pg.ta, tb=pg.tb;
     const F=s=>`${s*k}px Arial,Helvetica,sans-serif`;
-    x.fillStyle="#fff"; x.fillRect(0,0,Wpx,Hpx);
-    const M=24*k, titleH=opts.noTitle?0:56*k, leftW=Math.round(Math.min(330*k, Wpx*0.22)), RH=56*k;
-    let top=M;
-    if(!opts.noTitle){
-      x.fillStyle="#123a6b"; x.font="bold "+F(26); x.textBaseline="middle"; x.fillText(G.title||"Planning", M, top+titleH/2-6*k);
-      x.fillStyle="#6b7280"; x.font=F(14);
-      const [a,b]=extent();
-      const sub = rel() ? `Durée : ${Math.ceil((b-G.origin)/DAY)} jours (J1 à J${Math.ceil((b-G.origin)/DAY)})` : `Du ${new Date(a).toLocaleDateString("fr-FR")} au ${new Date(b).toLocaleDateString("fr-FR")}`;
-      x.textAlign="right"; x.fillText(sub, Wpx-M, top+titleH/2-6*k); x.textAlign="left";
-      top+=titleH;
-    }
-    const gx=M+leftW, gw=Wpx-M-gx, rows=Math.max(1,G.lanes.length);
-    const rowH=Math.min(110*k, (Hpx-M-top-RH)/rows), gh=rowH*rows;
-    let [a,b]=extent(); const pad=(b-a)*0.04||DAY; a-=pad; b+=pad;
-    const ppm=gw/(b-a), X=t=>gx+(t-a)*ppm;
+    x.fillStyle="#fff"; x.fillRect(0,0,Wpx,Hpx); x.textBaseline="middle";
+    // titre
+    x.fillStyle="#123a6b"; x.font="bold "+F(26); x.fillText(G.title||"Planning", M, M+titleH/2-6*k);
+    const [ea,eb]=extent();
+    const sub = (rel() ? `Durée : ${Math.ceil((eb-G.origin)/DAY)} jours (J1 à J${Math.ceil((eb-G.origin)/DAY)})` : `Du ${new Date(ea).toLocaleDateString("fr-FR")} au ${new Date(eb).toLocaleDateString("fr-FR")}`) + (n>1 ? `   ·   page ${pg.idx+1}/${n}` : "");
+    x.fillStyle="#6b7280"; x.font=F(14); x.textAlign="right"; x.fillText(sub, Wpx-M, M+titleH/2-6*k); x.textAlign="left";
+    const gx=M+leftW, lanes=G.lanes.slice(pg.l0,pg.l1), gh=rowH*lanes.length, X=t=>gx+(t-ta)*ppm;
     const lv=pickLevel(ppm, 120*k);
     // règle
     x.fillStyle="#f3f4f6"; x.fillRect(gx,top,gw,RH);
-    x.strokeStyle="#d1d5db"; x.lineWidth=1*k; x.strokeRect(gx,top,gw,RH);
-    x.beginPath(); x.moveTo(gx,top+RH/2); x.lineTo(gx+gw,top+RH/2); x.stroke();
+    x.strokeStyle="#d1d5db"; x.lineWidth=1*k; x.beginPath(); x.moveTo(gx,top+RH/2); x.lineTo(gx+gw,top+RH/2); x.stroke();
     x.save(); x.beginPath(); x.rect(gx,top,gw,RH+gh); x.clip();
-    x.textBaseline="middle";
-    for(let t=floorU(a,lv.top); t<b; t=nextU(t,lv.top)){
+    for(let t=floorU(ta,lv.top); t<tb; t=nextU(t,lv.top)){
       const xa=X(t), xb=X(nextU(t,lv.top)); x.strokeStyle="#d1d5db"; x.beginPath(); x.moveTo(xa,top); x.lineTo(xa,top+RH/2); x.stroke();
       const lbl=fmtTop(t,lv.top); x.font="bold "+F(13); x.fillStyle="#111827";
       const w=x.measureText(lbl).width, l0=Math.max(xa,gx)+6*k; if(Math.min(xb,gx+gw)-l0>w) x.fillText(lbl,l0,top+RH/4);
     }
     x.font=F(12);
-    for(let t=floorU(a,lv.major); t<b; t=nextU(t,lv.major)){
+    for(let t=floorU(ta,lv.major); t<tb; t=nextU(t,lv.major)){
       const xa=X(t); x.strokeStyle="#d1d5db"; x.beginPath(); x.moveTo(xa,top+RH/2); x.lineTo(xa,top+RH+gh); x.stroke();
       x.fillStyle="#4b5563"; x.fillText(fmtMajor(t,lv.major), xa+4*k, top+RH*0.75);
     }
     x.restore();
     // lots
     const y0=top+RH;
-    G.lanes.forEach((l,i)=>{
+    lanes.forEach((l,i)=>{
       const y=y0+i*rowH;
-      if(i%2){ x.fillStyle="#f9fafb"; x.fillRect(M,y,leftW+gw,rowH); }
-      x.fillStyle=l.color; x.fillRect(M+8*k,y+rowH/2-6*k,12*k,12*k);
-      x.fillStyle="#111827"; x.font="bold "+F(14); x.textBaseline="middle";
+      if((pg.l0+i)%2){ x.fillStyle="#f9fafb"; x.fillRect(M,y,leftW+gw,rowH); }
+      const sq=Math.min(12*k,rowH*0.5); x.fillStyle=l.color; x.fillRect(M+8*k,y+rowH/2-sq/2,sq,sq);
+      x.fillStyle="#111827"; x.font="bold "+F(Math.min(14, rowH/k*0.42));
       let nm=l.name||""; while(nm.length>1 && x.measureText(nm).width>leftW-40*k) nm=nm.slice(0,-1);
       x.fillText(nm!==l.name?nm+"…":nm, M+28*k, y+rowH/2);
       x.strokeStyle="#e5e7eb"; x.lineWidth=1*k; x.beginPath(); x.moveTo(M,y+rowH); x.lineTo(gx+gw,y+rowH); x.stroke();
     });
     x.strokeStyle="#9ca3af"; x.lineWidth=1.2*k; x.strokeRect(M,top,leftW+gw,RH+gh); x.beginPath(); x.moveTo(gx,top); x.lineTo(gx,top+RH+gh); x.stroke();
-    // aujourd'hui (daté)
+    x.fillStyle="#f3f4f6"; x.fillRect(M+0.6*k,top+0.6*k,leftW-1.2*k,RH-1.2*k);
+    x.fillStyle="#6b7280"; x.font="bold "+F(11); x.fillText("LOTS", M+10*k, top+RH/2);
     if(!rel()){ const xn=X(Date.now()); if(xn>gx && xn<gx+gw){ x.strokeStyle="#ff8300"; x.lineWidth=2*k; x.beginPath(); x.moveTo(xn,top); x.lineTo(xn,top+RH+gh); x.stroke(); } }
     // barres et étapes clés
     x.save(); x.beginPath(); x.rect(gx,y0,gw,gh); x.clip();
-    const bh=Math.min(28*k, rowH*0.62);
+    const bh=Math.min(28*k, rowH*0.62), fs=Math.min(12, bh/k*0.5);
     for(const p of G.pastilles){
-      if(p.lane>=G.lanes.length) continue;
-      const cy=y0+p.lane*rowH+rowH/2;
+      if(p.lane<pg.l0 || p.lane>=pg.l1) continue;
+      const cy=y0+(p.lane-pg.l0)*rowH+rowH/2;
       if(p.mile){
-        const xm=X(p.start), s=9*k; x.fillStyle=p.color; x.beginPath(); x.moveTo(xm,cy-s); x.lineTo(xm+s,cy); x.lineTo(xm,cy+s); x.lineTo(xm-s,cy); x.closePath(); x.fill();
-        x.fillStyle="#111827"; x.font="bold "+F(12); x.fillText(p.label||"", xm+s+5*k, cy);
+        const xm=X(p.start), s=Math.min(9*k,bh/2); x.fillStyle=p.color; x.beginPath(); x.moveTo(xm,cy-s); x.lineTo(xm+s,cy); x.lineTo(xm,cy+s); x.lineTo(xm-s,cy); x.closePath(); x.fill();
+        x.fillStyle="#111827"; x.font="bold "+F(fs); x.fillText(p.label||"", xm+s+5*k, cy);
       }else{
-        const xa=X(p.start), w=Math.max(X(p.end)-xa, 4*k);
-        x.fillStyle=p.color; x.beginPath(); if(x.roundRect) x.roundRect(xa,cy-bh/2,w,bh,5*k); else x.rect(xa,cy-bh/2,w,bh); x.fill();
-        x.font="bold "+F(12); const lbl=p.label||"", tw=x.measureText(lbl).width;
-        if(tw+14*k<w){ x.fillStyle="#0b1220"; x.fillText(lbl, xa+7*k, cy); }
+        const xa=X(p.start), w=Math.max(X(p.end)-xa, 3*k);
+        x.fillStyle=p.color; x.beginPath(); if(x.roundRect) x.roundRect(xa,cy-bh/2,w,bh,4*k); else x.rect(xa,cy-bh/2,w,bh); x.fill();
+        x.font="bold "+F(fs); const lbl=p.label||"", tw=x.measureText(lbl).width;
+        // libellé lisible même si la tâche commence sur la page précédente
+        const lx=Math.max(xa, gx)+7*k;
+        if(tw+14*k < xa+w-Math.max(xa,gx)){ x.fillStyle="#0b1220"; x.fillText(lbl, lx, cy); }
         else{ x.fillStyle="#111827"; x.fillText(lbl, xa+w+5*k, cy); }
       }
     }
@@ -4362,44 +4407,79 @@ const Gantt = (()=>{
     return c;
   }
   const blobOf=(c,type,q)=>new Promise(r=>c.toBlob(r,type,q));
-  /* ajout au document : une page pleine (paysage = image tournée) */
-  async function addToDoc(orient){
-    closeModal("gt-add");
-    const sec=atTargetSec(); if(!sec){ toast("Clique d'abord un jalon, une section ou une sous-section du document"); return; }
-    const ppmm=(settings.dpi||200)/25.4, W=Math.round(257*ppmm), H=Math.round(174*ppmm);   // zone utile d'une page A4, tournée
-    let c;
-    if(orient==="land"){
-      const land=render(W,H);
-      c=document.createElement("canvas"); c.width=H; c.height=W; const x=c.getContext("2d");
-      x.translate(H,0); x.rotate(Math.PI/2); x.drawImage(land,0,0); land.width=land.height=0;
-    }else c=render(H, Math.round(240*ppmm));
-    const blob=await blobOf(c,"image/png");
-    const im={id:uid(), src:mediaAdd(blob), thumb:thumbFromSource(c,c.width,c.height), name:(G.title||"Planning")};
-    c.width=c.height=0;
-    const k = (activePageImg && findPage(activePageImg) && findPage(activePageImg).sec===sec) ? findPage(activePageImg).k+1 : sec.images.length;
-    sec.images.splice(k,0,im); collapsedNodes.delete(sec.id); changed(); setActivePage(im.id);
-    toast("Planning ajouté au document"); close();
-    setTimeout(()=>setActivePage(im.id,{scroll:true}), 60);
+
+  /* --- fenêtre de mise en page --- */
+  const prv=$g("gtPrv");
+  function prSync(){
+    const o=pr();
+    document.querySelectorAll("#gtPrDest button").forEach(b=>b.classList.toggle("on", b.dataset.v===o.dest));
+    document.querySelectorAll("#gtPrFmt button").forEach(b=>b.classList.toggle("on", b.dataset.v===o.fmt));
+    document.querySelectorAll("#gtPrDocf button").forEach(b=>b.classList.toggle("on", b.dataset.v===o.docf));
+    $g("gtPrFmtRow").hidden = o.dest!=="pdf"; $g("gtPrDocfRow").hidden = o.dest!=="doc";
+    $g("gtPrWf").value=o.wf; $g("gtPrHf").value=o.hf; $g("gtPrTf").value=o.tf;
+    $g("gtPrWfV").textContent="×"+(+o.wf).toFixed(2).replace(/\.?0+$/,""); $g("gtPrHfV").textContent=Math.round(o.hf*100)+" %"; $g("gtPrTfV").textContent=Math.round(o.tf*100)+" %";
+    const A=areaMM(o), pp=2.2, W=Math.round(A.w*pp), H=Math.round(A.h*pp), L=layout(W,H,pp,o), n=L.pages.length;
+    $g("gtPrInfo").textContent = n===1 ? "1 page" : `${n} pages : ${L.nx} en largeur × ${L.ny} en hauteur`;
+    const sec=atTargetSec(), num=numbering();
+    $g("gtPrGo").textContent = o.dest==="pdf" ? "Télécharger le PDF" : `Ajouter ${n>1?n+" pages":"la page"} au document`;
+    $g("gtPrGo").disabled = o.dest==="doc" && !sec;
+    $g("gtPrWhere").textContent = o.dest==="doc" ? (sec ? `Dans ${num[sec.id]||""} - ${sec.name||"(sans titre)"}${activePageImg && findPage(activePageImg) && findPage(activePageImg).sec===sec ? ", après la page active" : ", à la fin"}.` : "Ferme le planning et clique d'abord le jalon, la section ou la sous-section qui le recevra.") : "Avec le logo de la page de garde en haut à droite de chaque page.";
+    // aperçu : toutes les pages, en vignettes
+    prv.innerHTML="";
+    const maxW = Math.min(680, 680/L.nx), maxH = 460/L.ny;
+    prv.style.gridTemplateColumns=`repeat(${L.nx}, auto)`;
+    L.pages.forEach((pg,i)=>{ pg.idx=i; const c=render(W,H,L,pg,n); c.className="gt-pv"; const s=Math.min(maxW/W, maxH/H); c.style.width=(W*s)+"px"; c.style.height=(H*s)+"px"; prv.append(c); });
   }
-  async function downloadPdf(){
-    const { jsPDF } = window.jspdf; const pdf=new jsPDF({unit:"mm", format:"a4", orientation:"l", compress:true});
-    const ppmm=200/25.4, W=Math.round(277*ppmm), H=Math.round(178*ppmm);
-    const c=render(W,H); const data=c.toDataURL("image/png"); c.width=c.height=0;
-    if(state.logo){ try{ const li=await imgInfo(state.logo,null); addFit(pdf, li, 287-48, 7, 48, 14, "right"); }catch(e){} }
-    pdf.addImage(data,"PNG",10,24,277,178,undefined,"FAST");
-    pdf.setFont("helvetica","normal"); pdf.setFontSize(8); pdf.setTextColor(120,120,120);
-    pdf.text(pdfSafe((state.meta.title||"")+(state.meta.title?" - ":"")+"édité le "+new Date().toLocaleDateString("fr-FR")), 10, 205);
+  function openPrint(dest){ pr().dest=dest; prSync(); openModal("gt-print"); }
+  $g("gtPdf").onclick=()=>openPrint("pdf");
+  $g("gtAdd").onclick=()=>openPrint("doc");
+  [["gtPrDest","dest"],["gtPrFmt","fmt"],["gtPrDocf","docf"]].forEach(([id,key])=>$g(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pr()[key]=b.dataset.v; prSync(); touched(); }));
+  [["gtPrWf","wf"],["gtPrHf","hf"],["gtPrTf","tf"]].forEach(([id,key])=>$g(id).addEventListener("input",e=>{ pr()[key]=+e.target.value; prSync(); touched(); }));
+  $g("gtPrReset").onclick=()=>{ Object.assign(pr(),{wf:1,hf:1,tf:1}); prSync(); touched(); };
+  $g("gtPrGo").onclick=async()=>{
+    const o=pr(); closeModal("gt-print");
+    showBusy("Mise en page du planning…");
+    try{ if(o.dest==="pdf") await downloadPdf(o); else await addToDoc(o); }
+    catch(e){ alert("Impossible : "+(e && e.message ? e.message : e)); }
+    finally{ hideBusy(); }
+  };
+  async function addToDoc(o){
+    const sec=atTargetSec(); if(!sec){ toast("Clique d'abord un jalon, une section ou une sous-section du document"); return; }
+    const f=DOCF[o.docf], ppmm=(settings.dpi||200)/25.4, W=Math.round(f.w*ppmm), H=Math.round(f.h*ppmm);
+    const L=layout(W,H,ppmm,o), n=L.pages.length, ims=[];
+    for(let i=0;i<n;i++){
+      setBusy(`Mise en page du planning — page ${i+1}/${n}…`);
+      const pg=L.pages[i]; pg.idx=i; let c=render(W,H,L,pg,n);
+      if(f.rot){ const r=document.createElement("canvas"); r.width=H; r.height=W; const x=r.getContext("2d"); x.translate(H,0); x.rotate(Math.PI/2); x.drawImage(c,0,0); c.width=c.height=0; c=r; }
+      const blob=await blobOf(c,"image/png");
+      ims.push({id:uid(), src:mediaAdd(blob), thumb:thumbFromSource(c,c.width,c.height), name:(G.title||"Planning")+(n>1?` (${i+1}/${n})`:"")});
+      c.width=c.height=0; await yieldUI();
+    }
+    const fp=activePageImg && findPage(activePageImg);
+    const k = (fp && fp.sec===sec) ? fp.k+1 : sec.images.length;
+    sec.images.splice(k,0,...ims); collapsedNodes.delete(sec.id); changed();
+    toast(n>1 ? `Planning ajouté au document (${n} pages)` : "Planning ajouté au document"); close();
+    setTimeout(()=>setActivePage(ims[0].id,{scroll:true}), 60);
+  }
+  async function downloadPdf(o){
+    const { jsPDF } = window.jspdf, F=FORMATS[o.fmt], land=F.w>F.h;
+    const pdf=new jsPDF({unit:"mm", format:[F.w,F.h], orientation:land?"l":"p", compress:true});
+    const A=areaMM(o), ppmm=200/25.4, W=Math.round(A.w*ppmm), H=Math.round(A.h*ppmm), L=layout(W,H,ppmm,o), n=L.pages.length;
+    let li=null; if(state.logo){ try{ li=await imgInfo(state.logo,null); }catch(e){} }
+    for(let i=0;i<n;i++){
+      setBusy(`PDF du planning — page ${i+1}/${n}…`);
+      if(i) pdf.addPage([F.w,F.h], land?"l":"p");
+      const pg=L.pages[i]; pg.idx=i; const c=render(W,H,L,pg,n);
+      if(li) addFit(pdf, li, F.w-10-48, 6, 48, 14, "right");
+      pdf.addImage(c.toDataURL("image/png"),"PNG",10,22,A.w,A.h,undefined,"FAST"); c.width=c.height=0;
+      pdf.setFont("helvetica","normal"); pdf.setFontSize(8); pdf.setTextColor(120,120,120);
+      pdf.text(pdfSafe((state.meta.title||"")+(state.meta.title?" - ":"")+"édité le "+new Date().toLocaleDateString("fr-FR")), 10, F.h-5);
+      if(n>1) pdf.text(`${i+1}/${n}`, F.w-10, F.h-5, {align:"right"});
+      await yieldUI();
+    }
     const name=((G.title||"Planning").replace(/[^\w\-À-ÿ ]+/g,"").trim().replace(/\s+/g,"_")||"Planning")+".pdf";
     saveBlob(pdf.output("blob"), name);
   }
-  $g("gtPdf").onclick=()=>downloadPdf().catch(e=>alert("PDF impossible : "+e.message));
-  $g("gtAdd").onclick=()=>{
-    const sec=atTargetSec(), n=numbering();
-    $g("gtAddWhere").textContent = sec ? `La page ira dans ${n[sec.id]||""} - ${sec.name||"(sans titre)"}${activePageImg && findPage(activePageImg) && findPage(activePageImg).sec===sec ? ", juste après la page active" : ", à la fin"}.` : "Choisis d'abord, dans la structure, l'élément qui recevra le planning (ferme le planning, clique un jalon, une section ou une sous-section).";
-    document.querySelectorAll("#gt-add .gt-or").forEach(b=>b.disabled=!sec);
-    openModal("gt-add");
-  };
-  document.querySelectorAll("#gt-add .gt-or").forEach(b=>b.addEventListener("click",()=>addToDoc(b.dataset.v)));
 
   /* ---------- ouverture / fermeture ---------- */
   function open(){
