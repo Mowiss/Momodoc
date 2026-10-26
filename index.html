@@ -4354,6 +4354,15 @@ const Gantt = (()=>{
     x.fillStyle="#6b7280"; x.font=F(14); x.textAlign="right"; x.fillText(sub, Wpx-M, M+titleH/2-6*k); x.textAlign="left";
     const gx=M+leftW, lanes=G.lanes.slice(pg.l0,pg.l1), gh=rowH*lanes.length, X=t=>gx+(t-ta)*ppm;
     const lv=pickLevel(ppm, 120*k);
+    // bandes des lots d'abord : le maillage du temps passe par-dessus
+    lanes.forEach((l,i)=>{ if((pg.l0+i)%2){ x.fillStyle="#f9fafb"; x.fillRect(M,top+RH+i*rowH,leftW+gw,rowH); } });
+    // graduation fine (jours, semaines…) dans les lignes
+    if(span(lv.minor)*ppm>6*k){
+      x.save(); x.beginPath(); x.rect(gx,top+RH,gw,gh); x.clip();
+      x.strokeStyle="#eef0f3"; x.lineWidth=1*k; x.beginPath();
+      for(let t=floorU(ta,lv.minor); t<tb; t=nextU(t,lv.minor)){ const xa=X(t); x.moveTo(xa,top+RH); x.lineTo(xa,top+RH+gh); }
+      x.stroke(); x.restore();
+    }
     // règle
     x.fillStyle="#f3f4f6"; x.fillRect(gx,top,gw,RH);
     x.strokeStyle="#d1d5db"; x.lineWidth=1*k; x.beginPath(); x.moveTo(gx,top+RH/2); x.lineTo(gx+gw,top+RH/2); x.stroke();
@@ -4373,7 +4382,6 @@ const Gantt = (()=>{
     const y0=top+RH;
     lanes.forEach((l,i)=>{
       const y=y0+i*rowH;
-      if((pg.l0+i)%2){ x.fillStyle="#f9fafb"; x.fillRect(M,y,leftW+gw,rowH); }
       const sq=Math.min(12*k,rowH*0.5); x.fillStyle=l.color; x.fillRect(M+8*k,y+rowH/2-sq/2,sq,sq);
       x.fillStyle="#111827"; x.font="bold "+F(Math.min(14, rowH/k*0.42));
       let nm=l.name||""; while(nm.length>1 && x.measureText(nm).width>leftW-40*k) nm=nm.slice(0,-1);
