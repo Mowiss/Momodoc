@@ -557,6 +557,7 @@
   .at-body{flex:1;min-height:0;display:flex}
   .at-frame{flex:1;border:0;width:100%;height:100%;background:var(--bg)}
   #at-out{z-index:95}
+  #mv-modal{z-index:97}
   .toast{z-index:210}
   /* outils Masquer / Extraire actifs */
   body.tool-mode #sectionsList .jalon, body.tool-mode #sectionsList .sec-top, body.tool-mode #sectionsList .thumb, body.tool-mode #document .page[data-img], body.tool-mode #document .page-divider{cursor:pointer}
@@ -800,12 +801,13 @@ requestAnimationFrame(frame);
         <button role="menuitem" id="miSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Enregistrer<span class="kb">Ctrl+S</span></button>
         <button role="menuitem" id="miSaveAs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v4"/><path d="M7 3v5h8"/><path d="M17.5 14.5l3 3L15 23h-3v-3z"/></svg>Enregistrer sous…<span class="kb">Ctrl+Maj+S</span></button>
         <div class="sep"></div>
+        <button role="menuitem" id="miExport" title="Un PDF simple, sans la partie modifiable : ni pages masquées, ni images entières des recadrages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>Exporter un PDF à diffuser…</button>
+        <div class="sep"></div>
         <button role="menuitem" id="miAutosaves" title="Les dernières versions gardées automatiquement dans ce navigateur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Sauvegardes automatiques…</button>
       </div>
     </div>
     <span class="file-label unsaved" id="docName" title="Document en cours">Nouveau document</span>
     <span class="dirty-dot" title="Modifications non enregistrées"></span>
-    <button class="hbtn" id="btnPrint" title="PDF à diffuser : le PDF final seul, sans les données d'édition (ni pages masquées, ni images entières des recadrages)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/></svg></button>
     <span class="hsep"></span>
     <button class="hbtn c-blue3" id="btnGuide" title="Guide de MomoDOC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
     <button class="hbtn glyph" id="btnSettings" title="Paramètres : sauvegarde automatique, import, application"><span>⛯</span></button>
@@ -823,7 +825,7 @@ requestAnimationFrame(frame);
           <button class="tb t-sect" id="tbSect" data-ic="sect" data-tip="Section|Nouvelle section (1.1.1…) dans le jalon actif"></button>
           <button class="tb t-sous" id="tbSous" data-ic="sous" data-tip="Sous-section|Nouvelle sous-section (1.1.1.1…) dans la section active"></button>
           <button class="tb t-text" id="tbText" data-ic="text" data-tip="Traitement de texte|Ajoute une page de texte à écrire directement dans l'aperçu"></button>
-          <button class="tb t-crop" id="tbCrop" data-ic="crop" data-tip="Recadrer|Recadre la page active (un plan, une photo…) ; sans page active, importe d'abord un fichier"></button>
+          <button class="tb t-crop" id="tbCrop" data-ic="crop" data-tip="Recadrer / pivoter|Recadre ou fait pivoter la page active (un plan, une photo…) ; sans page active, importe d'abord un fichier"></button>
         </div>
       </div>
       <div class="pal" data-pal="nav">
@@ -1002,7 +1004,7 @@ requestAnimationFrame(frame);
     <span class="gt-grow"></span>
     <button class="gt-btn icon" id="gtImport" data-tip="Importer|Un planning Gantt'o'Matic (.json)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></button>
     <button class="gt-btn" id="gtPdf" data-tip="Télécharger|Le planning en PDF A4 paysage, avec le logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5v-5h1.6a1.5 1.5 0 0 1 0 3H7.5"/><path d="M12 12.5v5h1.1a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/><path d="M17 17.5v-5h2M17 15h1.6"/></svg>PDF</button>
-    <button class="gt-btn primary" id="gtAdd" data-tip="Ajouter au document|Une page du planning dans l'élément actif"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 11v6M9 14h6"/></svg>Au document</button>
+    <button class="gt-btn primary" id="gtAdd" data-tip="Ajouter au document|Mise en page, puis choix de l'endroit dans le document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 11v6M9 14h6"/></svg>Au document</button>
     <button class="iconbtn" id="gtClose" title="Fermer le planning (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <input type="file" id="gtFile" class="hidden-input" accept=".json,application/json">
   </div>
@@ -1146,7 +1148,7 @@ const ICONS = {
   sect:'<path d="M6 3h12v18l-6-4-6 4z"/>',
   sous:'<path d="M5 4v7a3 3 0 0 0 3 3h10"/><path d="M14 10l4 4-4 4"/>',
   text:'<path d="M4 6V4h16v2"/><path d="M12 4v16"/><path d="M9 20h6"/>',
-  crop:'<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/>',
+  crop:'<path d="M9 6.5v8a.5.5 0 0 0 .5.5h8"/><path d="M6.5 9h8a.5.5 0 0 1 .5.5v8"/><path d="M14.5 2.6a9.5 9.5 0 0 1 6.9 6.9"/><path d="M19.4 7.9l2 1.6 1.4-2.2"/><path d="M9.5 21.4a9.5 9.5 0 0 1-6.9-6.9"/><path d="M4.6 16.1l-2-1.6-1.4 2.2"/>',
   som:'<path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1.1" fill="currentColor"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor"/>',
   go:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 15h7"/><path d="M12 12l3 3-3 3"/>',
   move:'<rect x="2.5" y="10" width="9" height="11.5" rx="1.5"/><rect x="15" y="12.5" width="6.5" height="9" rx="1" stroke-dasharray="2 2"/><path d="M7 10V8a4 4 0 0 1 4-4h3.5a3.8 3.8 0 0 1 3.8 3.8V10"/><path d="M15.6 7.6l2.7 2.7 2.7-2.7"/>',
@@ -2729,7 +2731,7 @@ $("#miAutosaves").addEventListener("click", ()=>{ closeFileMenu(); openAutosaves
 
 $("#btnFull").addEventListener("click", ()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); });
 $("#btnGuide").addEventListener("click", ()=>{ buildGuide(); openModal("hg-modal"); });
-$("#btnPrint").addEventListener("click", exportPDF);
+$("#miExport").addEventListener("click", ()=>{ closeFileMenu(); exportPDF(); });
 $("#btnUndo").addEventListener("click", undo);
 $("#btnRedo").addEventListener("click", redo);
 /* fichiers choisis */
@@ -2798,7 +2800,7 @@ const GUIDE = [
     <ol class="hg-steps">
       <li><b>Remplis la page de garde</b> : clique directement sur la première page pour importer le logo, taper le titre, le type de document (DOE, mémoire technique…) et ajouter la photo du chantier.</li>
       <li><b>Construis la structure</b> avec les boutons de la plage Édition, en haut à gauche : chapitres, jalons, sections et sous-sections, puis importe tes fichiers ou écris tes pages de texte.</li>
-      <li><b>Exporte le PDF</b> avec ${b_("print")}. Le sommaire, les numéros de page et les intercalaires sont calculés pour toi.</li>
+      <li><b>Enregistre</b> avec ${b_("disk","c-blue")} : ton document devient un PDF, prêt à envoyer. Le sommaire, les numéros de page et les intercalaires sont calculés pour toi.</li>
     </ol>
     <p class="hg-tip">Enregistre tôt avec <kbd>Ctrl</kbd>+<kbd>S</kbd> : ton document devient un PDF modifiable : un vrai PDF à envoyer, que MomoDOC sait rouvrir et compléter au fil du chantier.</p>`},
   {id:"struct", t:"Structure", i:"i_chap", h:`
@@ -2865,7 +2867,7 @@ const GUIDE = [
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
-    <p class="hg-tip">Enregistrer sous propose aussi le format .mmd seul (le document MomoDOC sans le PDF). Attention : un PDF modifiable transporte les pages masquées et les images entières des recadrages ; pour un PDF « propre » à diffuser sans elles, utilise l'export ${b_("print")}. Si quelqu'un repasse le PDF dans un autre outil (signature, compression, fusion), la partie modifiable peut se perdre : garde ton original.</p>`},
+    <p class="hg-tip">Enregistrer sous propose aussi le format .mmd seul (le document MomoDOC sans le PDF). Attention : un PDF modifiable transporte les pages masquées et les images entières des recadrages ; pour un PDF « propre » à diffuser sans elles, utilise Exporter un PDF à diffuser, dans le même menu. Si quelqu'un repasse le PDF dans un autre outil (signature, compression, fusion), la partie modifiable peut se perdre : garde ton original.</p>`},
   {id:"atelier", t:"Atelier PDF", i:"atelier", h:`
     <p class="hg-intro">${b_("atelier","c-blue3")} ouvre l'Atelier PDF : les outils de MOMOdificator, en plein écran, pour travailler des PDF et des images avant de les mettre dans ton document. Tout se fait sur ton poste, rien ne part sur internet.</p>
     <ul class="hg-list">
@@ -2879,7 +2881,7 @@ const GUIDE = [
     </ul>
     <p class="hg-sub">Avec ton document</p>
     <ul class="hg-list">
-      <li><b>Ajouter au document</b><p>Quand un outil produit un fichier, MomoDOC te propose de le <b>télécharger</b> ou de l'<b>ajouter au document</b>, dans l'élément actif (un PDF y devient des pages, comme à l'import). Le bandeau de l'atelier rappelle où il ira.</p></li>
+      <li><b>Ajouter au document</b><p>Quand un outil produit un fichier, MomoDOC te propose de le <b>télécharger</b> ou de l'<b>ajouter au document</b> : la fenêtre de « Déplacer vers… » s'ouvre pour choisir l'élément, puis la place entre deux pages (un PDF y devient des pages, comme à l'import).</p></li>
       <li><b>Utiliser le document en cours</b><p>Envoie le PDF final de ton document dans l'outil affiché : pour le compresser, y poser un filigrane, le caviarder avant de l'envoyer…</p></li>
     </ul>
     <p class="hg-tip">Échap ou la croix referme l'atelier ; ton travail en cours dans l'atelier est gardé jusqu'à la fermeture de MomoDOC.</p>`},
@@ -2889,13 +2891,13 @@ const GUIDE = [
       <li><b>Lots, tâches, étapes clés</b><p>Chaque ligne est un lot (Terrassement, VRD…) : son nom se modifie directement, la pastille de couleur change sa teinte. Une tâche se crée avec le bouton Tâche ou d'un double-clic sur la frise ; elle se déplace à la souris (aussi d'un lot à l'autre) et s'allonge par ses bords. Une étape clé est un losange à une date (réception, OS…).</p></li>
       <li><b>Daté ou non daté</b><p>Daté : les vraies dates du calendrier, et la date de début qui décale tout le planning d'un coup. Non daté : J1, J2… S1, S2… M1… à partir du début du planning, pour un planning de principe (mémoire technique, offre). On passe de l'un à l'autre sans rien perdre.</p></li>
       <li><b>Navigation</b><p>Molette : zoom continu, de l'heure aux années. Maj + molette : défiler. Glisser le fond : se déplacer. Le magnétisme accroche les tâches à la graduation fine.</p></li>
-      <li><b>Au document</b><p>Ajoute le planning comme une page dans l'élément actif, en paysage (page tournée, tout le planning en grand) ou en portrait. Le logo et le numéro de page sont ceux du document.</p></li>
+      <li><b>Au document</b><p>Ajoute le planning au document, en paysage (page tournée, tout le planning en grand) ou en portrait : après la mise en page, tu choisis l'élément et la place entre deux pages. Le logo et le numéro de page sont ceux du document.</p></li>
       <li><b>PDF</b><p>Télécharge le planning tout de suite, avec le logo de la page de garde.</p></li>
       <li><b>Mise en page d'impression</b><p>PDF et Au document ouvrent la même fenêtre, avec l'aperçu de toutes les pages : le format (A4 / A3, paysage / portrait, ou page du document), l'étirement en largeur (×2 = le planning s'étale sur deux pages côte à côte, pour les plannings longs), la hauteur des lignes (si elles ne tiennent plus, la suite part sur une page en dessous) et la taille du texte. Chaque page reprend les lots, la règle et le titre. Les réglages sont gardés avec le planning.</p></li>
     </ul>
     <p class="hg-tip">Un fichier de Gantt'o'Matic (.json) s'importe avec le bouton d'import du bandeau.</p>`},
-  {id:"pdf", t:"Export PDF", i:"print", h:`
-    <p class="hg-intro">${b_("print")} fabrique le PDF final, prêt à envoyer.</p>
+  {id:"pdf", t:"Le PDF", i:"print", h:`
+    <p class="hg-intro">Le PDF final, c'est ton fichier enregistré (${b_("disk","c-blue")} › Enregistrer) : un vrai PDF, qui garde en plus ton travail MomoDOC pour le rouvrir et le modifier. Pour un PDF « propre », sans cette partie modifiable (ni pages masquées, ni images entières des recadrages), utilise ${b_("disk","c-blue")} › Exporter un PDF à diffuser.</p>
     <ul class="hg-list">
       <li><b>Sommaire cliquable</b><p>Dans le PDF, chaque ligne du sommaire est un lien : un clic et on arrive sur la bonne page.</p></li>
       <li><b>Signets</b><p>Le panneau des signets du lecteur PDF reprend toute la structure (chapitres, jalons, sections, sous-sections) pour naviguer sans repasser par le sommaire.</p></li>
@@ -3046,7 +3048,8 @@ function atTargetSec(){
 }
 function updateAtTarget(){
   const sec=atTargetSec(), n=numbering();
-  $("#atTarget").innerHTML = sec ? `Les fichiers produits peuvent aller dans <b>${escapeHtml((n[sec.id]||"")+" - "+(sec.name||"(sans titre)"))}</b>` : "Clique un jalon, une section ou une sous-section du document pour y ajouter ce que tu produis ici";
+  void sec; void n;
+  $("#atTarget").textContent = "Chaque fichier produit ici peut être téléchargé ou ajouté au document, à l'endroit de ton choix";
   let tab="editor"; try{ tab=atelierFrame && atelierFrame.contentWindow.momoCurrentTab ? atelierFrame.contentWindow.momoCurrentTab() : "editor"; }catch(e){}
   $("#atSend").disabled = (tab==="unlock");
   $("#atSend").title = tab==="unlock" ? "Cet outil travaille sur des classeurs Excel, pas sur le document" : "Envoie le PDF final du document dans l'outil affiché";
@@ -3059,17 +3062,16 @@ window.momoAtelierOut = (blob, name, download)=>{
   $("#atOutName").textContent=name;
   $("#atOutSize").textContent=(blob.size/1e6>=1 ? (blob.size/1e6).toFixed(1)+" Mo" : Math.max(1,Math.round(blob.size/1e3))+" ko");
   const add=$("#atOutAdd");
-  add.disabled=!(usable && sec);
-  const n=numbering();
-  $("#atOutWhere").textContent = !usable ? "Ce type de fichier ne peut pas devenir une page du document." : sec ? `Ajouter dans ${n[sec.id]||""} - ${sec.name||"(sans titre)"}` : "Pour l'ajouter au document, ferme l'atelier et clique d'abord un jalon, une section ou une sous-section.";
+  add.disabled=!usable; void sec;
+  $("#atOutWhere").textContent = !usable ? "Ce type de fichier ne peut pas devenir une page du document." : "« Ajouter au document » te laisse choisir l'endroit : l'élément, puis la place entre deux pages.";
   openModal("at-out");
 };
 $("#atOutDl").addEventListener("click", ()=>{ const p=atelierPending; closeModal("at-out"); if(p) p.download(); atelierPending=null; });
-$("#atOutAdd").addEventListener("click", async ()=>{
-  const p=atelierPending, sec=atTargetSec(); closeModal("at-out"); atelierPending=null;
-  if(!p || !sec) return;
-  const fresh=await addFilesToSection(sec, [new File([p.blob], p.name, {type:p.blob.type||""})]);
-  if(fresh && fresh.length){ collapsedNodes.delete(sec.id); renderSections(); setActivePage(fresh[0].id); toast(`${fresh.length} page${fresh.length>1?"s":""} ajoutée${fresh.length>1?"s":""} dans le document`); }
+$("#atOutAdd").addEventListener("click", ()=>{
+  const p=atelierPending; closeModal("at-out"); atelierPending=null;
+  if(!p) return;
+  openPlacer({title:"Ajouter au document", go:"Ajouter ici", thumb:svgIcon("page"), what:p.name, where:"Où le ranger ? Choisis l'élément, puis la place entre deux pages.",
+    onGo: async (secId, slot)=>{ const fresh=await insertFilesAt(secId, slot, [new File([p.blob], p.name, {type:p.blob.type||""})]); if(fresh.length) toast(`${fresh.length} page${fresh.length>1?"s":""} ajoutée${fresh.length>1?"s":""} dans ${labelOf(secId)}`); }});
 });
 
 /* envoie le PDF final du document dans l'outil affiché de l'atelier */
@@ -3570,15 +3572,9 @@ const pgNo = pg => pg && pg.no!=null ? pg.no : "–";
 
 /* ---------- Déplacer vers… (la page active) ---------- */
 let mvImg=null, mvSec=null, mvSlot=null;     // mvSlot = index d'insertion dans mvSec (avant retrait de la page)
-function openMove(){
-  if(activePageImg && !findImg(activePageImg)) activePageImg=null;
-  mvImg = activePageImg || pageInView();
-  if(!mvImg){ toast("Aucune page à déplacer : importe d'abord des fichiers ou ajoute une page de texte"); return; }
-  setActivePage(mvImg);
-  const f=findImg(mvImg), pg=docPages.find(p=>p.imgId===mvImg);
-  $("#mvThumb").innerHTML=pageThumb(f.sec.images[f.k]);
-  $("#mvWhat").textContent=`Page N° ${pgNo(pg)}`;
-  $("#mvWhere").textContent=`${labelOf(f.sec.id)} · page ${f.k+1} sur ${f.sec.images.length}`;
+let mvCb=null;                                // mode « choisir un emplacement » : fonction appelée avec (secId, slot)
+function mvSetup(title, go){ $("#mvTitle").lastChild.textContent=title; $("#mvGo").textContent=go; }
+function mvTree(){
   const tree=$("#mvTree"); tree.innerHTML="";
   docToc.forEach(t=>{
     const it=findItem(t.id); if(!it) return;
@@ -3588,6 +3584,48 @@ function openMove(){
     if(t.kind!=="chapter") row.addEventListener("click", ()=>mvPick(t.id));
     tree.append(row);
   });
+  return tree;
+}
+/* même fenêtre que « Déplacer vers… », pour choisir où ajouter quelque chose dans le document
+   opts : {title, go, thumb (html), what, where, onGo(secId, slot)} */
+function openPlacer(opts){
+  const containers=IT().filter(i=>!isChapter(i));
+  if(!containers.length){ toast("Crée d'abord un jalon (ou une section) dans le document pour y ranger ce fichier"); return false; }
+  mvImg=null; mvCb=opts.onGo;
+  mvSetup(opts.title||"Ajouter au document", opts.go||"Ajouter ici");
+  $("#mvThumb").innerHTML=opts.thumb||svgIcon("page");
+  $("#mvWhat").textContent=opts.what||"";
+  $("#mvWhere").textContent=opts.where||"Choisis l'élément, puis la place entre deux pages.";
+  const tree=mvTree();
+  const fp=activePageImg && findPage(activePageImg), sec=atTargetSec()||containers[0];
+  mvPick(sec.id, fp && fp.sec===sec ? fp.k+1 : null);
+  openModal("mv-modal");
+  const sel=tree.querySelector(".sel"); if(sel) sel.scrollIntoView({block:"nearest"});
+  return true;
+}
+/* ajoute des fichiers à un emplacement précis (élément + place) */
+async function insertFilesAt(secId, slot, files){
+  const sec=findItem(secId); if(!sec || isChapter(sec)) return [];
+  const before=sec.images.length;
+  const fresh=await addFilesToSection(sec, files);
+  if(fresh.length && slot!=null && slot<before){
+    const moved=sec.images.splice(before, fresh.length);
+    sec.images.splice(slot,0,...moved); changed();
+  }
+  if(fresh.length){ collapsedNodes.delete(sec.id); renderSections(); setActivePage(fresh[0].id,{scroll:true}); }
+  return fresh;
+}
+function openMove(){
+  mvCb=null; mvSetup("Déplacer vers…","Déplacer");
+  if(activePageImg && !findImg(activePageImg)) activePageImg=null;
+  mvImg = activePageImg || pageInView();
+  if(!mvImg){ toast("Aucune page à déplacer : importe d'abord des fichiers ou ajoute une page de texte"); return; }
+  setActivePage(mvImg);
+  const f=findImg(mvImg), pg=docPages.find(p=>p.imgId===mvImg);
+  $("#mvThumb").innerHTML=pageThumb(f.sec.images[f.k]);
+  $("#mvWhat").textContent=`Page N° ${pgNo(pg)}`;
+  $("#mvWhere").textContent=`${labelOf(f.sec.id)} · page ${f.k+1} sur ${f.sec.images.length}`;
+  const tree=mvTree();
   mvPick(f.sec.id, f.k+1);
   openModal("mv-modal");
   const sel=tree.querySelector(".sel"); if(sel) sel.scrollIntoView({block:"nearest"});
@@ -3598,7 +3636,7 @@ function mvPick(secId, slot){
   mvSlot = slot!=null ? slot : sec.images.length;
   const strip=$("#mvStrip"); strip.innerHTML="";
   const slotEl=k=>{ const s=h("div","mv-slot"+(k===mvSlot?" sel":"")); s.dataset.k=k; s.title=k===0?"Au début":k===sec.images.length?"À la fin":"Ici"; s.onclick=()=>{ mvSlot=k; strip.querySelectorAll(".mv-slot").forEach(x=>x.classList.toggle("sel", +x.dataset.k===k)); mvHint(); }; return s; };
-  if(!sec.images.length){ strip.append(slotEl(0), h("span","mv-none",{textContent:"Vide pour l'instant : la page sera la première."})); }
+  if(!sec.images.length){ strip.append(slotEl(0), h("span","mv-none",{textContent:"Vide pour l'instant : ce sera la première page."})); }
   else sec.images.forEach((im,k)=>{
     strip.append(slotEl(k));
     const pg=docPages.find(p=>p.imgId===im.id);
@@ -3609,7 +3647,7 @@ function mvPick(secId, slot){
   const sel=strip.querySelector(".mv-slot.sel"); if(sel) sel.scrollIntoView({block:"nearest", inline:"center"});
   mvHint();
 }
-function mvSame(){ const f=findImg(mvImg); return f && f.sec.id===mvSec && (mvSlot===f.k || mvSlot===f.k+1); }
+function mvSame(){ if(!mvImg) return false; const f=findImg(mvImg); return f && f.sec.id===mvSec && (mvSlot===f.k || mvSlot===f.k+1); }
 function mvHint(){
   const el=$("#mvHint"), sec=findItem(mvSec), n=sec.images.length;
   const same=mvSame(); $("#mvGo").disabled=same; el.classList.toggle("err", false);
@@ -3637,6 +3675,7 @@ function movePageTo(imgId, dest){
   return true;
 }
 function doMove(){
+  if(mvCb){ const cb=mvCb; mvCb=null; closeModal("mv-modal"); cb(mvSec, mvSlot); return; }
   if(!mvImg || mvSame()) return;
   if(!movePageTo(mvImg, {secId:mvSec, at:mvSlot})) return;
   closeModal("mv-modal");
@@ -4429,9 +4468,10 @@ const Gantt = (()=>{
     const A=areaMM(o), pp=2.2, W=Math.round(A.w*pp), H=Math.round(A.h*pp), L=layout(W,H,pp,o), n=L.pages.length;
     $g("gtPrInfo").textContent = n===1 ? "1 page" : `${n} pages : ${L.nx} en largeur × ${L.ny} en hauteur`;
     const sec=atTargetSec(), num=numbering();
-    $g("gtPrGo").textContent = o.dest==="pdf" ? "Télécharger le PDF" : `Ajouter ${n>1?n+" pages":"la page"} au document`;
-    $g("gtPrGo").disabled = o.dest==="doc" && !sec;
-    $g("gtPrWhere").textContent = o.dest==="doc" ? (sec ? `Dans ${num[sec.id]||""} - ${sec.name||"(sans titre)"}${activePageImg && findPage(activePageImg) && findPage(activePageImg).sec===sec ? ", après la page active" : ", à la fin"}.` : "Ferme le planning et clique d'abord le jalon, la section ou la sous-section qui le recevra.") : "Avec le logo de la page de garde en haut à droite de chaque page.";
+    void sec; void num;
+    $g("gtPrGo").disabled=false;
+    $g("gtPrGo").textContent = o.dest==="pdf" ? "Télécharger le PDF" : `Choisir l'emplacement…`;
+    $g("gtPrWhere").textContent = o.dest==="doc" ? `${n>1?n+" pages":"1 page"} à ajouter : à l'étape suivante, tu choisis l'élément et la place entre deux pages.` : "Avec le logo de la page de garde en haut à droite de chaque page.";
     // aperçu : toutes les pages, en vignettes
     prv.innerHTML="";
     const maxW = Math.min(680, 680/L.nx), maxH = 460/L.ny;
@@ -4446,13 +4486,13 @@ const Gantt = (()=>{
   $g("gtPrReset").onclick=()=>{ Object.assign(pr(),{wf:1,hf:1,tf:1}); prSync(); touched(); };
   $g("gtPrGo").onclick=async()=>{
     const o=pr(); closeModal("gt-print");
-    showBusy("Mise en page du planning…");
-    try{ if(o.dest==="pdf") await downloadPdf(o); else await addToDoc(o); }
-    catch(e){ alert("Impossible : "+(e && e.message ? e.message : e)); }
-    finally{ hideBusy(); }
+    const run=async f=>{ showBusy("Mise en page du planning…"); try{ await f(); }catch(e){ alert("Impossible : "+(e && e.message ? e.message : e)); } finally{ hideBusy(); } };
+    if(o.dest==="pdf") return run(()=>downloadPdf(o));
+    openPlacer({title:"Ajouter le planning au document", go:"Ajouter ici", thumb:svgIcon("gantt"), what:G.title||"Planning", where:"Où le ranger ? Choisis l'élément, puis la place entre deux pages.",
+      onGo:(secId,slot)=>run(()=>addToDoc(o, secId, slot))});
   };
-  async function addToDoc(o){
-    const sec=atTargetSec(); if(!sec){ toast("Clique d'abord un jalon, une section ou une sous-section du document"); return; }
+  async function addToDoc(o, secId, slot){
+    const sec=findItem(secId); if(!sec || isChapter(sec)) return;
     const f=DOCF[o.docf], ppmm=(settings.dpi||200)/25.4, W=Math.round(f.w*ppmm), H=Math.round(f.h*ppmm);
     const L=layout(W,H,ppmm,o), n=L.pages.length, ims=[];
     for(let i=0;i<n;i++){
@@ -4463,8 +4503,7 @@ const Gantt = (()=>{
       ims.push({id:uid(), src:mediaAdd(blob), thumb:thumbFromSource(c,c.width,c.height), name:(G.title||"Planning")+(n>1?` (${i+1}/${n})`:"")});
       c.width=c.height=0; await yieldUI();
     }
-    const fp=activePageImg && findPage(activePageImg);
-    const k = (fp && fp.sec===sec) ? fp.k+1 : sec.images.length;
+    const k = slot==null ? sec.images.length : Math.max(0,Math.min(slot,sec.images.length));
     sec.images.splice(k,0,...ims); collapsedNodes.delete(sec.id); changed();
     toast(n>1 ? `Planning ajouté au document (${n} pages)` : "Planning ajouté au document"); close();
     setTimeout(()=>setActivePage(ims[0].id,{scroll:true}), 60);
