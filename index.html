@@ -659,6 +659,16 @@
   .gt-seg.wrap{flex-wrap:wrap}
   .gt-seg.wrap button{flex:1 1 45%}
   .gt-reset{margin-top:14px;width:100%}
+  /* images dans les pages de texte */
+  .tx-content img.tx-img{max-width:100%;height:auto;cursor:move}
+  .tx-edit img.tx-img.sel{outline:2px solid #3b82f6;outline-offset:1px}
+  .tx-img-ui{position:absolute;z-index:5;pointer-events:none}
+  .tx-img-bar{position:absolute;left:0;top:-36px;display:flex;gap:3px;background:#1f2937;border:1px solid #4b5563;border-radius:6px;padding:3px;pointer-events:auto}
+  .tx-img-bar button{width:26px;height:26px;border:0;border-radius:4px;background:transparent;color:#e5e7eb;display:grid;place-items:center;cursor:pointer;padding:0}
+  .tx-img-bar button:hover{background:#374151}
+  .tx-img-bar button.del{color:#f87171}
+  .tx-img-bar svg{width:15px;height:15px}
+  .tx-img-h{position:absolute;right:-7px;bottom:-7px;width:14px;height:14px;background:#3b82f6;border:2px solid #fff;border-radius:3px;cursor:nwse-resize;pointer-events:auto}
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
   @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
@@ -2823,6 +2833,7 @@ const GUIDE = [
     <p class="hg-intro">Deux outils pour fabriquer des pages sans passer par un autre logiciel.</p>
     <ul class="hg-list">
       <li><b>${b_("i_text","c-amber")} Traitement de texte</b><p>Ajoute une page de texte juste après la page active (ou à la fin de l'élément actif). Tu écris directement sur la page, dans l'aperçu ; la barre d'outils au-dessus donne les styles (titres, citation), la police, la taille, gras, italique, souligné, couleurs, alignements, listes, retraits, liens, tableaux et traits de séparation. Le texte se travaille page par page : quand la page est pleine, un bouton <b>Créer une seconde page ?</b> apparaît et envoie la suite sur une nouvelle page, juste après.</p></li>
+      <li><b>Images dans le texte</b><p>Le bouton image de la barre de texte pose une image (photo, schéma, plan…) dans la page. Glisse-la où tu veux : elle se place à gauche ou à droite selon le côté où tu la lâches, et le texte passe autour. La poignée bleue la redimensionne ; sa petite barre la met à gauche, au centre (seule sur sa ligne) ou à droite, ou la supprime (touche Suppr aussi).</p></li>
       <li><b>${b_("i_crop","c-green")} Recadrer</b><p>Clique une page (un plan, une photo…), puis Recadrer : tire un cadre sur la zone à garder, ajuste-le par ses poignées, pivote l'image si besoin. Le format peut rester libre ou suivre une page A4 (portrait ou paysage). L'image d'origine est gardée : tu peux recadrer à nouveau, ou revenir à l'image entière. Sans page active, Recadrer importe d'abord un fichier dans l'élément actif.</p></li>
       <li><b>Logo</b><p>À l'import du logo, la fenêtre de recadrage s'ouvre, avec un cadre déjà calé sur le dessin (les marges blanches sont retirées). Pour le reprendre plus tard, survole le logo sur la page de garde et clique le petit bouton de recadrage.</p></li>
     </ul>`},
@@ -3103,7 +3114,7 @@ function isBlankHtml(html){ return !String(html||"").replace(/<br\s*\/?>|<\/?p>|
 
 function txCommit(ed){
   const f=findPage(ed.dataset.img); if(!f) return;
-  const html=ed.innerHTML;
+  const html=ed.innerHTML.replace(/ class="tx-img sel"/g,' class="tx-img"');
   if(f.img.html===html) return;
   f.sec.images[f.k] = {...f.img, html, v:(f.img.v||0)+1};
   markDirty();
@@ -3139,6 +3150,7 @@ function wireTextPage(page, ed, more, imgId){
     if(e.key==="Tab"){ e.preventDefault(); document.execCommand(e.shiftKey?"outdent":"indent"); }
   });
   more.addEventListener("click", e=>{ e.stopPropagation(); txSplit(ed); });
+  txImgWire(page, ed);
   requestAnimationFrame(()=>txCheckOverflow(ed));
 }
 /* collage depuis Word / le web : on retire styles, classes et scripts */
@@ -3146,6 +3158,7 @@ function cleanPaste(html){
   const d=document.createElement("div"); d.innerHTML=html;
   d.querySelectorAll("script,style,meta,link,title,xml,o\\:p").forEach(n=>n.remove());
   d.querySelectorAll("*").forEach(n=>{
+    if(n.tagName==="IMG"){ if(!/^data:image\//.test(n.getAttribute("src")||"")) n.remove(); else [...n.attributes].forEach(a=>{ if(a.name!=="src") n.removeAttribute(a.name); }); return; }
     [...n.attributes].forEach(a=>{ if(!/^(href|colspan|rowspan)$/i.test(a.name)) n.removeAttribute(a.name); });
     if(/^(SPAN|FONT)$/.test(n.tagName)) n.replaceWith(...n.childNodes);
   });
@@ -3231,6 +3244,7 @@ const TXI = {
   out:'<path d="M20 6H4M20 18H4M20 10h-9M20 14h-9"/><path d="M7 9.5L4.5 12 7 14.5"/>',
   ind:'<path d="M20 6H4M20 18H4M20 10h-9M20 14h-9"/><path d="M4.5 9.5L7 12l-2.5 2.5"/>',
   link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
   table:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 10h18M3 15h18M9 4v16M15 4v16"/>',
   hr:'<path d="M3 12h18"/><path d="M8 7h8M8 17h8" opacity=".45"/>',
   clear:'<path d="M5 5h11M10.5 5L7 19"/><path d="M14 14l6 6M20 14l-6 6"/>',
@@ -3257,7 +3271,7 @@ function buildTxBar(){
     B("sup","superscript","Exposant"), B("sub","subscript","Indice"), col, hil, sep(),
     B("al","justifyLeft","Aligner à gauche"), B("ac","justifyCenter","Centrer"), B("ar","justifyRight","Aligner à droite"), B("aj","justifyFull","Justifier"), sep(),
     B("ul","insertUnorderedList","Liste à puces"), B("ol","insertOrderedList","Liste numérotée"), B("out","outdent","Diminuer le retrait (Maj+Tab)"), B("ind","indent","Augmenter le retrait (Tab)"), sep(),
-    B("link","x-link","Lien"), B("table","x-table","Insérer un tableau"), B("hr","insertHorizontalRule","Trait de séparation"), B("clear","x-clear","Effacer la mise en forme"), sep(),
+    B("link","x-link","Lien"), B("image","x-image","Insérer une image|Elle se place où tu veux sur la page (glisser), le texte passe autour ; poignée pour la redimensionner"), B("table","x-table","Insérer un tableau"), B("hr","insertHorizontalRule","Trait de séparation"), B("clear","x-clear","Effacer la mise en forme"), sep(),
     B("undo","undo","Annuler la frappe (Ctrl+Z)"), B("redo","redo","Rétablir la frappe (Ctrl+Y)"));
   // les boutons ne prennent pas le focus : la sélection reste dans la page
   bar.addEventListener("mousedown", e=>{ if(e.target.closest(".txb")) e.preventDefault(); });
@@ -3268,6 +3282,8 @@ function buildTxBar(){
     if(c==="x-link"){
       const u=prompt("Adresse du lien (https://…) :", "https://"); if(!u || u==="https://") return; txRestore();
       document.execCommand("createLink", false, u);
+    }else if(c==="x-image"){
+      txImgPick(); return;
     }else if(c==="x-table"){
       const spec=prompt("Tableau : colonnes x lignes", "3x3"); if(!spec) return;
       const m=spec.match(/(\d+)\s*[x×*]\s*(\d+)/i); const nc=Math.min(10,+(m?m[1]:3)||3), nr=Math.min(40,+(m?m[2]:3)||3);
@@ -3350,6 +3366,140 @@ async function rasterText(html, wmm, hmm){
     return c.toDataURL("image/png");
   }catch(e){ console.warn("texte non rendu", e); return null; }
 }
+
+
+/* =====================================================================
+   IMAGES DANS LES PAGES DE TEXTE : posées où on veut, le texte passe autour, redimensionnables.
+   Une image est un « flottant » ancré au paragraphe le plus proche de l'endroit où on la lâche,
+   à gauche ou à droite selon le côté de la page, avec un décalage : le texte l'habille du côté libre.
+   « Centrée » la met seule sur sa ligne (pas d'habillage).
+   ===================================================================== */
+const txImgInput=document.createElement("input"); txImgInput.type="file"; txImgInput.accept="image/*,.heic,.heif,.tif,.tiff,.bmp,.webp,.jxr,.pdf"; txImgInput.className="hidden-input"; document.body.append(txImgInput);
+let txImgTarget=null;                        // éditeur qui recevra l'image
+function txImgPick(){
+  if(!txActive || !document.contains(txActive)){ toast("Clique d'abord dans une page de texte"); return; }
+  txImgTarget=txActive; txImgInput.click();
+}
+txImgInput.addEventListener("change", async ()=>{
+  const f=txImgInput.files[0]; txImgInput.value=""; const ed=txImgTarget; txImgTarget=null;
+  if(!f || !ed || !document.contains(ed)) return;
+  showBusy("Préparation de l'image…");
+  try{
+    const pages=await convertFile(f); if(!pages.length) throw new Error("aucune image");
+    const blob=mediaBlob(pages[0].src); const bmp=await createImageBitmap(blob);
+    const max=1400, k=Math.min(1, max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
+    const x=c.getContext("2d"); x.drawImage(bmp,0,0,c.width,c.height); bmp.close&&bmp.close();
+    const png=blob.type==="image/png";
+    if(!png){ x.globalCompositeOperation="destination-over"; x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); }
+    const src=c.toDataURL(png?"image/png":"image/jpeg", 0.85);
+    const w=Math.min(ed.clientWidth*0.45, c.width);
+    const img=document.createElement("img"); img.src=src; img.className="tx-img"; img.alt="";
+    img.style.cssText=`float:left;width:${Math.round(w)}px;margin:0 12px 6px 0`;
+    // au niveau du curseur si possible, sinon en haut de la page
+    const sel=getSelection(); let blk=null;
+    if(sel.rangeCount && ed.contains(sel.anchorNode)){ let n=sel.anchorNode; while(n && n.parentNode!==ed) n=n.parentNode; blk=n; }
+    if(blk && blk.parentNode===ed) ed.insertBefore(img, blk); else ed.insertBefore(img, ed.firstChild);
+    txCommit(ed); txCheckOverflow(ed);
+    requestAnimationFrame(()=>txImgSelect(ed, img));
+  }catch(err){ alert("Image impossible à insérer : "+(err && err.message ? err.message : err)); }
+  finally{ hideBusy(); }
+});
+
+let txImgSel=null, txImgUi=null;
+function txImgUiEl(){
+  if(txImgUi) return txImgUi;
+  txImgUi=h("div","tx-img-ui");
+  txImgUi.innerHTML=`<div class="tx-img-bar">
+      <button data-a="left" title="À gauche, le texte passe à droite">${icon('<path d="M3 5h8v8H3z"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18"/>')}</button>
+      <button data-a="center" title="Centrée, seule sur sa ligne">${icon('<path d="M7 7h10v8H7z"/><path d="M3 3h18M3 19h18"/>')}</button>
+      <button data-a="right" title="À droite, le texte passe à gauche">${icon('<path d="M13 5h8v8h-8z"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18"/>')}</button>
+      <button data-a="del" class="del" title="Supprimer l'image (Suppr)">${icon('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>')}</button>
+    </div><div class="tx-img-h" title="Redimensionner"></div>`;
+  txImgUi.addEventListener("mousedown", e=>e.preventDefault());
+  txImgUi.querySelector(".tx-img-bar").addEventListener("click", e=>{
+    const b=e.target.closest("button"); if(!b || !txImgSel) return;
+    const {ed,img}=txImgSel;
+    if(b.dataset.a==="del"){ img.remove(); txImgDeselect(); }
+    else txImgSide(img, b.dataset.a, 0);
+    txCommit(ed); txCheckOverflow(ed); if(txImgSel) txImgPlace();
+  });
+  // redimensionner (garde les proportions)
+  txImgUi.querySelector(".tx-img-h").addEventListener("pointerdown", e=>{
+    if(!txImgSel) return; e.preventDefault(); e.stopPropagation();
+    const {ed,img}=txImgSel, sc=txScale(ed), w0=img.offsetWidth, x0=e.clientX, hnd=e.currentTarget;
+    hnd.setPointerCapture(e.pointerId);
+    const mv=ev=>{ const right=img.style.float==="right"; const d=(ev.clientX-x0)/sc*(right?-1:1); img.style.width=Math.round(Math.max(40, Math.min(ed.clientWidth, w0+d)))+"px"; txImgPlace(); txCheckOverflow(ed); };
+    const up=()=>{ hnd.removeEventListener("pointermove",mv); hnd.removeEventListener("pointerup",up); hnd.removeEventListener("lostpointercapture",up); txCommit(ed); };
+    hnd.addEventListener("pointermove",mv); hnd.addEventListener("pointerup",up); hnd.addEventListener("lostpointercapture",up);
+  });
+  return txImgUi;
+}
+const txScale = ed => ed.getBoundingClientRect().width/ed.offsetWidth || 1;
+function txImgSide(img, side, off){
+  const g=Math.max(0, Math.round(off||0));
+  if(side==="center"){ img.style.float="none"; img.style.display="block"; img.style.margin="4px auto 8px"; }
+  else if(side==="right"){ img.style.float="right"; img.style.display=""; img.style.margin=`${img.style.marginTop||"0px"} ${g}px 6px 12px`; }
+  else { img.style.float="left"; img.style.display=""; img.style.margin=`${img.style.marginTop||"0px"} 12px 6px ${g}px`; }
+}
+function txImgSelect(ed, img){
+  txImgSel={ed,img}; const ui=txImgUiEl();
+  ed.querySelectorAll("img.tx-img.sel").forEach(i=>i.classList.remove("sel")); img.classList.add("sel");
+  ed.parentElement.append(ui); txImgPlace();
+}
+function txImgDeselect(){ if(txImgSel){ txImgSel.img.classList.remove("sel"); } txImgSel=null; if(txImgUi) txImgUi.remove(); }
+function txImgPlace(){
+  if(!txImgSel || !txImgUi) return;
+  const {ed,img}=txImgSel;
+  txImgUi.style.left=(ed.offsetLeft+img.offsetLeft)+"px"; txImgUi.style.top=(ed.offsetTop+img.offsetTop)+"px";
+  txImgUi.style.width=img.offsetWidth+"px"; txImgUi.style.height=img.offsetHeight+"px";
+}
+/* déplacer : on lâche l'image où on veut, elle est ré-ancrée au bloc qui se trouve à cette hauteur */
+function txImgWire(page, ed){
+  ed.addEventListener("dragstart", e=>{ if(e.target.tagName==="IMG") e.preventDefault(); });
+  ed.addEventListener("pointerdown", e=>{
+    const img=e.target.closest && e.target.closest("img.tx-img");
+    if(!img){ if(txImgSel && txImgSel.ed===ed) txImgDeselect(); return; }
+    e.preventDefault(); txImgSelect(ed, img); ed.focus({preventScroll:true}); txActive=ed;
+    const sc=txScale(ed), r0=ed.getBoundingClientRect(), ir=img.getBoundingClientRect();
+    const dx=(e.clientX-ir.left)/sc, dy=(e.clientY-ir.top)/sc, sx=e.clientX, sy=e.clientY;
+    let moved=false, ghost=null;
+    ed.setPointerCapture(e.pointerId);
+    const mv=ev=>{
+      if(!moved && Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)<4) return;
+      if(!moved){ moved=true; ghost=img.cloneNode(); ghost.className="tx-img-ghost"; ghost.style.cssText=`position:absolute;width:${img.offsetWidth}px;margin:0;float:none;opacity:.6;pointer-events:none;z-index:6`; page.append(ghost); txImgUi && txImgUi.remove(); }
+      const x=(ev.clientX-r0.left)/sc-dx, y=(ev.clientY-r0.top)/sc-dy;
+      ghost.style.left=(ed.offsetLeft+Math.max(0,Math.min(ed.clientWidth-img.offsetWidth,x)))+"px"; ghost.style.top=(ed.offsetTop+Math.max(0,y))+"px";
+    };
+    const up=ev=>{
+      ed.removeEventListener("pointermove",mv); ed.removeEventListener("pointerup",up); ed.removeEventListener("lostpointercapture",up);
+      if(!moved){ return; }
+      ghost.remove();
+      const W=ed.clientWidth, w=img.offsetWidth;
+      const x=Math.max(0,Math.min(W-w,(ev.clientX-r0.left)/sc-dx)), y=Math.max(0,(ev.clientY-r0.top)/sc-dy);
+      txImgMove(ed, img, x, y);
+      txCommit(ed); txCheckOverflow(ed); txImgSelect(ed, img);
+    };
+    ed.addEventListener("pointermove",mv); ed.addEventListener("pointerup",up); ed.addEventListener("lostpointercapture",up);
+  });
+  ed.addEventListener("keydown", e=>{
+    if(txImgSel && txImgSel.ed===ed && (e.key==="Delete"||e.key==="Backspace")){ e.preventDefault(); txImgSel.img.remove(); txImgDeselect(); txCommit(ed); txCheckOverflow(ed); }
+  }, true);
+  ed.addEventListener("input", ()=>{ if(txImgSel && txImgSel.ed===ed){ if(!ed.contains(txImgSel.img)) txImgDeselect(); else txImgPlace(); } });
+}
+function txImgMove(ed, img, x, y){
+  img.remove();
+  // bloc (enfant direct de la page) qui se trouve à la hauteur y
+  const kids=[...ed.children].filter(n=>n.tagName!=="IMG");
+  let anchor=null; for(const n of kids){ if(n.offsetTop+n.offsetHeight > y){ anchor=n; break; } }
+  if(!anchor){ anchor=document.createElement("p"); anchor.innerHTML="<br>"; ed.append(anchor); }
+  ed.insertBefore(img, anchor);
+  const W=ed.clientWidth, w=img.offsetWidth||parseFloat(img.style.width)||100;
+  const side = (x + w/2) < W/2 ? "left" : "right";
+  img.style.marginTop=Math.max(0, Math.round(y-anchor.offsetTop))+"px";
+  txImgSide(img, side, side==="left" ? x : W-x-w);
+}
+document.addEventListener("pointerdown", e=>{ if(txImgSel && !e.target.closest(".tx-edit") && !e.target.closest(".tx-img-ui") && !e.target.closest("#txBar")) txImgDeselect(); });
 
 /* =====================================================================
    PALETTE D'OUTILS, INFOBULLES, NAVIGATION, DÉPLACER VERS, RECADRER, DÉPLACEMENT MIROIR
