@@ -696,6 +696,8 @@
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
   @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
+.dd-menu .mi-t{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0}
+.dd-menu .mi-t small{font-size:10.5px;font-weight:500;opacity:.6;margin-top:1px}
 </style>
 
 <!-- Animation d'ouverture : les 2 M de MOMO se superposent ; DOC se construit par des feuilles qui s'empilent -->
@@ -832,10 +834,10 @@ requestAnimationFrame(frame);
       <div class="dd-menu" id="fileMenu" role="menu" hidden>
         <div class="dd-file">Document en cours : <b id="ddFileName">Nouveau document</b></div>
         <button role="menuitem" id="miOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Ouvrir…<span class="kb">Ctrl+O</span></button>
-        <button role="menuitem" id="miSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Enregistrer<span class="kb">Ctrl+S</span></button>
-        <button role="menuitem" id="miSaveAs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v4"/><path d="M7 3v5h8"/><path d="M17.5 14.5l3 3L15 23h-3v-3z"/></svg>Enregistrer sous…<span class="kb">Ctrl+Maj+S</span></button>
+        <button role="menuitem" id="miSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg><span class="mi-t">Enregistrer<small>PDF + Script, modifiable</small></span><span class="kb">Ctrl+S</span></button>
+        <button role="menuitem" id="miSaveAs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v4"/><path d="M7 3v5h8"/><path d="M17.5 14.5l3 3L15 23h-3v-3z"/></svg><span class="mi-t">Enregistrer sous…<small>PDF + Script ou .mmd</small></span><span class="kb">Ctrl+Maj+S</span></button>
         <div class="sep"></div>
-        <button role="menuitem" id="miExport" title="Un PDF simple, sans la partie modifiable : ni pages masquées, ni images entières des recadrages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>Exporter un PDF à diffuser…</button>
+        <button role="menuitem" id="miCompiled" title="Un PDF classique, figé : sans les jalons ni les pages masqués, sans la partie modifiable. Il ne remplace pas ton fichier en cours."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span class="mi-t">Enregistrer en PDF compilé…<small>PDF classique, sans les éléments masqués</small></span></button>
         <div class="sep"></div>
         <button role="menuitem" id="miAutosaves" title="Les dernières versions gardées automatiquement dans ce navigateur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Sauvegardes automatiques…</button>
       </div>
@@ -2518,6 +2520,33 @@ async function saveDocAs(){
   finally{ busySaving=false; }
 }
 
+/* PDF COMPILÉ : un PDF classique, figé — sans jalons ni pages masqués, sans la partie modifiable.
+   Il ne devient pas le fichier en cours (on ne risque pas d'écraser le PDF + Script). */
+async function saveCompiled(){
+  if(busySaving) return;
+  if(!window.jspdf || !window.jspdf.jsPDF){ alert("Le générateur PDF n'a pas pu être chargé (connexion internet nécessaire)."); return; }
+  const base=(fileName ? fileName.replace(/\.(pdf|mmd|doe|json)$/i,"") : docBaseName()).replace(/[ _-]*compil[ée]$/i,"");
+  const name=base+"_compilé.pdf";
+  let hnd=null;
+  if(SAVE_OK){
+    try{ hnd=await window.showSaveFilePicker({id:"momodoc-compiled", startIn:startIn(), suggestedName:name, types:[{description:"PDF compilé (.pdf)", accept:{"application/pdf":[".pdf"]}}], excludeAcceptAllOption:true}); }
+    catch(e){ if(e && e.name!=="AbortError") alert("Enregistrement impossible : "+e.message); return; }
+    if(fileHandle && hnd.isSameEntry && await hnd.isSameEntry(fileHandle).catch(()=>false)){
+      alert("Ce fichier est ton document en cours (PDF + Script).\n\nLe remplacer par un PDF compilé ferait perdre la partie modifiable : choisis un autre nom.");
+      return;
+    }
+  }
+  busySaving=true; showBusy("Compilation du PDF…");
+  try{
+    const pdf=await buildPdf((i,n)=>setBusy(`Compilation du PDF — page ${i}/${n}…`));
+    setBusy("Enregistrement…"); await yieldUI();
+    const blob=pdf.output("blob");
+    if(hnd){ const w=await hnd.createWritable(); await w.write(blob); await w.close(); toast(`« ${hnd.name} » enregistré (PDF compilé)`); }
+    else{ saveBlob(blob, name); toast("PDF compilé enregistré"); }
+  }catch(e){ alert("Échec du PDF compilé : "+(e && e.message ? e.message : e)); }
+  finally{ busySaving=false; hideBusy(); }
+}
+
 /* =====================================================================
    SAUVEGARDES AUTOMATIQUES : à la fréquence choisie (et quand l'onglet passe en arrière-plan),
    si le document a changé. Les images sont rangées une seule fois dans le navigateur (base « media ») ;
@@ -2765,7 +2794,7 @@ $("#miAutosaves").addEventListener("click", ()=>{ closeFileMenu(); openAutosaves
 
 $("#btnFull").addEventListener("click", ()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); });
 $("#btnGuide").addEventListener("click", ()=>{ buildGuide(); openModal("hg-modal"); });
-$("#miExport").addEventListener("click", ()=>{ closeFileMenu(); exportPDF(); });
+$("#miCompiled").addEventListener("click", ()=>{ closeFileMenu(); saveCompiled(); });
 $("#btnUndo").addEventListener("click", undo);
 $("#btnRedo").addEventListener("click", redo);
 /* fichiers choisis */
@@ -2896,15 +2925,16 @@ const GUIDE = [
     </ul>
     <p class="hg-tip">Le zoom de l'aperçu se règle avec les boutons en bas à droite ; « ajuster » remet la page à la largeur de l'écran.</p>`},
   {id:"file", t:"Fichier", i:"disk", h:`
-    <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton document s'enregistre en <b>PDF modifiable</b>. C'est un vrai PDF, avec sommaire cliquable et signets, lisible partout et prêt à envoyer. Il contient aussi, en pièce jointe, tout ton travail MomoDOC : structure, pages de texte, recadrages, pages masquées. Rouvert dans MomoDOC, il redevient entièrement modifiable.</p>
+    <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton document s'enregistre en <b>PDF modifiable</b>. C'est un vrai PDF, avec sommaire cliquable et signets, lisible partout et prêt à envoyer. Il contient aussi, en pièce jointe, tout ton travail MomoDOC (c'est le « PDF + Script ») : structure, pages de texte, recadrages, pages masquées. Rouvert dans MomoDOC, il redevient entièrement modifiable.</p>
     <ul class="hg-list">
       <li><b>Ouvrir</b> <kbd>Ctrl</kbd>+<kbd>O</kbd><p>Rouvre un PDF modifiable fait avec MomoDOC, ou un fichier .mmd. Les anciens .doe et .json s'ouvrent aussi : au premier enregistrement, ils deviennent un PDF modifiable, sans toucher à l'original. Un PDF ordinaire, lui, s'importe dans un jalon comme une pièce.</p></li>
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
+      <li><b>Enregistrer en PDF compilé</b><p>Un PDF classique, figé, à diffuser : sans les jalons ni les pages masqués, sans les images entières des recadrages et sans la partie modifiable. Il est enregistré à côté (nom en « _compilé ») et ne remplace jamais ton fichier en cours.</p></li>
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
-    <p class="hg-tip">Enregistrer sous propose aussi le format .mmd seul (le document MomoDOC sans le PDF). Attention : un PDF modifiable transporte les pages masquées et les images entières des recadrages ; pour un PDF « propre » à diffuser sans elles, utilise Exporter un PDF à diffuser, dans le même menu. Si quelqu'un repasse le PDF dans un autre outil (signature, compression, fusion), la partie modifiable peut se perdre : garde ton original.</p>`},
+    <p class="hg-tip">Enregistrer sous propose aussi le format .mmd seul (le document MomoDOC sans le PDF). Attention : un PDF modifiable transporte les pages masquées et les images entières des recadrages ; pour un PDF « propre » à diffuser sans elles, utilise Enregistrer en PDF compilé, dans le même menu. Si quelqu'un repasse le PDF dans un autre outil (signature, compression, fusion), la partie modifiable peut se perdre : garde ton original.</p>`},
   {id:"atelier", t:"Atelier PDF", i:"atelier", h:`
     <p class="hg-intro">${b_("atelier","c-blue3")} ouvre l'Atelier PDF : les outils de MOMOdificator, en plein écran, pour travailler des PDF et des images avant de les mettre dans ton document. Tout se fait sur ton poste, rien ne part sur internet.</p>
     <ul class="hg-list">
@@ -2934,7 +2964,7 @@ const GUIDE = [
     </ul>
     <p class="hg-tip">Un fichier de Gantt'o'Matic (.json) s'importe avec le bouton d'import du bandeau.</p>`},
   {id:"pdf", t:"Le PDF", i:"print", h:`
-    <p class="hg-intro">Le PDF final, c'est ton fichier enregistré (${b_("disk","c-blue")} › Enregistrer) : un vrai PDF, qui garde en plus ton travail MomoDOC pour le rouvrir et le modifier. Pour un PDF « propre », sans cette partie modifiable (ni pages masquées, ni images entières des recadrages), utilise ${b_("disk","c-blue")} › Exporter un PDF à diffuser.</p>
+    <p class="hg-intro">Le PDF final, c'est ton fichier enregistré (${b_("disk","c-blue")} › Enregistrer) : un vrai PDF, qui garde en plus ton travail MomoDOC pour le rouvrir et le modifier. Pour un PDF « propre », sans cette partie modifiable (ni pages masquées, ni images entières des recadrages), utilise ${b_("disk","c-blue")} › Enregistrer en PDF compilé.</p>
     <ul class="hg-list">
       <li><b>Sommaire cliquable</b><p>Dans le PDF, chaque ligne du sommaire est un lien : un clic et on arrive sur la bonne page.</p></li>
       <li><b>Signets</b><p>Le panneau des signets du lecteur PDF reprend toute la structure (chapitres, jalons, sections, sous-sections) pour naviguer sans repasser par le sommaire.</p></li>
