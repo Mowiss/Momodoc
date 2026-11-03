@@ -87,7 +87,7 @@
 
   /* ---------- Espace de travail ---------- */
   .workspace{flex:1;display:flex;min-height:0}
-  .panel{flex:0 0 330px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .panel{flex:0 0 365px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .panel>.tool-pal{flex:0 0 auto}
   .panel>.panel-section{flex:1;min-height:0;overflow:auto}
   .panel-section{padding:12px}
@@ -126,7 +126,11 @@
   .jalon-group.collapsed>.jalon-sections{display:none}
   .jalon-caret{transition:transform .15s}
   .jalon-group.collapsed .jalon-caret{transform:rotate(-90deg)}
-  .node-subs{margin-left:14px;border-left:1px solid #2b3646;padding-left:6px}
+  /* arborescence : un trait d'affiliation à chaque niveau, avec un petit raccord vers chaque enfant */
+  .jalon-sections,.node-subs{margin-left:11px;border-left:1.5px solid #3a4a60;padding-left:10px}
+  .jalon-sections>.node-group,.node-subs>.node-group,.jalon-sections>.chap-body{position:relative}
+  .jalon-sections>.node-group::before,.node-subs>.node-group::before,.jalon-sections>.chap-body::before{content:"";position:absolute;left:-10px;top:15px;width:9px;border-top:1.5px solid #3a4a60}
+  .jalon-sections:empty{display:none}
   .node-subs:empty{display:none}
   .node-group.collapsed>.node-card>.sec-body{display:none}
   .node-group.collapsed>.node-subs{display:none}
@@ -161,9 +165,7 @@
   .jalon-num,.node-num,.sec-top .tp-ic,.jalon .tp-ic{cursor:pointer}
 
   .sec-body{padding:8px}
-  .chap-body{padding:2px 8px 6px 12px}
-  .chap-body>.minibtn{display:none}
-  .chap-body>.sec-drop{margin-top:2px;padding:6px;font-size:11.5px}
+  .chap-body{border:1px solid var(--line-2);border-radius:6px;background:var(--card);margin-bottom:8px}
   .thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
   .thumb{position:relative;aspect-ratio:1/1.3;border:1px solid var(--line-2);border-radius:4px;overflow:hidden;background:#fff;cursor:grab}
   .thumb img{width:100%;height:100%;object-fit:cover}
@@ -216,8 +218,10 @@
 
   .page-sommaire .som-title{font-size:16pt;font-weight:700;color:var(--doc-brand);text-align:center;text-decoration:underline;text-underline-offset:3px;margin-bottom:8mm}
   .toc-list{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:2.4mm;padding-top:1mm}
-  .toc-row{display:flex;align-items:flex-end;gap:2mm;font-size:11pt;line-height:1.22}
-  .toc-row .toc-idx{align-self:flex-start}
+  .toc-row{display:flex;align-items:flex-start;gap:2mm;font-size:11pt;line-height:1.22}
+  .toc-body{flex:1;min-width:0;display:flex;flex-direction:column}
+  .toc-line{white-space:nowrap}
+  .toc-last{display:flex;align-items:baseline;gap:2mm}
   a.toc-row{text-decoration:none;color:inherit}
   a.toc-row:hover .toc-name{color:var(--doc-brand-2);text-decoration:underline}
   .toc-row.chap{font-weight:700}
@@ -700,7 +704,7 @@
   .tx-content table{table-layout:auto}
   @media(prefers-reduced-motion:reduce){.spinner{animation:none}.toast{transition:none}}
 
-  @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:290px} }
+  @media (max-width:1100px){ #app-logo svg{height:18px} .file-label{max-width:6rem} .panel{flex-basis:320px} }
 .dd-menu .mi-t{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0}
 .dd-menu .mi-t small{font-size:10.5px;font-weight:500;opacity:.6;margin-top:1px}
 </style>
@@ -1450,7 +1454,7 @@ function renderPagesBody(sec, extraCls){
   importBtn.onclick = ()=>{ activeSecForImport = sec.id; $("#inSecImgs").click(); };
   body.append(importBtn);
 
-  const drop = h("div","sec-drop",{textContent: isChapter(sec) ? "Pièces du chapitre (sans jalon) : glisser-déposer ou cliquer" : "…ou glisser-déposer des fichiers ici (PDF, images)"});
+  const drop = h("div","sec-drop",{textContent:"…ou glisser-déposer des fichiers ici (PDF, images)"});
   drop.addEventListener("click", ()=>{ activeSecForImport = sec.id; $("#inSecImgs").click(); });
   wireDrop(drop, files => addFilesToSection(sec, files));
   body.append(drop);
@@ -1964,11 +1968,12 @@ function buildSommaire(entries){
       const row = h("a","toc-row "+(en.kind==="chapter"?"chap":"sect")+" lvl"+en.depth+(lines.length>1?" multi":""));
       row.href = en.itemId ? "#doe-"+en.itemId : "#";
       row.style.paddingLeft = (en.depth*7)+"mm";
+      // lignes du titre ; la dernière porte les pointillés et le n° de page (comme dans le PDF)
+      const last=lines.length-1;
       row.innerHTML =
         `<span class="toc-idx">${en.number}</span>`+
-        `<span class="toc-name">${lines.map(l=>escapeHtml(l)).join("<br>")}</span>`+
-        `<span class="toc-leader"></span>`+
-        `<span class="toc-page">${en.page}</span>`;
+        `<span class="toc-body">`+lines.slice(0,last).map(l=>`<span class="toc-line">${escapeHtml(l)}</span>`).join("")+
+        `<span class="toc-last"><span class="toc-name">${escapeHtml(lines[last])}</span><span class="toc-leader"></span><span class="toc-page">${en.page}</span></span></span>`;
       row.addEventListener("click", e=>{ e.preventDefault(); if(en.itemId) scrollToItem(en.itemId); });
       cur.listEl.append(row);
     });
