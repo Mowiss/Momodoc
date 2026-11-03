@@ -185,9 +185,12 @@
   .zoombar button{border:none;background:transparent;width:30px;height:30px;border-radius:5px;cursor:pointer;color:var(--ink);display:grid;place-items:center}
   .zoombar button:hover{background:var(--btn)}
   .zoombar button svg{width:16px;height:16px}
-  .zoombar .lvl{min-width:52px;text-align:center;font-size:12px;color:var(--muted);align-self:center}
+  .zoombar .lvl{min-width:64px;text-align:center;font-size:12px;color:var(--muted);align-self:center}
 
   #document{display:flex;flex-direction:column;align-items:center;gap:24px;transform-origin:top center}
+  #document.mosaic{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;align-content:flex-start;gap:40px}
+  .zoombar .zsep{width:1px;background:var(--line-2);margin:4px 2px}
+  .zoombar button.on{background:var(--accent);color:#fff}
   .page{width:var(--pageW);height:var(--pageH);background:#fff;position:relative;outline:1px solid #000;
     display:flex;flex-direction:column;overflow:hidden;font-family:var(--doc);color:#1a1a1a}
   .page-logo{position:absolute;top:9mm;right:var(--padX);height:16mm;max-width:48mm;object-fit:contain}
@@ -948,9 +951,11 @@ requestAnimationFrame(frame);
 <div class="tip" id="tip" role="tooltip" hidden><b></b><span></span></div>
 
 <div class="zoombar">
-  <button id="zoomOut" title="Réduire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  <button id="zoomOut" title="Réduire (Ctrl + molette) — au plus petit, passe en mosaïque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
   <span class="lvl" id="zoomLvl">Ajuster</span>
   <button id="zoomIn" title="Agrandir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <span class="zsep"></span>
+  <button id="zoomView" aria-label="Mosaïque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="8" rx="1"/><rect x="13.5" y="3" width="7.5" height="8" rx="1"/><rect x="3" y="13" width="7.5" height="8" rx="1"/><rect x="13.5" y="13" width="7.5" height="8" rx="1"/></svg></button>
   <button id="zoomFit" title="Ajuster à la largeur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
 </div>
 
@@ -1637,7 +1642,7 @@ function lazyObserver(){
   lazyObs = new IntersectionObserver(entries=>{
     entries.forEach(en=>{
       const im=en.target, full=im.dataset.full, low=im.dataset.low;
-      if(en.isIntersecting){ if(im.getAttribute("src")!==full) im.src=full; }
+      if(en.isIntersecting){ const want=(typeof viewCols!=="undefined" && viewCols>=4 && low) ? low : full; if(im.getAttribute("src")!==want) im.src=want; }   // mosaïque serrée : les vignettes suffisent
       else if(low){ if(im.getAttribute("src")!==low) im.src=low; }
       else im.removeAttribute("src");
     });
@@ -2179,18 +2184,43 @@ function renderDocument(){
 /* ============ Zoom / ajustement ============ */
 const A4_PX = 794; // 210mm à 96dpi
 let zoom = null;   // null = ajuster automatiquement
-function applyZoom(){
+/* Affichage : « en ligne » (une page sous l'autre, zoom libre) ou « mosaïque » (N pages par rangée).
+   En dézoomant au-delà du plus petit zoom en ligne, on passe en mosaïque 2, 3, 4… pages par rangée. */
+const MOSAIC_COLS=[2,3,4,5,6,8,10], MOSAIC_GAP=40;
+let viewCols=1;
+try{ viewCols=Math.max(1, Math.min(10, parseInt(localStorage.getItem("momodoc-view")||"1",10)||1)); }catch(e){}
+function centerPage(){                       // page au centre de l'écran (pour ne pas perdre sa place)
+  const c=$("#canvas").getBoundingClientRect(), mx=c.left+c.width/2, my=c.top+c.height/2; let best=null, bd=1e12;
+  doc.querySelectorAll(".page").forEach(p=>{ const r=p.getBoundingClientRect(); if(r.bottom<c.top-2000 || r.top>c.bottom+2000) return;
+    const d=Math.hypot(Math.max(r.left-mx,0,mx-r.right), Math.max(r.top-my,0,my-r.bottom)); if(d<bd){ bd=d; best=p; } });
+  return best;
+}
+function mosaicScale(n){ const avail=Math.max(200, $("#canvas").clientWidth-56); return avail/(n*A4_PX+(n-1)*MOSAIC_GAP)*0.995; }
+function applyZoom(keep){
+  const canvas=$("#canvas"), avail=Math.max(200, canvas.clientWidth-56);
+  const anchor = keep ? centerPage() : null;
   let scale;
-  if(zoom === null){
-    scale = currentAutoScale();
-    $("#zoomLvl").textContent = "Ajuster";
+  if(viewCols>1){
+    const w=viewCols*A4_PX+(viewCols-1)*MOSAIC_GAP;
+    scale = mosaicScale(viewCols);
+    doc.classList.add("mosaic"); doc.style.width=w+"px";
+    $("#zoomLvl").textContent = viewCols+" / rangée";
   }else{
-    scale = zoom;
-    $("#zoomLvl").textContent = Math.round(zoom*100)+"%";
+    doc.classList.remove("mosaic"); doc.style.width="";
+    if(zoom === null){ scale = currentAutoScale(); $("#zoomLvl").textContent = "Ajuster"; }
+    else{ scale = zoom; $("#zoomLvl").textContent = Math.round(zoom*100)+"%"; }
   }
   doc.style.zoom = scale;
+  const vb=$("#zoomView");
+  if(vb){ vb.classList.toggle("on", viewCols>1); vb.title = viewCols>1 ? "Revenir à l'affichage en ligne (une page sous l'autre)" : "Affichage en mosaïque : plusieurs pages par rangée (− et + changent le nombre de pages)"; }
+  if(anchor) anchor.scrollIntoView({block:"center", inline:"center"});
 }
-window.addEventListener("resize", ()=>{ if(zoom===null) applyZoom(); });
+function setViewCols(n, keep){
+  const was=viewCols; viewCols=n; try{ localStorage.setItem("momodoc-view", String(n)); }catch(e){}
+  applyZoom(keep!==false);
+  if(lazyObs && (was>=4)!==(n>=4)) doc.querySelectorAll("img[data-full]").forEach(im=>{ lazyObs.unobserve(im); lazyObs.observe(im); });
+}
+window.addEventListener("resize", ()=>{ if(zoom===null || viewCols>1) applyZoom(); });
 
 /* ============ Drag & drop générique ============ */
 function wireDrop(el, onFiles){
@@ -2424,9 +2454,30 @@ async function exportPDF(){
     alert("Échec de la génération du PDF : " + (err && err.message ? err.message : err));
   }finally{ hideBusy(); }
 }
-$("#zoomIn").onclick = ()=>{ zoom = Math.min(1.6, (zoom??currentAutoScale())+0.1); applyZoom(); };
-$("#zoomOut").onclick = ()=>{ zoom = Math.max(0.25, (zoom??currentAutoScale())-0.1); applyZoom(); };
-$("#zoomFit").onclick = ()=>{ zoom=null; applyZoom(); };
+const ZOOM_MIN=0.3;
+function zoomInStep(){
+  if(viewCols>1){ const k=MOSAIC_COLS.indexOf(viewCols); if(k>0) setViewCols(MOSAIC_COLS[k-1]); else { zoom=null; setViewCols(1); } return; }
+  zoom = Math.min(1.6, (zoom??currentAutoScale())+0.1); applyZoom(true);
+}
+function zoomOutStep(){
+  if(viewCols>1){ const k=MOSAIC_COLS.indexOf(viewCols); if(k<MOSAIC_COLS.length-1) setViewCols(MOSAIC_COLS[k<0?0:k+1]); return; }
+  const cur=zoom??currentAutoScale(), next=cur-0.1;
+  // dès que deux pages tiennent côte à côte, on passe en mosaïque (puis 3, 4… pages par rangée)
+  if(next < mosaicScale(2)+0.005 || next < ZOOM_MIN-0.001){ setViewCols(2); return; }
+  zoom = next; applyZoom(true);
+}
+$("#zoomIn").onclick = zoomInStep;
+$("#zoomOut").onclick = zoomOutStep;
+$("#zoomFit").onclick = ()=>{ zoom=null; setViewCols(1); };
+$("#zoomView").onclick = ()=>{ if(viewCols>1){ setViewCols(1); } else setViewCols(2); };
+/* Ctrl + molette sur l'aperçu : zoom (et mosaïque au-delà) */
+let wheelZoomT=0;
+$("#canvas").addEventListener("wheel", e=>{
+  if(!(e.ctrlKey||e.metaKey)) return;
+  e.preventDefault();
+  const now=Date.now(); if(now-wheelZoomT<140) return; wheelZoomT=now;
+  e.deltaY>0 ? zoomOutStep() : zoomInStep();
+}, {passive:false});
 function currentAutoScale(){
   const canvas=$("#canvas");
   return Math.min(1,(canvas.clientWidth-56)/A4_PX);
@@ -3032,7 +3083,7 @@ const GUIDE = [
       <li><b>Sommaire automatique</b><p>Il liste les chapitres, jalons, sections et sous-sections avec leur numéro de page, et se met à jour à chaque changement. Au-delà de 30 lignes, il continue sur une page suivante.</p></li>
       <li><b>Intercalaires</b><p>Chaque chapitre s'ouvre sur une page de séparation à son titre.</p></li>
     </ul>
-    <p class="hg-tip">Le zoom de l'aperçu se règle avec les boutons en bas à droite ; « ajuster » remet la page à la largeur de l'écran.</p>`},
+    <p class="hg-tip">Le zoom de l'aperçu se règle avec les boutons en bas à droite (ou Ctrl + molette) ; « ajuster » remet la page à la largeur de l'écran. En dézoomant, l'aperçu passe de l'affichage en ligne (une page sous l'autre) à la <b>mosaïque</b> : 2 pages par rangée, puis 3, 4, 5, 6, 8 et 10 ; + revient en arrière. Le bouton mosaïque bascule directement entre les deux affichages, et MomoDOC garde ton choix.</p>`},
   {id:"file", t:"Fichier", i:"disk", h:`
     <p class="hg-intro">Tout passe par le menu ${b_("disk","c-blue")} : ton document s'enregistre en <b>PDF modifiable</b>. C'est un vrai PDF, avec sommaire cliquable et signets, lisible partout et prêt à envoyer. Il contient aussi, en pièce jointe, tout ton travail MomoDOC (c'est le « PDF + Script ») : structure, pages de texte, recadrages, pages masquées. Rouvert dans MomoDOC, il redevient entièrement modifiable.</p>
     <ul class="hg-list">
