@@ -161,6 +161,9 @@
   .jalon-num,.node-num,.sec-top .tp-ic,.jalon .tp-ic{cursor:pointer}
 
   .sec-body{padding:8px}
+  .chap-body{padding:2px 8px 6px 12px}
+  .chap-body>.minibtn{display:none}
+  .chap-body>.sec-drop{margin-top:2px;padding:6px;font-size:11.5px}
   .thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
   .thumb{position:relative;aspect-ratio:1/1.3;border:1px solid var(--line-2);border-radius:4px;overflow:hidden;background:#fff;cursor:grab}
   .thumb img{width:100%;height:100%;object-fit:cover}
@@ -212,8 +215,9 @@
   [contenteditable].ph:empty:before{content:attr(data-ph);color:#b3bcc8}
 
   .page-sommaire .som-title{font-size:16pt;font-weight:700;color:var(--doc-brand);text-align:center;text-decoration:underline;text-underline-offset:3px;margin-bottom:8mm}
-  .toc-list{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:2.2mm;padding-top:1mm}
-  .toc-row{display:flex;align-items:baseline;gap:2mm;font-size:11pt}
+  .toc-list{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:2.4mm;padding-top:1mm}
+  .toc-row{display:flex;align-items:flex-end;gap:2mm;font-size:11pt;line-height:1.22}
+  .toc-row .toc-idx{align-self:flex-start}
   a.toc-row{text-decoration:none;color:inherit}
   a.toc-row:hover .toc-name{color:var(--doc-brand-2);text-decoration:underline}
   .toc-row.chap{font-weight:700}
@@ -221,17 +225,18 @@
   .toc-row.sect{font-size:10.5pt}
   .toc-idx{color:var(--doc-brand);font-weight:700;flex:0 0 auto}
   .toc-row.sect .toc-idx{color:#6b7787;font-weight:600}
-  .toc-name{flex:0 0 auto;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .toc-leader{flex:1;border-bottom:1px dotted #9aa4b0;transform:translateY(-3px)}
+  .toc-name{flex:0 1 auto;white-space:nowrap}
+  .toc-leader{flex:1;min-width:4mm;border-bottom:1px dotted #9aa4b0;transform:translateY(-3px)}
   .toc-page{flex:0 0 auto;font-variant-numeric:tabular-nums;color:#222}
   .toc-empty{color:#8a94a1;font-style:italic;font-size:11pt}
 
   .page-content-img{padding:26mm var(--padX) var(--padB)}
   .page-content-img .img-wrap{flex:1;display:grid;place-items:center;min-height:0}
   .page-content-img .img-wrap img{max-width:100%;max-height:100%;object-fit:contain}
-  .sec-head{position:absolute;top:10mm;left:var(--padX);max-width:120mm;color:#1a1a1a}
+  .sec-head{position:absolute;top:10mm;left:var(--padX);width:122mm;color:#1a1a1a}
+  .sec-head>div{position:absolute;left:0;white-space:nowrap;line-height:1.2}
   .sec-head .sh-main{font-size:11pt;font-weight:700;text-decoration:underline;text-underline-offset:2px}
-  .sec-head .sh-sub{font-size:10.5pt;font-style:italic;margin-top:1.5mm}
+  .sec-head .sh-sub{font-size:10.5pt;font-style:italic}
 
   .page-divider .page-content{justify-content:center}
   .div-title{text-align:center;color:var(--doc-brand);font-style:italic;font-weight:700;font-size:15pt;letter-spacing:.3px;
@@ -1152,7 +1157,7 @@ const LE_LABEL = ["le chapitre","le jalon","la section","la sous-section"];
 const UN_LABEL = ["un chapitre","un jalon","une section","une sous-section"];
 const lvl = it => LEVEL[it.type] ?? 1;
 const isChapter = it => it.type==="jalon";
-function newItem(level){ return level===0 ? {id:uid(), type:"jalon", title:""} : {id:uid(), type:TYPE_AT[level], name:"", images:[]}; }
+function newItem(level){ return level===0 ? {id:uid(), type:"jalon", title:"", images:[]} : {id:uid(), type:TYPE_AT[level], name:"", images:[]}; }
 const itemTitle = it => isChapter(it) ? it.title : it.name;
 
 /* ============ Utilitaires ============ */
@@ -1207,13 +1212,13 @@ function cloneState(s){
     logo:s.logo, logoOrig:s.logoOrig||null, logoCrop:s.logoCrop||null, photo:s.photo,
     gantt: s.gantt ? JSON.parse(JSON.stringify(s.gantt)) : null,
     items: s.items.map(it => isChapter(it)
-      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off}
+      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, images:(it.images||[]).slice()}
       : {id:it.id, type:it.type, name:it.name, off:!!it.off, images: it.images.slice()})
   };
 }
 function histSig(s){
   return s.items.map(it => isChapter(it)
-    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")
+    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
     : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
   ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "");
 }
@@ -1307,7 +1312,7 @@ function togglePageOff(sec, id){
   const im=sec.images[k]; sec.images[k]={...im, off:!im.off, v:(im.v||0)+1}; changed();
   toast(sec.images[k].off ? "Page retirée de l'impression" : "Page remise dans l'impression");
 }
-function countImages(item){ return isChapter(item) ? 0 : item.images.length; }
+function countImages(item){ return (item.images||[]).length; }
 function gripIcon(){ return `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>`; }
 function iconSpan(svg){ return h("span","tp-ic",{innerHTML:svg}); }
 
@@ -1334,7 +1339,7 @@ function renderSections(){
       const group = h("div","jalon-group"+(hid.has(item.id)?" is-hidden":""));
       if(collapsedNodes.has(item.id)) group.classList.add("collapsed");
       group.append(renderChapter(item, nums[item.id], group));
-      const kids = h("div","jalon-sections"); group.append(kids);
+      const kids = h("div","jalon-sections"); kids.append(renderPagesBody(item, "chap-body")); group.append(kids);
       parent.append(group); ctx[0]=kids;
     }else{
       const group = h("div","node-group lvl"+L+(hid.has(item.id)?" is-hidden":""));
@@ -1377,7 +1382,8 @@ function deleteBtn(item){
   del.onclick = ()=>{
     const idx = idxOf(item.id); if(idx<0) return;
     if(L===0){
-      if(confirm(`Supprimer le chapitre « ${item.title||"(sans titre)"} » ? (ce qu'il contient est conservé)`)){ IT().splice(idx,1); changed(); }
+      const np=countImages(item);
+      if(confirm(`Supprimer le chapitre « ${item.title||"(sans titre)"} » ?`+(np?`\n\nSes ${np} page(s) posée(s) directement dans le chapitre seront supprimées ; `:"\n\n")+`ses jalons et leur contenu sont conservés.`)){ IT().splice(idx,1); changed(); }
     }else{
       const end=blockEnd(idx), sub=end-idx-1, pages=IT().slice(idx,end).reduce((n,x)=>n+countImages(x),0);
       const extra=[sub?`${sub} élément(s) en dessous`:"", pages?`${pages} page(s)`:""].filter(Boolean).join(" et ");
@@ -1400,6 +1406,7 @@ function renderChapter(item, num, group){
   title.addEventListener("change", recordHistory);
   title.addEventListener("focus", ()=>setActiveItem(item.id));
   row.append(title);
+  if(countImages(item)) row.append(h("span","sec-count",{textContent:`${countImages(item)} p.`}));
   row.append(deleteBtn(item));
   wireRowNav(row, item.id);
   return row;
@@ -1433,12 +1440,17 @@ function renderLeafCard(sec, number, L, groupEl){
   wireRowNav(top, sec.id);
   card.append(top);
 
-  const body = h("div","sec-body");
+  card.append(renderPagesBody(sec));
+  return card;
+}
+/* zone des pages d'un élément (jalon, section, sous-section… ou directement un chapitre) */
+function renderPagesBody(sec, extraCls){
+  const body = h("div","sec-body"+(extraCls?" "+extraCls:""));
   const importBtn = h("button","minibtn block",{innerHTML:icon('<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>')+" Importer des fichiers"});
   importBtn.onclick = ()=>{ activeSecForImport = sec.id; $("#inSecImgs").click(); };
   body.append(importBtn);
 
-  const drop = h("div","sec-drop",{textContent:"…ou glisser-déposer des fichiers ici (PDF, images)"});
+  const drop = h("div","sec-drop",{textContent: isChapter(sec) ? "Pièces du chapitre (sans jalon) : glisser-déposer ou cliquer" : "…ou glisser-déposer des fichiers ici (PDF, images)"});
   drop.addEventListener("click", ()=>{ activeSecForImport = sec.id; $("#inSecImgs").click(); });
   wireDrop(drop, files => addFilesToSection(sec, files));
   body.append(drop);
@@ -1466,9 +1478,7 @@ function renderLeafCard(sec, number, L, groupEl){
     });
     body.append(grid);
   }
-
-  card.append(body);
-  return card;
+  return body;
 }
 
 /* déplacer un bloc (élément + son contenu) à la position « avant l'élément d'index to » (to = longueur pour la fin) */
@@ -1559,7 +1569,7 @@ async function ensureThumbs(){
   try{
     for(;;){
       let todo=null;
-      for(const it of state.items){ if(isChapter(it)) continue; todo=it.images.find(im=>!im.kind && !im.thumb && im.src); if(todo) break; }
+      for(const it of state.items){ todo=(it.images||[]).find(im=>!im.kind && !im.thumb && im.src); if(todo) break; }
       if(!todo) break;
       try{ todo.thumb = await thumbFromBlob(await srcBlob(todo.src)); }catch(e){ todo.thumb = ""; }
       document.querySelectorAll(`.thumb[data-img="${todo.id}"] img, .mr-row[data-img="${todo.id}"] img`).forEach(i=>{ if(todo.thumb) i.src=todo.thumb; });
@@ -1570,7 +1580,7 @@ async function ensureThumbs(){
 
 /* libère les images qui ne servent plus (ni au document, ni à l'historique d'annulation) */
 function mediaGC(){
-  const used=new Set(); const scan=s=>s.items.forEach(it=>{ if(!isChapter(it)) it.images.forEach(im=>{ if(im.src) used.add(im.src); if(im.orig) used.add(im.orig); }); });
+  const used=new Set(); const scan=s=>s.items.forEach(it=>{ (it.images||[]).forEach(im=>{ if(im.src) used.add(im.src); if(im.orig) used.add(im.orig); }); });
   scan(state); history.forEach(scan);
   for(const url of [...MEDIA.keys()]) if(!used.has(url)){ URL.revokeObjectURL(url); MEDIA.delete(url); }
 }
@@ -1888,8 +1898,48 @@ function escapeHtml(s){ return s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','
 
 function romanOrNum(i){ return i; }
 
-/* Construit les pages du sommaire (nombre de lignes fixe par page, commun à l'aperçu et au PDF) */
-const TOC_ROWS_PER_PAGE = 30;
+/* ---- Mesure du texte (mm), commune à l'aperçu et au PDF : un intitulé n'est jamais coupé, il passe à la ligne ---- */
+const MM_PT = 25.4/72;
+let _mctx=null;
+function textMm(t, pt, style){
+  if(!_mctx) _mctx=document.createElement("canvas").getContext("2d");
+  _mctx.font=`${/italic/.test(style)?"italic ":""}${/bold/.test(style)?"bold ":""}100px Helvetica, Arial, "Liberation Sans", sans-serif`;
+  return _mctx.measureText(String(t)).width/100*pt*MM_PT;
+}
+function wrapMm(text, maxW, pt, style){
+  const fits=x=>textMm(x,pt,style)<=maxW;
+  const words=String(text||"").split(/\s+/).filter(Boolean), lines=[]; let cur="";
+  for(let w of words){
+    const cand=cur?cur+" "+w:w;
+    if(fits(cand)){ cur=cand; continue; }
+    if(cur){ lines.push(cur); cur=""; }
+    while(w.length>1 && !fits(w)){             // mot plus long que la ligne : coupé avec un tiret
+      let k=w.length-1; while(k>1 && !fits(w.slice(0,k)+"-")) k--;
+      lines.push(w.slice(0,k)+"-"); w=w.slice(k);
+    }
+    cur=w;
+  }
+  if(cur || !lines.length) lines.push(cur);
+  return lines;
+}
+/* Mise en page du sommaire (en mm, identique dans l'aperçu et le PDF) : les titres longs passent sur plusieurs lignes */
+const TOC_X0=18, TOC_X1=192, TOC_Y0=46, TOC_YMAX=270, TOC_ROWH=7.6;
+const tocFs = en => en.kind==="chapter" ? 11.5 : (en.depth===1 ? 10.5 : en.depth===2 ? 10 : 9.5);
+function tocLayout(toc){
+  const pages=[[]]; let y=TOC_Y0;
+  toc.forEach(en=>{
+    const fs=tocFs(en), chap=en.kind==="chapter", x=TOC_X0+en.depth*7;
+    const nx=x+textMm(String(en.number), fs, "bold")+2;
+    const pw=textMm("0000", fs, chap?"bold":"normal");             // place du n° de page (jusqu'à 4 chiffres)
+    const lines=wrapMm(en.title||"(sans titre)", ((TOC_X1-pw-8)-nx)*0.97, fs, chap?"bold":"normal");
+    const lh=fs*MM_PT*1.22, extra=(lines.length-1)*lh;
+    if(pages[pages.length-1].length && y+extra>TOC_YMAX){ pages.push([]); y=TOC_Y0; }
+    pages[pages.length-1].push({en, lines, y, lh, x, nx, fs});
+    y+=extra+TOC_ROWH;
+  });
+  return pages;
+}
+/* Construit les pages du sommaire (même découpage que l'export PDF) */
 function buildSommaire(entries){
   const pages = [];
   function makePage(){
@@ -1899,29 +1949,29 @@ function buildSommaire(entries){
     const listEl = h("div","toc-list");
     c.append(listEl);
     page.append(c);
-    doc.append(page);            // doit être dans le DOM pour mesurer
+    doc.append(page);
     const rec = {page, listEl};
     pages.push(rec);
     return rec;
   }
-  let cur = makePage();
   if(entries.length===0){
-    cur.listEl.append(h("div","toc-empty",{textContent:"Aucun chapitre ni section pour le moment."}));
+    makePage().listEl.append(h("div","toc-empty",{textContent:"Aucun chapitre ni section pour le moment."}));
     return pages;
   }
-  entries.forEach(en=>{
-    const row = h("a","toc-row "+(en.kind==="chapter"?"chap":"sect")+" lvl"+en.depth);
-    row.href = en.itemId ? "#doe-"+en.itemId : "#";
-    row.style.paddingLeft = (en.depth*7)+"mm";
-    row.innerHTML =
-      `<span class="toc-idx">${en.number}</span>`+
-      `<span class="toc-name">${escapeHtml(en.title||"(sans titre)")}</span>`+
-      `<span class="toc-leader"></span>`+
-      `<span class="toc-page">${en.page}</span>`;
-    row.addEventListener("click", e=>{ e.preventDefault(); if(en.itemId) scrollToItem(en.itemId); });
-    // pagination fixe (identique à l'export PDF)
-    if(cur.listEl.children.length >= TOC_ROWS_PER_PAGE) cur = makePage();
-    cur.listEl.append(row);
+  tocLayout(entries).forEach(rows=>{
+    const cur=makePage();
+    rows.forEach(({en, lines})=>{
+      const row = h("a","toc-row "+(en.kind==="chapter"?"chap":"sect")+" lvl"+en.depth+(lines.length>1?" multi":""));
+      row.href = en.itemId ? "#doe-"+en.itemId : "#";
+      row.style.paddingLeft = (en.depth*7)+"mm";
+      row.innerHTML =
+        `<span class="toc-idx">${en.number}</span>`+
+        `<span class="toc-name">${lines.map(l=>escapeHtml(l)).join("<br>")}</span>`+
+        `<span class="toc-leader"></span>`+
+        `<span class="toc-page">${en.page}</span>`;
+      row.addEventListener("click", e=>{ e.preventDefault(); if(en.itemId) scrollToItem(en.itemId); });
+      cur.listEl.append(row);
+    });
   });
   return pages;
 }
@@ -1929,14 +1979,29 @@ function buildSommaire(entries){
 /* bandeau de la 1re page d'un jalon / d'une section / d'une sous-section :
    1re ligne (jalon) en gras souligné, les niveaux en dessous en italique */
 const headTxt = c => c.title ? `${c.num} - ${c.title}` : c.num;
+/* lignes du bandeau (mm) : un intitulé trop long passe à la ligne au lieu d'être coupé */
+const HEAD_W = 120;
+function headLayout(p){
+  if(!p.first || !p.chain || !p.chain.length) return [];
+  if(p._head) return p._head;
+  const out=[]; let y=15;
+  p.chain.forEach((c,i)=>{
+    const main=i===0, fs=main?11:10.5;
+    wrapMm(headTxt(c), HEAD_W, fs, main?"bold":"italic").forEach((t,k)=>{
+      if(out.length) y += k ? fs*MM_PT*1.2 : 5.5;
+      out.push({t, main, y, fs});
+    });
+  });
+  return (p._head=out);
+}
 function addSecHead(page, p){
-  if(!p.first || !p.chain || !p.chain.length) return;
+  const L=headLayout(p); if(!L.length) return;
   const head = h("div","sec-head");
-  p.chain.forEach((c,i)=> head.append(h("div", i===0?"sh-main":"sh-sub", {textContent:headTxt(c)})));
+  L.forEach(l=>{ const d=h("div", l.main?"sh-main":"sh-sub", {textContent:l.t}); d.style.top=(l.y-l.fs*MM_PT*0.95-10)+"mm"; head.append(d); });
   page.append(head);
 }
-/* haut de la zone utile (mm) : sous le logo, et plus bas si le bandeau a 3 lignes */
-function bodyTop(p, base){ return (p.first && p.chain && p.chain.length>=3) ? base+4 : base; }
+/* haut de la zone utile (mm) : sous le logo, et plus bas si le bandeau descend */
+function bodyTop(p, base){ const L=headLayout(p); return L.length ? Math.max(base, L[L.length-1].y + base-22) : base; }
 function buildImagePage(p, pageNumber){
   const page = pageEl("page-content-img"+(p.imgId===activePageImg?" is-active":""));
   if(p.itemId) page.id = "doe-"+p.itemId;
@@ -1974,12 +2039,13 @@ function buildTextPage(p, pageNumber){
   return page;
 }
 
+const divLines = p => wrapMm(p.title ? `${p.number} - ${p.title}` : p.number, 210-36-8-8, 15, "bolditalic");
 function buildDividerPage(p){            // intercalaire de chapitre (ni logo ni numéro affiché)
   const page = pageEl("page-divider");
   if(p.itemId) page.id = "doe-"+p.itemId;
   const c = h("div","page-content");
   const t = h("div","div-title");
-  t.textContent = p.title ? `${p.number} - ${p.title}` : p.number;
+  t.innerHTML = divLines(p).map(escapeHtml).join("<br>");
   c.append(t);
   page.append(c);
   return page;
@@ -1999,6 +2065,13 @@ function buildDocModel(){
       const en={depth:0, kind:"chapter", number:num, title:item.title, offset:seq, page:0, itemId:item.id, off};
       all.push(en); if(!off) toc.push(en);
       push({type:"divider", number:num, title:item.title, itemId:item.id, off});
+      const ch0=[{num, title:item.title}];
+      let first0=true;
+      (item.images||[]).forEach((img,ii)=>{                 // pièces posées directement dans le chapitre
+        const pOff = off || !!img.off;
+        push({type: img.kind==="text"?"text":"image", src:img.src, thumb:img.thumb, html:img.html, chain:ch0, first: pOff ? ii===0 : first0, itemId:null, imgId:img.id, secId:item.id, off:pOff});
+        if(!pOff) first0=false;
+      });
       return;
     }
     chain.length=L; chain[L]={num, title:item.name};
@@ -2099,14 +2172,14 @@ function toItems(obj){
   if(Array.isArray(obj.items)){
     return obj.items.map(n=>{
       if(!n) return null;
-      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.off?{off:true}:{})};
+      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.off?{off:true}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[]};
       return normSection(n, n.type);
     }).filter(Boolean);
   }
   if(Array.isArray(obj.tree)){                 // ancien format arbre -> aplati (chapitres/sous-chapitres deviennent des jalons)
     const out=[];
     (function walk(nodes){ for(const n of nodes){
-      if(n && (n.type==="chapter" || Array.isArray(n.children))){ out.push({id:n.id||uid(), type:"jalon", title:n.title??n.name??""}); walk(Array.isArray(n.children)?n.children:[]); }
+      if(n && (n.type==="chapter" || Array.isArray(n.children))){ out.push({id:n.id||uid(), type:"jalon", title:n.title??n.name??"", images:[]}); walk(Array.isArray(n.children)?n.children:[]); }
       else if(n) out.push(normSection(n));
     }})(obj.tree);
     return out;
@@ -2162,11 +2235,6 @@ function addFit(pdf, info, bx, by, bw, bh, align){
   const y = align==="right" ? by : by+(bh-h)/2;
   pdf.addImage(info.data, info.fmt, x, y, w, h, info.alias, "FAST");
 }
-function fitText(pdf, text, maxW){
-  if(pdf.getTextWidth(text) <= maxW) return text;
-  let t=text; while(t.length>1 && pdf.getTextWidth(t+"...")>maxW) t=t.slice(0,-1);
-  return t.trimEnd()+"...";
-}
 function underline(pdf, x, y, text, align){
   const w=pdf.getTextWidth(text); const x0 = align==="center" ? x-w/2 : x;
   pdf.setLineWidth(0.3); pdf.line(x0, y+0.9, x0+w, y+0.9);
@@ -2181,7 +2249,8 @@ async function buildPdf(onProgress){
   const logo = state.logo ? await imgInfo(state.logo, cache) : null;
 
   const model = buildDocModel(), toc = model.toc, pages = model.pages.filter(p=>!p.off);
-  const S = Math.max(1, Math.ceil(toc.length / TOC_ROWS_PER_PAGE));
+  const tocPages = toc.length ? tocLayout(toc) : [[]];
+  const S = tocPages.length;
   const contentStart = 1 + S + 1;
   toc.forEach(en=>{ en.page = contentStart + en.offset; });
   const total = 1 + S + pages.length;
@@ -2218,21 +2287,22 @@ async function buildPdf(onProgress){
     const p=pages[idx], num=contentStart+idx;
     pdf.addPage();
     if(p.type==="divider"){
+      const dl=divLines(p), dh=(dl.length-1)*7;
       pdf.setDrawColor(152,162,174); pdf.setLineWidth(0.3);
-      pdf.line(X0, 134, X1, 134); pdf.line(X0, 160, X1, 160);
+      pdf.line(X0, 134-dh/2, X1, 134-dh/2); pdf.line(X0, 160+dh/2, X1, 160+dh/2);
       pdf.setFont("helvetica","bolditalic"); pdf.setFontSize(15); pdf.setTextColor(...BRAND);
-      const t = pdfSafe(p.title ? `${p.number} - ${p.title}` : p.number);
-      pdf.text(fitText(pdf,t,CW-8), W/2, 149, {align:"center"});
+      dl.forEach((t,i)=> pdf.text(pdfSafe(t), W/2, 149-dh/2+i*7, {align:"center"}));
     }else{
       if(logo) addFit(pdf, logo, X1-48, 9, 48, 16, "right");
       pdf.setFont("helvetica","normal"); pdf.setFontSize(10); pdf.setTextColor(51,51,51);
       pdf.text(String(num), X1, 289, {align:"right"});
-      if(p.first && p.chain && p.chain.length){
+      const HL=headLayout(p);
+      if(HL.length){
         pdf.setTextColor(...INK); pdf.setDrawColor(...INK);
-        p.chain.forEach((c,i)=>{
-          const y = 15 + i*5.5;
-          if(i===0){ pdf.setFont("helvetica","bold"); pdf.setFontSize(11); const t1=fitText(pdf, pdfSafe(headTxt(c)), 118); pdf.text(t1, X0, y); underline(pdf, X0, y, t1); }
-          else{ pdf.setFont("helvetica","italic"); pdf.setFontSize(10.5); pdf.text(fitText(pdf, pdfSafe(headTxt(c)), 118), X0, y); }
+        HL.forEach(l=>{
+          const t=pdfSafe(l.t);
+          pdf.setFont("helvetica", l.main?"bold":"italic"); pdf.setFontSize(l.fs); pdf.text(t, X0, l.y);
+          if(l.main) underline(pdf, X0, l.y, t);
         });
       }
       if(p.type==="text"){
@@ -2249,39 +2319,31 @@ async function buildPdf(onProgress){
   }
 
   // ---- 4) Remplissage du sommaire + liens internes
-  const rowH=7.6, y0=46;
   for(let k=0;k<S;k++){
     pdf.setPage(2+k);
     pdf.setFont("helvetica","bold"); pdf.setFontSize(16); pdf.setTextColor(...BRAND); pdf.setDrawColor(...BRAND);
     const ttl = k===0 ? "SOMMAIRE" : "SOMMAIRE (suite)";
     pdf.text(ttl, W/2, 30, {align:"center"}); underline(pdf, W/2, 30, ttl, "center");
-    toc.slice(k*TOC_ROWS_PER_PAGE, (k+1)*TOC_ROWS_PER_PAGE).forEach((en,i)=>{
-      const y = y0 + i*rowH;
-      const x = X0 + en.depth*7;
-      const isChap = en.kind==="chapter";
-      const fs = isChap ? 11.5 : (en.depth===1 ? 10.5 : en.depth===2 ? 10 : 9.5);
-      // numéro
+    tocPages[k].forEach(({en, lines, y, lh, x, nx, fs})=>{
+      const isChap = en.kind==="chapter", yl = y + (lines.length-1)*lh;
+      // numéro (1re ligne)
       pdf.setFont("helvetica","bold"); pdf.setFontSize(fs);
       pdf.setTextColor(...(isChap ? BRAND : GREY_NUM));
-      const numTxt = String(en.number);
-      pdf.text(numTxt, x, y);
-      const nx = x + pdf.getTextWidth(numTxt) + 2;
-      // n° de page (droite)
-      pdf.setFont("helvetica", isChap ? "bold" : "normal"); pdf.setTextColor(34,34,34);
-      const pg = String(en.page); pdf.text(pg, X1, y, {align:"right"});
-      const pw = pdf.getTextWidth(pg);
-      // titre
+      pdf.text(String(en.number), x, y);
+      // titre, sur autant de lignes que nécessaire
       pdf.setFont("helvetica", isChap ? "bold" : "normal"); pdf.setTextColor(...INK);
-      const title = fitText(pdf, pdfSafe(en.title || "(sans titre)"), (X1-pw-8) - nx);
-      pdf.text(title, nx, y);
-      // pointillés
-      const lx0 = nx + pdf.getTextWidth(title) + 2, lx1 = X1 - pw - 2;
+      lines.forEach((t,i)=> pdf.text(pdfSafe(t), nx, y+i*lh));
+      // n° de page + pointillés sur la dernière ligne
+      pdf.setTextColor(34,34,34);
+      const pg = String(en.page); pdf.text(pg, X1, yl, {align:"right"});
+      const pw = pdf.getTextWidth(pg);
+      const lx0 = nx + pdf.getTextWidth(pdfSafe(lines[lines.length-1])) + 2, lx1 = X1 - pw - 2;
       if(lx1 > lx0){
         pdf.setDrawColor(154,164,176); pdf.setLineWidth(0.25); pdf.setLineDashPattern([0.4,0.9],0);
-        pdf.line(lx0, y-0.6, lx1, y-0.6); pdf.setLineDashPattern([],0);
+        pdf.line(lx0, yl-0.6, lx1, yl-0.6); pdf.setLineDashPattern([],0);
       }
       // zone cliquable -> page cible
-      pdf.link(X0, y-5, CW, rowH-0.4, {pageNumber: en.page});
+      pdf.link(X0, y-5, CW, (yl-y)+TOC_ROWH-0.4, {pageNumber: en.page});
     });
   }
 
@@ -2371,15 +2433,15 @@ function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asCl
 const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
   return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null,
-    items: state.items.map(it=> isChapter(it) ? {id:it.id, type:"jalon", title:it.title, ...(it.off?{off:true}:{})} : {id:it.id, type:it.type, name:it.name, ...(it.off?{off:true}:{}),
-      images: it.images.map(im=>{
+    items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}),
+      images: (it.images||[]).map(im=>{
         if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
         const o={id:im.id, name:im.name||"", m:ref(im.src)};
         if(im.off) o.off=true;
         if(withThumbs && im.thumb) o.thumb=im.thumb;
         if(im.orig){ o.o=ref(im.orig); o.crop=im.crop; o.rot=im.rot||0; }
         return o;
-      })}) };
+      })})) };
 }
 async function packDoc(onProg, pdfRefs){
   const media=[], idx=new Map();
@@ -2421,8 +2483,8 @@ async function readDoc(blob, onProg, host){
 async function applyDoc(obj){
   if(!obj || typeof obj!=="object" || (!("items" in obj) && !("tree" in obj) && !("sections" in obj))) return false;
   const items=toItems(obj);
-  for(const it of items){ if(isChapter(it)) continue;              // anciens fichiers : images base64 -> binaire
-    for(const im of it.images){ if(im.src && !MEDIA.has(im.src)) im.src=await toMedia(im.src); if(im.orig && !MEDIA.has(im.orig)) im.orig=await toMedia(im.orig); }
+  for(const it of items){                                         // anciens fichiers : images base64 -> binaire
+    for(const im of (it.images||[])){ if(im.src && !MEDIA.has(im.src)) im.src=await toMedia(im.src); if(im.orig && !MEDIA.has(im.orig)) im.orig=await toMedia(im.orig); }
     await yieldUI(); }
   state = {
     meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "", footer: obj.meta?.footer ?? "" },
@@ -2580,7 +2642,7 @@ async function asList(){
 }
 function asClean(){ try{ localStorage.setItem("momodoc-as-clean", String(Date.now())); }catch(e){} }
 function hasContent(){ return state.items.length>0 || !!state.logo || !!state.photo || !!state.meta.title; }
-function pageCount(){ return state.items.reduce((n,i)=>n+(isChapter(i)?1:i.images.length),0); }
+function pageCount(){ return state.items.reduce((n,i)=>n+(isChapter(i)?1:0)+(i.images||[]).length,0); }
 function quickHash(s){ let h1=0; for(let i=0;i<s.length;i++) h1=(h1*31+s.charCodeAt(i))|0; return h1+":"+s.length; }
 let asBusy=false, asLastSig="", asTimer=null;
 async function autosaveNow(force){
@@ -2803,7 +2865,7 @@ $("#inLogo").addEventListener("change", async e=>{ const f=e.target.files[0]; e.
 $("#inPhoto").addEventListener("change", async e=>{ const f=e.target.files[0]; e.target.value=""; if(!f) return; const src=await fileToSingleImage(f,false); if(src){ state.photo=src; changed(); } });
 $("#inSecImgs").addEventListener("change", async e=>{
   const sec=findItem(activeSecForImport), files=[...e.target.files]; e.target.value=""; activeSecForImport=null;
-  if(sec && !isChapter(sec) && files.length) await addFilesToSection(sec, files);
+  if(sec && files.length) await addFilesToSection(sec, files);
 });
 $("#inJson").addEventListener("change", async e=>{ const f=e.target.files[0]; e.target.value=""; if(f && await loadFile(f, null)) toast(`« ${f.name} » ouvert`); });
 
@@ -2869,7 +2931,7 @@ const GUIDE = [
   {id:"struct", t:"Structure", i:"i_chap", h:`
     <p class="hg-intro">La colonne de gauche, c'est le plan de ton document, sur quatre niveaux. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront. Les boutons de création sont en haut du volet gauche, dans la plage Édition (chaque plage se replie d'un clic sur son titre).</p>
     <ul class="hg-list">
-      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page intercalaire, avec son numéro et son titre.</p></li>
+      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page intercalaire, avec son numéro et son titre. Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages.</p></li>
       <li><b>${b_("i_jalon","c-blue")} Jalon</b><p>Un ensemble de pages dans un chapitre (1.1, 1.2…) : un Kbis, une attestation, un rapport d'essais… C'est là que tu importes tes fichiers. Sa première page porte son numéro et son nom en haut à gauche, en gras souligné.</p></li>
       <li><b>${b_("i_sect")} Section</b><p>Pour découper un jalon (1.1.1, 1.1.2…). Sur sa première page, le jalon s'affiche, puis la section en italique juste en dessous.</p></li>
       <li><b>${b_("i_sous")} Sous-section</b><p>Le niveau le plus fin (1.1.1.1…), rangé dans une section. Jalons, sections et sous-sections reçoivent tous des pages.</p></li>
@@ -3024,8 +3086,8 @@ const sameBytes=(a,b)=>{ if(a.length!==b.length) return false; for(let i=0;i<a.l
 async function matchPdfImages(bytes, streams){
   const byLen=new Map(); streams.forEach(s=>{ if(!byLen.has(s.len)) byLen.set(s.len,[]); byLen.get(s.len).push(s); });
   const refs=new Map();
-  for(const it of state.items){ if(isChapter(it)) continue;
-    for(const im of it.images){ if(im.kind || !im.src || refs.has(im.src)) continue;
+  for(const it of state.items){
+    for(const im of (it.images||[])){ if(im.kind || !im.src || refs.has(im.src)) continue;
       const b=mediaBlob(im.src); if(!b || b.type!=="image/jpeg") continue;
       const cands=byLen.get(b.size); if(!cands) continue;
       const data=new Uint8Array(await b.arrayBuffer());
@@ -3109,9 +3171,7 @@ $("#atClose").addEventListener("click", closeAtelier);
 function atTargetSec(){
   const fp=activePageImg && findPage(activePageImg); if(fp) return fp.sec;
   const it=activeItemId && findItem(activeItemId);
-  if(it && !isChapter(it)) return it;
-  if(it){ const i=idxOf(it.id), end=blockEnd(i); for(let j=end-1;j>i;j--) return IT()[j]; }
-  return null;
+  return it || null;
 }
 function updateAtTarget(){
   const sec=atTargetSec(), n=numbering();
@@ -3165,7 +3225,7 @@ let txActive = null;          // éditeur (.tx-edit) qui a le focus, ou dernier 
 let txRange = null;           // sélection mémorisée (les listes déroulantes prennent le focus)
 let txHistTimer = null;
 
-function findPage(id){ for(const it of IT()) if(!isChapter(it)){ const k=it.images.findIndex(x=>x.id===id); if(k>=0) return {sec:it, k, img:it.images[k]}; } return null; }
+function findPage(id){ for(const it of IT()) if(it.images){ const k=it.images.findIndex(x=>x.id===id); if(k>=0) return {sec:it, k, img:it.images[k]}; } return null; }
 function isBlankHtml(html){ return !String(html||"").replace(/<br\s*\/?>|<\/?p>|&nbsp;|\s/gi,""); }
 
 function txCommit(ed){
@@ -3268,11 +3328,10 @@ function addTextPage(){
   if(fp){ sec=fp.sec; at=fp.k+1; }
   else{
     const it=activeItemId && findItem(activeItemId);
-    if(it && !isChapter(it)) sec=it;
-    else if(it && isChapter(it)){ const i=idxOf(it.id), end=blockEnd(i); for(let j=end-1;j>i;j--){ sec=IT()[j]; break; } }
+    if(it) sec=it;
     if(sec) at=sec.images.length;
   }
-  if(!sec){ toast("Une page de texte se range dans un jalon, une section ou une sous-section : choisis-en un d'abord"); return; }
+  if(!sec){ toast("Une page de texte se range dans un chapitre, un jalon, une section ou une sous-section : choisis-en un d'abord"); return; }
   const np={id:uid(), kind:"text", html:"<p><br></p>"};
   sec.images.splice(at,0,np);
   collapsedNodes.delete(sec.id);
@@ -3888,7 +3947,7 @@ async function textPageBlob(img){
 }
 function pageLabel(img, sec){
   const n=numbering()[sec.id]; const k=sec.images.findIndex(x=>x.id===img.id)+1;
-  return safeName(`${n&&n!=="–"?n+" ":""}${sec.name||"sans titre"} - page ${k}`);
+  return safeName(`${n&&n!=="–"?n+" ":""}${itemTitle(sec)||"sans titre"} - page ${k}`);
 }
 async function extractPage(img, sec){
   showBusy("Extraction…");
@@ -3902,7 +3961,7 @@ async function extractPage(img, sec){
 /* un élément (et tout ce qu'il contient) : un PDF de ses pages, chacune à sa taille d'origine */
 async function extractItem(item){
   const i=idxOf(item.id), hid=hiddenIds();
-  const pages=[]; IT().slice(i, blockEnd(i)).forEach(it=>{ if(!isChapter(it)) it.images.forEach(im=>{ if(!im.off && !hid.has(it.id)) pages.push(im); }); });
+  const pages=[]; IT().slice(i, blockEnd(i)).forEach(it=>{ (it.images||[]).forEach(im=>{ if(!im.off && !hid.has(it.id)) pages.push(im); }); });
   if(!pages.length){ toast("Rien à extraire : cet élément n'a pas de page imprimée"); return; }
   const { jsPDF } = window.jspdf;
   const ppmm=(settings.dpi||200)/25.4;          // les pages ont été importées à cette résolution
@@ -3967,8 +4026,8 @@ function mvTree(){
     const it=findItem(t.id); if(!it) return;
     const row=h("div","mv-node"+(t.kind==="chapter"?" chap":"")+(t.off?" off":"")); row.dataset.id=t.id;
     row.style.paddingLeft=(8+t.depth*16)+"px";
-    row.innerHTML=`<span class="mv-ni">${svgIcon(LEVEL_ICON[t.depth])}</span><span class="mv-nn">${t.number}</span><span class="mv-nt">${escapeHtml(t.title||"(sans titre)")}</span>`+(t.kind==="chapter"?"":`<span class="mv-nc">${it.images.length} p.</span>`);
-    if(t.kind!=="chapter") row.addEventListener("click", ()=>mvPick(t.id));
+    row.innerHTML=`<span class="mv-ni">${svgIcon(LEVEL_ICON[t.depth])}</span><span class="mv-nn">${t.number}</span><span class="mv-nt">${escapeHtml(t.title||"(sans titre)")}</span>`+`<span class="mv-nc">${(it.images||[]).length} p.</span>`;
+    row.addEventListener("click", ()=>mvPick(t.id));
     tree.append(row);
   });
   return tree;
@@ -3976,8 +4035,8 @@ function mvTree(){
 /* même fenêtre que « Déplacer vers… », pour choisir où ajouter quelque chose dans le document
    opts : {title, go, thumb (html), what, where, onGo(secId, slot)} */
 function openPlacer(opts){
-  const containers=IT().filter(i=>!isChapter(i));
-  if(!containers.length){ toast("Crée d'abord un jalon (ou une section) dans le document pour y ranger ce fichier"); return false; }
+  const containers=IT();
+  if(!containers.length){ toast("Crée d'abord un chapitre (ou un jalon) dans le document pour y ranger ce fichier"); return false; }
   mvImg=null; mvCb=opts.onGo;
   mvSetup(opts.title||"Ajouter au document", opts.go||"Ajouter ici");
   $("#mvThumb").innerHTML=opts.thumb||svgIcon("page");
@@ -3992,7 +4051,7 @@ function openPlacer(opts){
 }
 /* ajoute des fichiers à un emplacement précis (élément + place) */
 async function insertFilesAt(secId, slot, files){
-  const sec=findItem(secId); if(!sec || isChapter(sec)) return [];
+  const sec=findItem(secId); if(!sec) return [];
   const before=sec.images.length;
   const fresh=await addFilesToSection(sec, files);
   if(fresh.length && slot!=null && slot<before){
@@ -4046,7 +4105,7 @@ function mvHint(){
 }
 /* déplacement d'une page : dest = {secId, before|after|at:'start'|'end'|index} */
 function movePageTo(imgId, dest){
-  const src=findImg(imgId), tgt=findItem(dest.secId); if(!src || !tgt || isChapter(tgt)) return false;
+  const src=findImg(imgId), tgt=findItem(dest.secId); if(!src || !tgt) return false; if(!tgt.images) tgt.images=[];
   const [img]=src.sec.images.splice(src.k,1);
   let k;
   if(dest.before) k=tgt.images.findIndex(x=>x.id===dest.before);
@@ -4081,9 +4140,8 @@ function startCrop(){
   if(fp && !fp.img.kind){ openCrop(fp.img.id); return; }
   // pas de page image active : on importe un fichier dans l'élément actif, puis on le recadre
   const it=activeItemId && findItem(activeItemId);
-  let sec = it && !isChapter(it) ? it : null;
-  if(!sec && it){ const i=idxOf(it.id), end=blockEnd(i); if(end-1>i) sec=IT()[end-1]; }
-  if(!sec){ toast("Choisis d'abord un jalon, une section ou une sous-section, ou clique la page à recadrer"); return; }
+  const sec = it || null;
+  if(!sec){ toast("Choisis d'abord un chapitre, un jalon, une section ou une sous-section, ou clique la page à recadrer"); return; }
   activeSecForImport=sec.id; $("#inCrop").click();
 }
 $("#inCrop").setAttribute("accept", IMPORT_ACCEPT);
@@ -4270,14 +4328,14 @@ function renderMirror(){
   const nums=numbering();
   IT().forEach(it=>{
     const L=lvl(it), n=countImages(it), shut=!mrOpenNodes.has(it.id);
-    const row=h("div","mr-row lvl"+L+(L>0&&shut?" shut":"")+(nums[it.id]==="–"?" mr-off":"")); row.dataset.id=it.id; row.dataset.lvl=L;
+    const row=h("div","mr-row lvl"+L+(shut?" shut":"")+(nums[it.id]==="–"?" mr-off":"")); row.dataset.id=it.id; row.dataset.lvl=L;
     row.style.marginLeft=(L*12)+"px";
-    const car=h("button","mr-car"+(L===0||!n?" none":""),{type:"button",innerHTML:icon('<path d="M6 9l6 6 6-6"/>'),title:"Voir / cacher les pages"});
+    const car=h("button","mr-car"+(!n?" none":""),{type:"button",innerHTML:icon('<path d="M6 9l6 6 6-6"/>'),title:"Voir / cacher les pages"});
     car.onclick=()=>{ mrOpenNodes.has(it.id)?mrOpenNodes.delete(it.id):mrOpenNodes.add(it.id); renderMirror(); markGhost(); };
     row.append(car, h("span","mr-i",{innerHTML:svgIcon(LEVEL_ICON[L])}), h("span","mr-n",{textContent:nums[it.id]}), h("span","mr-t",{textContent:itemTitle(it)||"(sans titre)"}));
-    if(L>0) row.append(h("span","mr-c",{textContent:n+" p."}));
+    if(L>0 || n) row.append(h("span","mr-c",{textContent:n+" p."}));
     mrList.append(row);
-    if(L>0 && !shut){
+    if(n && !shut){
       it.images.forEach(im=>{
         const pg=docPages.find(p=>p.imgId===im.id);
         const pr=h("div","mr-row pg"+(pg&&pg.no==null?" mr-off":"")); pr.dataset.img=im.id; pr.dataset.sec=it.id;
@@ -4370,8 +4428,8 @@ window.addEventListener("drop", async e=>{
   const pg=e.target.closest && e.target.closest(".page[data-img]");
   let sec=null, after=null;
   if(pg){ const f=findPage(pg.dataset.img); if(f){ sec=f.sec; after=f.img.id; } }
-  if(!sec){ const it=activeItemId && findItem(activeItemId); if(it && !isChapter(it)) sec=it; }
-  if(!sec){ toast("Choisis d'abord où ranger ces fichiers : clique un jalon, une section ou une sous-section"); return; }
+  if(!sec){ const it=activeItemId && findItem(activeItemId); if(it) sec=it; }
+  if(!sec){ toast("Choisis d'abord où ranger ces fichiers : clique un chapitre, un jalon, une section ou une sous-section"); return; }
   const before=sec.images.length;
   const fresh=await addFilesToSection(sec, files);
   if(after && fresh.length){                         // place les nouvelles pages juste après la page visée
@@ -4879,7 +4937,7 @@ const Gantt = (()=>{
       onGo:(secId,slot)=>run(()=>addToDoc(o, secId, slot))});
   };
   async function addToDoc(o, secId, slot){
-    const sec=findItem(secId); if(!sec || isChapter(sec)) return;
+    const sec=findItem(secId); if(!sec) return; if(!sec.images) sec.images=[];
     const f=DOCF[o.docf], ppmm=(settings.dpi||200)/25.4, W=Math.round(f.w*ppmm), H=Math.round(f.h*ppmm);
     const L=layout(W,H,ppmm,o), n=L.pages.length, ims=[];
     for(let i=0;i<n;i++){
