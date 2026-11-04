@@ -241,6 +241,20 @@
   .page-content-img{padding:26mm var(--padX) var(--padB)}
   .page-content-img .img-wrap{flex:1;display:grid;place-items:center;min-height:0}
   .page-content-img .img-wrap img{max-width:100%;max-height:100%;object-fit:contain}
+  .img-grid{flex:1;display:grid;gap:4mm;min-height:0}
+  .pg-cell{min-width:0;min-height:0;display:grid;place-items:center;cursor:pointer;outline-offset:1.5mm}
+  .pg-cell img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+  .pg-cell.is-active{outline:2px solid var(--doc-brand-2,#2563eb)}
+  .page-multi.is-off .pg-cell{cursor:default}
+  body.hide-mode #document .pg-cell:hover{outline:3px solid #fbbf24}
+  body.extract-mode #document .pg-cell:hover{outline:3px solid #6ee7b7}
+  .lay-row{display:flex;align-items:center;gap:3px;margin-bottom:7px}
+  .lay-l{flex:1;font-size:11px;color:var(--muted);white-space:nowrap}
+  .lay-b{display:inline-flex;align-items:center;gap:1px;height:26px;padding:0 5px 0 2px;border-radius:5px;border:1px solid var(--line-2);background:transparent;color:#94a3b8;cursor:pointer}
+  .lay-b svg{width:18px;height:18px}
+  .lay-b b{font-size:11px;font-weight:700}
+  .lay-b:hover{background:var(--btn);color:#e2e8f0}
+  .lay-b.on{background:var(--accent);border-color:var(--accent-2);color:#fff}
   .sec-head{position:absolute;top:10mm;left:var(--padX);width:122mm;color:#1a1a1a}
   .sec-head>div{position:absolute;left:0;white-space:nowrap;line-height:1.2}
   .sec-head .sh-main{font-size:11pt;font-weight:700;text-decoration:underline;text-underline-offset:2px}
@@ -1262,14 +1276,14 @@ function cloneState(s){
     logo:s.logo, logoOrig:s.logoOrig||null, logoCrop:s.logoCrop||null, photo:s.photo,
     gantt: s.gantt ? JSON.parse(JSON.stringify(s.gantt)) : null,
     items: s.items.map(it => isChapter(it)
-      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, images:(it.images||[]).slice()}
-      : {id:it.id, type:it.type, name:it.name, off:!!it.off, images: it.images.slice()})
+      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images:(it.images||[]).slice()}
+      : {id:it.id, type:it.type, name:it.name, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images: it.images.slice()})
   };
 }
 function histSig(s){
   return s.items.map(it => isChapter(it)
-    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
-    : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
+    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
+    : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
   ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "");
 }
 function recordHistory(){
@@ -1493,9 +1507,26 @@ function renderLeafCard(sec, number, L, groupEl){
   card.append(renderPagesBody(sec));
   return card;
 }
+/* mise en page des pièces : 1 par page, ou mosaïque 2 / 4 / 6 / 9 par page (reportage photo…) */
+function layoutIcon(n){
+  const [c,r]={1:[1,1],2:[1,2],4:[2,2],6:[2,3],9:[3,3]}[n], W=14, H=18, x0=5, y0=3, g=1.4;
+  const cw=(W-g*(c-1))/c, ch=(H-g*(r-1))/r; let s="";
+  for(let j=0;j<r;j++) for(let i=0;i<c;i++) s+=`<rect x="${(x0+i*(cw+g)).toFixed(2)}" y="${(y0+j*(ch+g)).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" rx=".6" fill="currentColor" stroke="none"/>`;
+  return `<svg viewBox="0 0 24 24">${s}</svg>`;
+}
+function layoutRow(sec){
+  const row=h("div","lay-row"); row.append(h("span","lay-l",{textContent:"Pièces par page"}));
+  [1,2,4,6,9].forEach(n=>{
+    const b=h("button","lay-b"+((sec.layout||1)===n?" on":""),{type:"button", innerHTML:layoutIcon(n)+`<b>${n}</b>`, title: n===1 ? "Une pièce par page" : `Mosaïque : ${n} pièces par page (reportage photo, planches…)`});
+    b.addEventListener("click", e=>{ e.stopPropagation(); if(n===1) delete sec.layout; else sec.layout=n; changed(); });
+    row.append(b);
+  });
+  return row;
+}
 /* zone des pages d'un élément (jalon, section, sous-section… ou directement un chapitre) */
 function renderPagesBody(sec, extraCls){
   const body = h("div","sec-body"+(extraCls?" "+extraCls:""));
+  if((sec.images||[]).filter(i=>i.kind!=="text").length>=2 || sec.layout>1) body.append(layoutRow(sec));
   const importBtn = h("button","minibtn block",{innerHTML:icon('<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>')+" Importer des fichiers"});
   importBtn.onclick = ()=>{ activeSecForImport = sec.id; $("#inSecImgs").click(); };
   body.append(importBtn);
@@ -2053,6 +2084,28 @@ function addSecHead(page, p){
 }
 /* haut de la zone utile (mm) : sous le logo, et plus bas si le bandeau descend */
 function bodyTop(p, base){ const L=headLayout(p); return L.length ? Math.max(base, L[L.length-1].y + base-22) : base; }
+/* mosaïque : pièces par page -> [colonnes, rangées] */
+const LAYOUTS = {1:[1,1], 2:[1,2], 4:[2,2], 6:[2,3], 9:[3,3]};
+const layoutOf = it => LAYOUTS[it && it.layout] && it.layout>1 ? it.layout : 1;
+function pageOf(id){ return docPages.find(p=>p.imgId===id || (p.imgIds && p.imgIds.includes(id))); }
+function buildMultiPage(p, pageNumber){
+  const page = pageEl("page-content-img page-multi");
+  if(p.itemId) page.id = "doe-"+p.itemId;
+  page.dataset.img = p.imgId;
+  addLogoAndNum(page, pageNumber);
+  addSecHead(page, p);
+  page.style.paddingTop = bodyTop(p,26)+"mm";
+  const [c,r] = LAYOUTS[p.per];
+  const grid = h("div","img-grid"); grid.style.gridTemplateColumns=`repeat(${c},1fr)`; grid.style.gridTemplateRows=`repeat(${r},1fr)`;
+  p.cells.forEach(cell=>{
+    const d = h("div","pg-cell"+(cell.imgId===activePageImg?" is-active":"")); d.dataset.img=cell.imgId; d.title="Clic : page active";
+    const im = h("img"); lazyImg(im, cell.src, cell.thumb); d.append(im);
+    d.addEventListener("click", e=>{ e.stopPropagation(); setActivePage(cell.imgId); });
+    grid.append(d);
+  });
+  page.append(grid);
+  return page;
+}
 function buildImagePage(p, pageNumber){
   const page = pageEl("page-content-img"+(p.imgId===activePageImg?" is-active":""));
   if(p.itemId) page.id = "doe-"+p.itemId;
@@ -2110,6 +2163,28 @@ function buildDocModel(){
   const toc=[], all=[], pages=[], nums=numbering(), hid=hiddenIds(), chain=[];
   let seq=0;
   const push=p=>{ if(p.off){ p.seq=null; } else { p.seq=seq++; } pages.push(p); };
+  /* pages d'un élément ; en mosaïque (item.layout = 2, 4, 6 ou 9), les pièces image se regroupent par page.
+     Une page de texte ou une pièce masquée coupe le groupe (elle garde sa page à elle). */
+  function pushItemPages(item, ch, off, firstItemId){
+    const per=layoutOf(item), imgs=item.images||[];
+    let first=true, run=[];
+    const flush=()=>{
+      for(let k=0;k<run.length;k+=per){
+        const g=run.slice(k,k+per);
+        push({type:"multi", per, cells:g.map(x=>({src:x.img.src, thumb:x.img.thumb, imgId:x.img.id})), chain:ch, first, itemId: g[0].ii===0 ? firstItemId : null, imgId:g[0].img.id, secId:item.id, off:false});
+        first=false;
+      }
+      run=[];
+    };
+    imgs.forEach((img,ii)=>{
+      const pOff = off || !!img.off;
+      if(per>1 && !pOff && img.kind!=="text"){ run.push({img, ii}); return; }
+      flush();
+      push({type: img.kind==="text"?"text":"image", src:img.src, thumb:img.thumb, html:img.html, chain:ch, first: pOff ? ii===0 : first, itemId: ii===0 ? firstItemId : null, imgId:img.id, secId:item.id, off:pOff});
+      if(!pOff) first=false;
+    });
+    flush();
+  }
   state.items.forEach(item=>{
     const L=lvl(item), num=nums[item.id], off=hid.has(item.id);
     if(L===0){
@@ -2117,25 +2192,14 @@ function buildDocModel(){
       const en={depth:0, kind:"chapter", number:num, title:item.title, offset:seq, page:0, itemId:item.id, off};
       all.push(en); if(!off) toc.push(en);
       push({type:"divider", number:num, title:item.title, itemId:item.id, off});
-      const ch0=[{num, title:item.title}];
-      let first0=true;
-      (item.images||[]).forEach((img,ii)=>{                 // pièces posées directement dans le chapitre
-        const pOff = off || !!img.off;
-        push({type: img.kind==="text"?"text":"image", src:img.src, thumb:img.thumb, html:img.html, chain:ch0, first: pOff ? ii===0 : first0, itemId:null, imgId:img.id, secId:item.id, off:pOff});
-        if(!pOff) first0=false;
-      });
+      pushItemPages(item, [{num, title:item.title}], off, null);
       return;
     }
     chain.length=L; chain[L]={num, title:item.name};
     const ch=chain.slice(1).filter(Boolean);
     const en={depth:L, kind:"section", number:num, title:item.name, offset:seq, page:0, itemId:item.id, off};
     all.push(en); if(!off) toc.push(en);
-    let first=true;
-    item.images.forEach((img,ii)=>{
-      const pOff = off || !!img.off;
-      push({type: img.kind==="text"?"text":"image", src:img.src, thumb:img.thumb, html:img.html, chain:ch, first: pOff ? ii===0 : first, itemId: ii===0 ? item.id : null, imgId:img.id, secId:item.id, off:pOff});
-      if(!pOff) first=false;
-    });
+    pushItemPages(item, ch, off, item.id);
   });
   return {toc, pages, all};
 }
@@ -2166,14 +2230,14 @@ function renderDocument(){
   const domBase = 1 + S;
   pages.forEach((p,idx)=>{
     const num = p.seq==null ? null : contentStart + p.seq;
-    const el = p.type==="divider" ? buildDividerPage(p) : p.type==="text" ? buildTextPage(p, num) : buildImagePage(p, num);
+    const el = p.type==="divider" ? buildDividerPage(p) : p.type==="text" ? buildTextPage(p, num) : p.type==="multi" ? buildMultiPage(p, num) : buildImagePage(p, num);
     if(p.off){ el.classList.add("is-off"); el.append(h("div","off-badge",{innerHTML:icon(EYE_OFF)+"Non imprimée"})); }
     if(p.itemId && !(p.itemId in itemPageMap)) itemPageMap[p.itemId] = domBase + idx;
     doc.append(el);
   });
   all.forEach(en=>{ if(!(en.itemId in itemPageMap)){ const nx=pages.findIndex((p,i)=>p.seq!=null && p.seq>=en.offset); itemPageMap[en.itemId] = domBase + (nx<0 ? pages.length-1 : nx); } });
 
-  docPages = pages.map(p=>({no: p.seq==null ? null : contentStart+p.seq, type:p.type, imgId:p.imgId, secId:p.secId, itemId:p.itemId, off:p.off}));
+  docPages = pages.map(p=>({no: p.seq==null ? null : contentStart+p.seq, type:p.type, imgId:p.imgId, ...(p.cells?{imgIds:p.cells.map(c=>c.imgId)}:{}), secId:p.secId, itemId:p.itemId, off:p.off}));
   docToc = all.map(en=>({id:en.itemId, number:en.number, title:en.title, kind:en.kind, depth:en.depth, page:en.page, off:en.off}));
   if(typeof updateMoveBtn==="function") updateMoveBtn();
   if(typeof updateTxBar==="function") updateTxBar();
@@ -2243,13 +2307,13 @@ function normPage(im){
   return o;
 }
 function normSection(n, type){
-  return { id:n.id||uid(), type: (type && LEVEL[type]>0) ? type : "section", name:n.name ?? n.title ?? "", ...(n.off?{off:true}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[] };
+  return { id:n.id||uid(), type: (type && LEVEL[type]>0) ? type : "section", name:n.name ?? n.title ?? "", ...(n.off?{off:true}:{}), ...(LAYOUTS[n.layout]&&n.layout>1?{layout:n.layout}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[] };
 }
 function toItems(obj){
   if(Array.isArray(obj.items)){
     return obj.items.map(n=>{
       if(!n) return null;
-      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.off?{off:true}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[]};
+      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.off?{off:true}:{}), ...(LAYOUTS[n.layout]&&n.layout>1?{layout:n.layout}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[]};
       return normSection(n, n.type);
     }).filter(Boolean);
   }
@@ -2386,6 +2450,13 @@ async function buildPdf(onProgress){
         const top=bodyTop(p,28), hh=TX_BOTTOM-top;
         const data = await rasterText(p.html||"", TX_W, hh);
         if(data) pdf.addImage(data, "PNG", TX_LEFT, top, TX_W, hh, "tx"+idx, "FAST");
+      }else if(p.type==="multi"){
+        const top=bodyTop(p,26), [c,r]=LAYOUTS[p.per], G=4;
+        const cw=(CW-G*(c-1))/c, ch=(283-top-G*(r-1))/r;
+        for(let k=0;k<p.cells.length;k++){
+          const info=await imgInfo(p.cells[k].src, null);
+          addFit(pdf, info, X0+(k%c)*(cw+G), top+Math.floor(k/c)*(ch+G), cw, ch);
+        }
       }else{
         const info = await imgInfo(p.src, null), top=bodyTop(p,26);
         addFit(pdf, info, X0, top, CW, 283-top);
@@ -2531,7 +2602,7 @@ function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asCl
 const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
   return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null,
-    items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}),
+    items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}), ...(it.layout>1?{layout:it.layout}:{}),
       images: (it.images||[]).map(im=>{
         if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
         const o={id:im.id, name:im.name||"", m:ref(im.src)};
@@ -3029,7 +3100,7 @@ const GUIDE = [
   {id:"struct", t:"Structure", i:"i_chap", h:`
     <p class="hg-intro">La colonne de gauche, c'est le plan de ton document, sur quatre niveaux. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront. Les boutons de création sont en haut du volet gauche, dans la plage Édition (chaque plage se replie d'un clic sur son titre).</p>
     <ul class="hg-list">
-      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page intercalaire, avec son numéro et son titre. Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages.</p></li>
+      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page intercalaire, avec son numéro et son titre. Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages. <b>Mosaïque</b> : dès qu’un chapitre, un jalon ou une section contient au moins deux pièces, la ligne « Pièces par page » permet de les regrouper par 2, 4, 6 ou 9 sur une même page (reportage photo, planches…) ; une page de texte ou une pièce masquée garde sa page à elle.</p></li>
       <li><b>${b_("i_jalon","c-blue")} Jalon</b><p>Un ensemble de pages dans un chapitre (1.1, 1.2…) : un Kbis, une attestation, un rapport d'essais… C'est là que tu importes tes fichiers. Sa première page porte son numéro et son nom en haut à gauche, en gras souligné.</p></li>
       <li><b>${b_("i_sect")} Section</b><p>Pour découper un jalon (1.1.1, 1.1.2…). Sur sa première page, le jalon s'affiche, puis la section en italique juste en dessous.</p></li>
       <li><b>${b_("i_sous")} Sous-section</b><p>Le niveau le plus fin (1.1.1.1…), rangé dans une section. Jalons, sections et sous-sections reçoivent tous des pages.</p></li>
@@ -4221,7 +4292,7 @@ Object.defineProperty(window, "hideMode", {get:()=>toolMode==="hide"});
 $("#tbHide").addEventListener("click", ()=>setToolMode("hide"));
 $("#tbExtract").addEventListener("click", ()=>setToolMode("extract"));
 function toolTarget(e){
-  const pg=e.target.closest(".page[data-img], #sectionsList .thumb[data-img]");
+  const pg=e.target.closest(".pg-cell[data-img], .page[data-img], #sectionsList .thumb[data-img]");
   if(pg){ const f=findPage(pg.dataset.img); return f ? {page:f} : null; }
   const dv=e.target.closest(".page-divider[id]");
   if(dv){ const it=findItem(dv.id.replace(/^doe-/,"")); return it ? {item:it} : null; }
@@ -4299,11 +4370,11 @@ async function extractItem(item){
 function findImg(id){ const f=findPage(id); return f ? {sec:f.sec, k:f.k} : null; }
 function setActivePage(imgId, opts={}){
   activePageImg = findImg(imgId) ? imgId : null;
-  document.querySelectorAll(".page.is-active, .thumb.is-active").forEach(e=>e.classList.remove("is-active"));
+  document.querySelectorAll(".page.is-active, .thumb.is-active, .pg-cell.is-active").forEach(e=>e.classList.remove("is-active"));
   if(activePageImg){
-    document.querySelectorAll(`.page[data-img="${activePageImg}"], .thumb[data-img="${activePageImg}"]`).forEach(e=>e.classList.add("is-active"));
+    document.querySelectorAll(`.page:not(.page-multi)[data-img="${activePageImg}"], .thumb[data-img="${activePageImg}"], .pg-cell[data-img="${activePageImg}"]`).forEach(e=>e.classList.add("is-active"));
     const f=findImg(activePageImg); if(f) setActiveItem(f.sec.id);
-    if(opts.scroll){ const p=doc.querySelector(`.page[data-img="${activePageImg}"]`); if(p) p.scrollIntoView({behavior:"smooth", block:"start"}); }
+    if(opts.scroll){ const c=doc.querySelector(`.page[data-img="${activePageImg}"], .pg-cell[data-img="${activePageImg}"]`), p=c && c.closest(".page"); if(p) p.scrollIntoView({behavior:"smooth", block:"start"}); }
   }
   updateMoveBtn(); updateTxBar();
 }
@@ -4375,7 +4446,7 @@ function openMove(){
   mvImg = activePageImg || pageInView();
   if(!mvImg){ toast("Aucune page à déplacer : importe d'abord des fichiers ou ajoute une page de texte"); return; }
   setActivePage(mvImg);
-  const f=findImg(mvImg), pg=docPages.find(p=>p.imgId===mvImg);
+  const f=findImg(mvImg), pg=pageOf(mvImg);
   $("#mvThumb").innerHTML=pageThumb(f.sec.images[f.k]);
   $("#mvWhat").textContent=`Page N° ${pgNo(pg)}`;
   $("#mvWhere").textContent=`${labelOf(f.sec.id)} · page ${f.k+1} sur ${f.sec.images.length}`;
@@ -4393,7 +4464,7 @@ function mvPick(secId, slot){
   if(!sec.images.length){ strip.append(slotEl(0), h("span","mv-none",{textContent:"Vide pour l'instant : ce sera la première page."})); }
   else sec.images.forEach((im,k)=>{
     strip.append(slotEl(k));
-    const pg=docPages.find(p=>p.imgId===im.id);
+    const pg=pageOf(im.id);
     const c=h("div","mv-pg"+(im.id===mvImg?" me":""),{innerHTML:`<div class="mv-pt">${pageThumb(im)}</div>${pgNo(pg)}`});
     strip.append(c);
     if(k===sec.images.length-1) strip.append(slotEl(k+1));
@@ -4409,7 +4480,7 @@ function mvHint(){
   const where=labelOf(mvSec);
   if(mvSlot===0) el.textContent=`→ au début de ${where}`;
   else if(mvSlot>=n) el.textContent=`→ à la fin de ${where}`;
-  else{ const pg=docPages.find(p=>p.imgId===sec.images[mvSlot-1].id); el.textContent=`→ dans ${where}, juste après la page N° ${pgNo(pg)}`; }
+  else{ const pg=pageOf(sec.images[mvSlot-1].id); el.textContent=`→ dans ${where}, juste après la page N° ${pgNo(pg)}`; }
 }
 /* déplacement d'une page : dest = {secId, before|after|at:'start'|'end'|index} */
 function movePageTo(imgId, dest){
@@ -4434,7 +4505,7 @@ function doMove(){
   if(!movePageTo(mvImg, {secId:mvSec, at:mvSlot})) return;
   closeModal("mv-modal");
   setActivePage(mvImg, {scroll:true});
-  const pg=docPages.find(p=>p.imgId===mvImg);
+  const pg=pageOf(mvImg);
   toast(`Page déplacée dans ${labelOf(mvSec)} (page N° ${pgNo(pg)})`);
 }
 $("#tbMove").addEventListener("click", openMove);
@@ -4645,7 +4716,7 @@ function renderMirror(){
     mrList.append(row);
     if(n && !shut){
       it.images.forEach(im=>{
-        const pg=docPages.find(p=>p.imgId===im.id);
+        const pg=pageOf(im.id);
         const pr=h("div","mr-row pg"+(pg&&pg.no==null?" mr-off":"")); pr.dataset.img=im.id; pr.dataset.sec=it.id;
         pr.style.marginLeft=(L*12+22)+"px";
         pr.innerHTML=`<span class="mr-th">${pageThumb(im)}</span><span class="mr-t">Page N° ${pgNo(pg)}${im.kind==="text"?" · texte":""}</span>`;
@@ -4708,7 +4779,7 @@ mrList.addEventListener("drop", e=>{
   }else{
     if(t.mode==="into") ok=movePageTo(p.id, {secId:t.row.dataset.id});
     else ok=movePageTo(p.id, {secId:t.row.dataset.sec, [t.mode]:t.row.dataset.img});
-    if(ok){ const pg=docPages.find(q=>q.imgId===p.id); msg=`Page déplacée (page N° ${pgNo(pg)})`; }
+    if(ok){ const pg=pageOf(p.id); msg=`Page déplacée (page N° ${pgNo(pg)})`; }
   }
   dragPayload=null;
   if(ok){
@@ -4733,7 +4804,7 @@ window.addEventListener("drop", async e=>{
     if(await loadFile(docFile, null)) toast(`« ${docFile.name} » ouvert`);
     return;
   }
-  const pg=e.target.closest && e.target.closest(".page[data-img]");
+  const pg=e.target.closest && e.target.closest(".pg-cell[data-img], .page[data-img]");
   let sec=null, after=null;
   if(pg){ const f=findPage(pg.dataset.img); if(f){ sec=f.sec; after=f.img.id; } }
   if(!sec){ const it=activeItemId && findItem(activeItemId); if(it) sec=it; }
