@@ -691,7 +691,7 @@
   .wm-drop.drag{border-color:var(--accent-2)}
   .wm-imgbtns{display:flex;flex-direction:column;gap:6px}
   #wmImgRow[hidden],#wmTextRow[hidden],#wmColRow[hidden],#wmAngleRow[hidden],#wmSzRow[hidden]{display:none}
-  .page>img.wm-full{left:0;top:0;width:100%;height:100%;transform:none}
+  .page>img.wm.wm-full{left:0;top:0;width:100%;height:100%;transform:none;max-width:none}
   .wm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
   .wm-chips button{height:24px;padding:0 9px;border-radius:12px;border:1px solid var(--line-2);background:transparent;color:#cbd5e1;font:600 11px var(--ui);cursor:pointer}
   .wm-chips button:hover{background:var(--btn)}
@@ -700,7 +700,8 @@
   .wm-cols button.on{border-color:#fff}
   .wm-cols input{width:96px;height:26px;border-radius:5px;border:1px solid var(--line-2);background:#0f1722;color:var(--ink);padding:0 7px;font:600 12px ui-monospace,Consolas,monospace}
   .page>img.wm{max-width:none;height:auto}
-  .page>.wm{position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none;z-index:6;user-select:none}
+  .page{isolation:isolate}
+  .page>.wm{z-index:-1!important;position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none;user-select:none}
   @media (max-width:900px){ .wm-body{flex-direction:column;align-items:center} }
   .gt-seg .gt-segl{align-self:center;font-size:11px;color:var(--muted);padding:0 4px 0 6px}
   .gt-days{margin-top:10px;padding:7px 9px;border-radius:6px;background:var(--card);font-size:12.5px;color:var(--muted)}
@@ -1080,7 +1081,7 @@ requestAnimationFrame(frame);
         <input type="range" id="wmOp" min="0.04" max="0.6" step="0.01">
         <div id="wmSzRow"><label>Taille <span id="wmSzV"></span></label>
         <input type="range" id="wmSz" min="0.4" max="1.6" step="0.05"></div>
-        <p class="gt-hint">Le filigrane est enregistré avec le document : il apparaît dans l'aperçu, le PDF + Script et le PDF compilé, par-dessus le contenu, en transparence. Les extractions (pièces d'origine) n'en ont pas.</p>
+        <p class="gt-hint">Le filigrane est enregistré avec le document : il apparaît dans l'aperçu, le PDF + Script et le PDF compilé, sous le contenu (entre le fond de page et le contenu), en transparence. Les extractions (pièces d'origine) n'en ont pas.</p>
       </div>
     </div>
         </section>
@@ -2483,6 +2484,9 @@ async function buildPdf(onProgress){
   const total = 1 + S + pages.length;
   toc.forEach(en=>{ en.page = Math.min(en.page, total); });   // élément vide en fin de document : pointe sur la dernière page
 
+  // filigrane : peint en premier sur chaque page, sous le contenu
+  const wmPaint = typeof wmPdfPainter==="function" ? await wmPdfPainter() : null;
+  if(wmPaint) wmPaint(pdf, "cover");
   // ---- 1) Couverture
   if(logo) addFit(pdf, logo, (W-70)/2, 22, 70, 34);
   if(state.meta.title){
@@ -2507,12 +2511,12 @@ async function buildPdf(onProgress){
   }
 
   // ---- 2) Pages de sommaire (vides pour l'instant, remplies à la fin)
-  for(let k=0;k<S;k++) pdf.addPage();
+  for(let k=0;k<S;k++){ pdf.addPage(); if(wmPaint) wmPaint(pdf, "som"); }
 
   // ---- 3) Contenu
   for(let idx=0; idx<pages.length; idx++){
     const p=pages[idx], num=contentStart+idx;
-    pdf.addPage();
+    pdf.addPage(); if(wmPaint) wmPaint(pdf, "content");
     if(p.type==="divider"){
       const dl=divLines(p), dh=(dl.length-1)*7;
       pdf.setDrawColor(152,162,174); pdf.setLineWidth(0.3);
@@ -2580,9 +2584,6 @@ async function buildPdf(onProgress){
       pdf.link(X0, y-5, CW, (yl-y)+TOC_ROWH-0.4, {pageNumber: en.page});
     });
   }
-
-  // ---- 4 bis) Filigrane, par-dessus tout
-  if(typeof wmPdf==="function") await wmPdf(pdf, S);
 
   // ---- 5) Signets (panneau latéral du lecteur PDF)
   try{
@@ -3253,7 +3254,7 @@ const GUIDE = [
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
       <li><b>Enregistrer en PDF compilé</b><p>Un PDF classique, figé, à diffuser : sans les jalons ni les pages masqués, sans les images entières des recadrages et sans la partie modifiable. Il est enregistré à côté (nom en « _compilé ») et ne remplace jamais ton fichier en cours.</p></li>
-      <li><b>Filigrane</b><p>Dans ⛯ Paramètres › Filigrane (onglet marqué d’un F), un réglage pose une <b>image</b> (logo, tampon, mention… un PNG à fond transparent rend le mieux) ou un texte (PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien) en transparence sur les pages. L’image couvre tout le format de la page, bord à bord et droite (une image au format A4 portrait rend le mieux) ; le texte peut aussi être en diagonale. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), la couleur du texte (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
+      <li><b>Filigrane</b><p>Dans ⛯ Paramètres › Filigrane (onglet marqué d’un F), un réglage pose une <b>image</b> (logo, tampon, mention… un PNG à fond transparent rend le mieux) ou un texte (PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien) en transparence sur les pages, entre le fond de page et le contenu. L’image couvre tout le format de la page, bord à bord et droite (une image au format A4 portrait rend le mieux) ; le texte peut aussi être en diagonale. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), la couleur du texte (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
@@ -5672,7 +5673,7 @@ function wmDecorate(){
   if(!wmActive()) return;
   doc.querySelectorAll(".page").forEach(p=>{
     const kind = p.classList.contains("cover") ? "cover" : p.classList.contains("page-sommaire") ? "som" : "content";
-    if(wmOn(kind)) p.append(wmEl());
+    if(wmOn(kind)) p.prepend(wmEl());          // derrière le contenu (z-index -1 dans la page)
   });
 }
 /* PDF : par-dessus chaque page concernée (page 1 = garde, 2..1+S = sommaire) */
@@ -5687,23 +5688,19 @@ async function wmImgPdfData(w){
   const data=cv.toDataURL("image/png"); cv.width=cv.height=0;
   return {data, bw, bh};
 }
-async function wmPdf(pdf, S){
-  if(!wmActive()) return;
-  if(wmIsImg(state.wm)){
-    let I; try{ I=await wmImgPdfData(state.wm); }catch(e){ console.warn("filigrane image", e); return; }
-    const n=pdf.getNumberOfPages();
-    for(let i=1;i<=n;i++){
-      const kind = i===1 ? "cover" : i<=1+S ? "som" : "content"; if(!wmOn(kind)) continue;
-      pdf.setPage(i); pdf.addImage(I.data, "PNG", 105-I.bw/2, 148.5-I.bh/2, I.bw, I.bh, "wm-img", "FAST");
-    }
-    return;
+/* PDF : le filigrane se dessine en premier sur chaque page concernée, donc SOUS le contenu (entre le fond et le contenu).
+   wmPdfPainter() prépare une fois l'image ; la fonction rendue peint la page courante selon son genre. */
+async function wmPdfPainter(){
+  if(!wmActive()) return null;
+  const w=state.wm;
+  if(wmIsImg(w)){
+    let I; try{ I=await wmImgPdfData(w); }catch(e){ console.warn("filigrane image", e); return null; }
+    return (pdf, kind)=>{ if(wmOn(kind)) pdf.addImage(I.data, "PNG", 105-I.bw/2, 148.5-I.bh/2, I.bw, I.bh, "wm-img", "FAST"); };
   }
-  const w=state.wm, t=pdfSafe(w.text.trim()), pt=wmPt(w), a=WM_DEG[w.angle]||0, r=a*Math.PI/180;
-  const n=pdf.getNumberOfPages();
+  const t=pdfSafe(w.text.trim()), pt=wmPt(w), a=WM_DEG[w.angle]||0, r=a*Math.PI/180;
   const [R,G,B]=[1,3,5].map(i=>parseInt(w.color.slice(i,i+2),16));
-  for(let i=1;i<=n;i++){
-    const kind = i===1 ? "cover" : i<=1+S ? "som" : "content"; if(!wmOn(kind)) continue;
-    pdf.setPage(i);
+  return (pdf, kind)=>{
+    if(!wmOn(kind)) return;
     try{ pdf.setGState(new pdf.GState({opacity:w.op})); }catch(e){}
     pdf.setFont("helvetica","bold"); pdf.setFontSize(pt); pdf.setTextColor(R,G,B);
     const tw=pdf.getTextWidth(t), fh=pt*MM_PT;
@@ -5712,7 +5709,8 @@ async function wmPdf(pdf, S){
     const x0=cx-dx*tw/2 + Math.sin(r)*fh*0.35, y0=cy-dy*tw/2 + Math.cos(r)*fh*0.35;
     pdf.text(t, x0, y0, {angle:a});
     try{ pdf.setGState(new pdf.GState({opacity:1})); }catch(e){}
-  }
+    pdf.setTextColor(0,0,0);
+  };
 }
 
 /* ---------- fenêtre ---------- */
