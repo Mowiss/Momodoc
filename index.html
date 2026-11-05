@@ -673,11 +673,19 @@
   .gt-seg.full{display:flex}
   .wm-card{width:min(54rem,100%)}
   .wm-body{display:flex;gap:20px;padding:6px 0 0}
-  .wm-prv{flex:0 0 200px;display:flex;flex-direction:column;align-items:center;gap:8px}
-  .wm-page{position:relative;width:200px;height:283px;background:#fff;border-radius:3px;box-shadow:0 6px 24px rgba(0,0,0,.4);overflow:hidden}
-  .wm-lines{position:absolute;inset:28px 21px;background:repeating-linear-gradient(#e5e7eb 0 5px,transparent 5px 14px)}
+  .wm-prv{flex:0 0 250px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .wm-stage{position:relative;width:250px;height:333px;overflow:hidden;border-radius:8px;background:repeating-linear-gradient(45deg,#0f1722 0 8px,#121c2a 8px 16px);display:grid;place-items:center;touch-action:none}
+  .wm-page{position:relative;width:200px;height:283px;background:#fff;border-radius:2px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+  .wm-clip{position:absolute;inset:0;overflow:hidden}
+  .wm-ghost{position:absolute;opacity:.22;pointer-events:none;max-width:none}
+  .wm-frame{position:absolute;outline:1.5px dashed #3b82f6;cursor:move;z-index:3}
+  .wm-hdl{position:absolute;right:-7px;bottom:-7px;width:13px;height:13px;border-radius:3px;background:#3b82f6;border:2px solid #fff;cursor:nwse-resize}
+  .wm-place{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .wm-place .ps-btn{padding:5px 9px;font-size:12px}
+  #wmPlaceRow[hidden],.wm-frame[hidden]{display:none}
+  .wm-lines{position:absolute;inset:28px 21px;pointer-events:none;background:repeating-linear-gradient(#e5e7eb 0 5px,transparent 5px 14px)}
   .wm-txt{position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none}
-  .wm-pimg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+  .wm-pimg{position:absolute;pointer-events:none;max-width:none}
   .wm-cap{font-size:12px;color:var(--muted);text-align:center}
   .wm-form{flex:1;min-width:0;display:flex;flex-direction:column}
   .wm-form label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 5px}
@@ -691,7 +699,8 @@
   .wm-drop.drag{border-color:var(--accent-2)}
   .wm-imgbtns{display:flex;flex-direction:column;gap:6px}
   #wmImgRow[hidden],#wmTextRow[hidden],#wmColRow[hidden],#wmAngleRow[hidden],#wmSzRow[hidden]{display:none}
-  .page>img.wm.wm-full{left:0;top:0;width:100%;height:100%;transform:none;max-width:none}
+  .page>.wm.wm-full{left:0;top:0;width:100%;height:100%;transform:none;overflow:hidden}
+  .page>.wm.wm-full>img{position:absolute;max-width:none}
   .wm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
   .wm-chips button{height:24px;padding:0 9px;border-radius:12px;border:1px solid var(--line-2);background:transparent;color:#cbd5e1;font:600 11px var(--ui);cursor:pointer}
   .wm-chips button:hover{background:var(--btn)}
@@ -1050,9 +1059,9 @@ requestAnimationFrame(frame);
         </section>
         <section class="mm-sec" data-sec="wm">
           <p class="ps-title">Filigrane</p>
-          <p class="ps-intro">Une image posée sur <b>tout le format de la page</b>, bord à bord (fond de page, papier à en-tête, tampon… un PNG à fond transparent rend le mieux), ou un texte, en transparence sur les pages du document. Il est enregistré avec lui.</p>
+          <p class="ps-intro">Une image (fond de page, papier à en-tête, logo, tampon…), jamais déformée, que tu places et dimensionnes dans l'aperçu, ou un texte. Elle se pose en transparence entre le fond de la page et le contenu, et s'enregistre avec le document.</p>
           <div class="wm-body">
-      <div class="wm-prv"><div class="wm-page" id="wmPrv"><div class="wm-lines"></div><div class="wm-txt" id="wmPrvTxt"></div><img class="wm-pimg" id="wmPrvImg" alt="" hidden></div><div class="wm-cap" id="wmCap"></div></div>
+      <div class="wm-prv"><div class="wm-stage" id="wmStage"><div class="wm-page" id="wmPrv"><img class="wm-ghost" id="wmGhost" alt="" hidden><div class="wm-clip"><img class="wm-pimg" id="wmPrvImg" alt="" hidden></div><div class="wm-lines"></div><div class="wm-txt" id="wmPrvTxt"></div><div class="wm-frame" id="wmFrame" hidden><i class="wm-hdl" id="wmHdl" title="Agrandir / réduire"></i></div></div></div><div class="wm-cap" id="wmCap"></div></div>
       <div class="wm-form">
         <label>Filigrane</label>
         <div class="gt-seg full" id="wmOn"><button data-v="1">Activé</button><button data-v="0">Désactivé</button></div>
@@ -1065,6 +1074,12 @@ requestAnimationFrame(frame);
             <div class="wm-imgbtns"><button type="button" class="ps-btn" id="wmPick">Choisir une image…</button><button type="button" class="ps-btn" id="wmClear">Retirer</button></div>
           </div>
           <input type="file" id="wmFile" class="hidden-input" accept="image/*,.heic,.heif,.tif,.tiff,.bmp,.webp,.jxr,.pdf">
+          <div id="wmPlaceRow">
+            <label>Placement <span id="wmISzV"></span></label>
+            <div class="wm-place"><button type="button" class="ps-btn" data-fit="cover" title="L'image couvre toute la page, sans déformation (ce qui dépasse est coupé)">Couvrir la page</button><button type="button" class="ps-btn" data-fit="contain" title="Toute l'image tient dans la page, sans déformation">Tenir dans la page</button><button type="button" class="ps-btn" data-fit="center" title="Centrer sans changer la taille">Centrer</button></div>
+            <input type="range" id="wmISz" min="10" max="300" step="1">
+            <p class="gt-hint">Dans l'aperçu : glisse l'image pour la placer, tire le coin pour la redimensionner (elle n'est jamais déformée). Ce qui dépasse de la page apparaît en pâle et sera coupé.</p>
+          </div>
         </div>
         <div id="wmTextRow">
           <label for="wmText">Texte</label>
@@ -3254,7 +3269,7 @@ const GUIDE = [
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
       <li><b>Enregistrer en PDF compilé</b><p>Un PDF classique, figé, à diffuser : sans les jalons ni les pages masqués, sans les images entières des recadrages et sans la partie modifiable. Il est enregistré à côté (nom en « _compilé ») et ne remplace jamais ton fichier en cours.</p></li>
-      <li><b>Filigrane</b><p>Dans ⛯ Paramètres › Filigrane (onglet marqué d’un F), un réglage pose une <b>image</b> (logo, tampon, mention… un PNG à fond transparent rend le mieux) ou un texte (PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien) en transparence sur les pages, entre le fond de page et le contenu. L’image couvre tout le format de la page, bord à bord et droite (une image au format A4 portrait rend le mieux) ; le texte peut aussi être en diagonale. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), la couleur du texte (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
+      <li><b>Filigrane</b><p>Dans ⛯ Paramètres › Filigrane (onglet marqué d’un F), un réglage pose une <b>image</b> (logo, tampon, mention… un PNG à fond transparent rend le mieux) ou un texte (PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien) en transparence sur les pages, entre le fond de page et le contenu. L’image n’est jamais déformée : au départ elle couvre toute la page (ce qui dépasse est coupé) ; dans l’aperçu des Paramètres, tu la glisses pour la placer et tu tires son coin pour la redimensionner, ou tu utilises Couvrir la page / Tenir dans la page / Centrer et la réglette. Le texte peut aussi être en diagonale. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), la couleur du texte (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
@@ -5647,8 +5662,17 @@ const wmCfg = () => state.wm || null;
 const wmIsImg = w => (w.kind||"text")==="img";
 const wmActive = () => !!(state.wm && state.wm.on && (wmIsImg(state.wm) ? !!state.wm.img : (state.wm.text||"").trim()));
 /* image : largeur en mm (60 % de la page × le réglage « taille ») ; rapport hauteur/largeur mémorisé */
-/* image : pleine page et droite — 100 % = toute la page (sans déformer), moins = réduite au centre */
-const wmImgW = w => Math.min(210, 297/(w.imgR||1)) * Math.min(1, w.size||1);
+/* image : jamais déformée. w.box = {x, y, w} en mm (coin haut gauche, largeur) ; hauteur = largeur × w.imgR.
+   Par défaut elle couvre toute la page ; ce qui dépasse est coupé. */
+const PW=210, PH=297;
+function wmFit(r, mode, cur){
+  r=r||1;
+  if(mode==="center" && cur){ const hh=cur.w*r; return {x:(PW-cur.w)/2, y:(PH-hh)/2, w:cur.w}; }
+  const cover = mode!=="contain", tall = r > PH/PW;
+  const w = cover ? (tall ? PW : PH/r) : (tall ? PH/r : PW), hh=w*r;
+  return {x:(PW-w)/2, y:(PH-hh)/2, w};
+}
+const wmBox = w => (w.box && w.box.w>0) ? w.box : wmFit(w.imgR, "cover");
 const WM_DEG = {up:54.7, h:0, down:-54.7};          // la diagonale d'une page A4
 /* taille (pt) : le texte occupe ~70 % de la diagonale (ou de la largeur), × le réglage « taille » */
 function wmPt(w){ const t=(w.text||"").trim()||"X", L=(w.angle==="h" ? 180 : 330)*0.72*(w.size||1); return Math.max(8, Math.min(220, L/Math.max(1e-3, textMm(t,1,"bold")))); }
@@ -5660,7 +5684,9 @@ function wmOn(kind){
 function wmEl(){
   const w=state.wm;
   if(wmIsImg(w)){
-    const im=h("img","wm wm-full",{src:w.img, alt:""}); im.style.opacity=w.op; return im;     // toute la page, bord à bord
+    const B=wmBox(w), box=h("div","wm wm-full"), im=h("img",null,{src:w.img, alt:""});
+    im.style.left=B.x+"mm"; im.style.top=B.y+"mm"; im.style.width=B.w+"mm"; im.style.height=(B.w*(w.imgR||1))+"mm";
+    box.style.opacity=w.op; box.append(im); return box;
   }
   const d=h("div","wm",{textContent:w.text.trim()});
   d.style.fontSize=wmPt(w)+"pt"; d.style.color=w.color; d.style.opacity=w.op;
@@ -5679,14 +5705,13 @@ function wmDecorate(){
 /* PDF : par-dessus chaque page concernée (page 1 = garde, 2..1+S = sommaire) */
 /* image du filigrane, déjà tournée et transparente (PNG) : posée telle quelle au centre de chaque page */
 async function wmImgPdfData(w){
-  const im=await loadImg(w.img), Wmm=210, Hmm=297, ppmm=6;      // étirée sur tout le format A4
-  const a=0, c=1, s=0;                        // l'image reste droite
-  const bw=Wmm*c+Hmm*s, bh=Wmm*s+Hmm*c;
-  const cv=document.createElement("canvas"); cv.width=Math.max(1,Math.round(bw*ppmm)); cv.height=Math.max(1,Math.round(bh*ppmm));
-  const x=cv.getContext("2d"); x.globalAlpha=w.op; x.translate(cv.width/2, cv.height/2); x.rotate(-a);
-  x.drawImage(im, -Wmm*ppmm/2, -Hmm*ppmm/2, Wmm*ppmm, Hmm*ppmm);
+  // une image de la taille de la page, avec le filigrane placé dessus (ce qui dépasse est coupé)
+  const im=await loadImg(w.img), ppmm=6, B=wmBox(w), r=w.imgR || im.naturalHeight/Math.max(1,im.naturalWidth);
+  const cv=document.createElement("canvas"); cv.width=PW*ppmm; cv.height=PH*ppmm;
+  const x=cv.getContext("2d"); x.globalAlpha=w.op;
+  x.drawImage(im, B.x*ppmm, B.y*ppmm, B.w*ppmm, B.w*r*ppmm);
   const data=cv.toDataURL("image/png"); cv.width=cv.height=0;
-  return {data, bw, bh};
+  return {data, bw:PW, bh:PH};
 }
 /* PDF : le filigrane se dessine en premier sur chaque page concernée, donc SOUS le contenu (entre le fond et le contenu).
    wmPdfPainter() prépare une fois l'image ; la fonction rendue peint la page courante selon son genre. */
@@ -5722,8 +5747,16 @@ function wmSync(){
   $("#wmImgRow").hidden=!isImg; $("#wmTextRow").hidden=isImg; $("#wmColRow").hidden=isImg; $("#wmAngleRow").hidden=isImg;
   $("#wmSzRow").hidden = isImg;
   $("#wmThumb").hidden=!w.img; if(w.img) $("#wmThumb").src=w.img; $("#wmDropTxt").hidden=!!w.img; $("#wmClear").hidden=!w.img;
-  const pi=$("#wmPrvImg"); pi.hidden=!(isImg && w.img);
-  if(isImg && w.img){ pi.src=w.img; pi.style.opacity=w.on?w.op:0.05; }
+  const pi=$("#wmPrvImg"), gh=$("#wmGhost"), fr=$("#wmFrame"), show=isImg && !!w.img;
+  pi.hidden=gh.hidden=fr.hidden=!show; $("#wmPlaceRow").hidden=!show;
+  if(show){
+    const B=wmBox(w), k=200/PW, r=w.imgR||1;
+    for(const el of [pi,gh,fr]){ el.style.left=(B.x*k)+"px"; el.style.top=(B.y*k)+"px"; el.style.width=(B.w*k)+"px"; el.style.height=(B.w*r*k)+"px"; }
+    if(pi.getAttribute("src")!==w.img){ pi.src=w.img; gh.src=w.img; }
+    pi.style.opacity=w.on?Math.max(w.op,0.08):0.05;
+    if(document.activeElement!==$("#wmISz")) $("#wmISz").value=Math.round(B.w/PW*100);
+    $("#wmISzV").textContent=Math.round(B.w/PW*100)+" % de la largeur";
+  }
   if(document.activeElement!==$("#wmText")) $("#wmText").value=w.text||"";
   $("#wmOp").value=w.op; $("#wmOpV").textContent=Math.round(w.op*100)+" %";
   $("#wmSz").value=w.size; $("#wmSzV").textContent=Math.round(Math.min(isImg?1:9,w.size)*100)+" %"+(isImg && w.size>=1 ? " (pleine page)" : "");
@@ -5759,7 +5792,7 @@ function wmSet(k, v, final){
       c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); bmp.close&&bmp.close();
       const data=c.toDataURL("image/png"), ratio=c.height/Math.max(1,c.width); c.width=c.height=0;
       if(!state.wm) state.wm={...WM_DEF};
-      state.wm.img=data; state.wm.imgR=ratio; state.wm.kind="img"; state.wm.on=true; state.wm.size=1;
+      state.wm.img=data; state.wm.imgR=ratio; state.wm.kind="img"; state.wm.on=true; state.wm.size=1; state.wm.box=wmFit(ratio,"cover");
       markDirty(); wmSync(); renderDocument(); recordHistory();
     }catch(e){ alert("Image impossible à utiliser : "+(e && e.message ? e.message : e)); }
     finally{ hideBusy(); }
@@ -5768,6 +5801,28 @@ function wmSet(k, v, final){
   $("#wmDrop").addEventListener("click",()=>$("#wmFile").click());
   $("#wmFile").addEventListener("change",e=>{ const f=e.target.files[0]; e.target.value=""; wmSetImage(f); });
   wireDrop($("#wmDrop"), files=>wmSetImage(files[0]));
+  // placement de l'image dans l'aperçu : glisser, coin, boutons, réglette
+  const setBox=(B, final)=>{ if(!state.wm) return; state.wm.box={x:B.x, y:B.y, w:Math.max(5,B.w)}; markDirty(); wmSync(); if(final){ renderDocument(); recordHistory(); } };
+  document.querySelectorAll("#wmPlaceRow [data-fit]").forEach(b=>b.addEventListener("click",()=>{ const w=state.wm; if(!w||!w.img) return; setBox(wmFit(w.imgR, b.dataset.fit, wmBox(w)), true); }));
+  $("#wmISz").addEventListener("input",e=>{ const w=state.wm; if(!w||!w.img) return; const B=wmBox(w), nw=PW*(+e.target.value)/100, r=w.imgR||1;
+    setBox({x:B.x+(B.w-nw)/2, y:B.y+(B.w-nw)*r/2, w:nw}); });                 // autour du centre
+  $("#wmISz").addEventListener("change",()=>{ renderDocument(); recordHistory(); });
+  (function(){
+    const fr=$("#wmFrame"), hdl=$("#wmHdl"), k=()=>200/PW;
+    let drag=null;
+    fr.addEventListener("pointerdown",e=>{
+      const w=state.wm; if(!w||!w.img||e.button!==0) return; e.preventDefault();
+      drag={mode: e.target===hdl ? "size" : "move", sx:e.clientX, sy:e.clientY, B:{...wmBox(w)}};
+      fr.setPointerCapture(e.pointerId);
+    });
+    fr.addEventListener("pointermove",e=>{
+      if(!drag) return; const dx=(e.clientX-drag.sx)/k(), dy=(e.clientY-drag.sy)/k(), B=drag.B;
+      if(drag.mode==="move") setBox({x:B.x+dx, y:B.y+dy, w:B.w});
+      else{ const r=state.wm.imgR||1, nw=Math.max(5, B.w+Math.max(dx, dy/r)); setBox({x:B.x, y:B.y, w:nw}); }
+    });
+    const end=()=>{ if(drag){ drag=null; renderDocument(); recordHistory(); } };
+    fr.addEventListener("pointerup",end); fr.addEventListener("lostpointercapture",end);
+  })();
   $("#wmClear").addEventListener("click",()=>{ if(state.wm){ state.wm.img=null; markDirty(); wmSync(); renderDocument(); recordHistory(); } });
   $("#wmKind").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; wmSet("kind", b.dataset.v, true); if(b.dataset.v==="img" && !(state.wm && state.wm.img)) $("#wmFile").click(); });
   [["wmOn","on"],["wmScope","scope"],["wmAngle","angle"]].forEach(([id,k])=>$("#"+id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; wmSet(k, k==="on" ? b.dataset.v==="1" : b.dataset.v, true); }));
