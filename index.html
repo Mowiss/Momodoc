@@ -261,6 +261,12 @@
   .sec-head .sh-sub{font-size:10.5pt;font-style:italic}
 
   .page-divider .page-content{justify-content:center}
+  .div-band{position:absolute;left:var(--padX);right:var(--padX);border-top:1px solid #98a2ae;border-bottom:1px solid #98a2ae;display:flex;align-items:center;justify-content:center}
+  .div-band .div-title{border:0!important;padding:0 4mm!important}
+  .div-hdl{position:absolute;left:0;right:0;bottom:-5px;height:10px;cursor:ns-resize}
+  .div-hdl::after{content:"";position:absolute;left:50%;top:3px;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:#3b82f6;opacity:0;transition:opacity .15s}
+  .page-divider:hover .div-hdl::after,.div-hdl.drag::after{opacity:.85}
+  .page-divider{cursor:text}
   .div-title{text-align:center;color:var(--doc-brand);font-style:italic;font-weight:700;font-size:15pt;letter-spacing:.3px;
     border-top:1px solid #98a2ae;border-bottom:1px solid #98a2ae;padding:7mm 4mm}
 
@@ -1375,16 +1381,17 @@ function cloneState(s){
     logo:s.logo, logoOrig:s.logoOrig||null, logoCrop:s.logoCrop||null, photo:s.photo,
     gantt: s.gantt ? JSON.parse(JSON.stringify(s.gantt)) : null,
     wm: s.wm ? {...s.wm} : null,
+    divH: s.divH || null,
     items: s.items.map(it => isChapter(it)
-      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images:(it.images||[]).slice()}
+      ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, ...(it.divHtml?{divHtml:it.divHtml}:{}), ...(it.layout>1?{layout:it.layout}:{}), images:(it.images||[]).slice()}
       : {id:it.id, type:it.type, name:it.name, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images: it.images.slice()})
   };
 }
 function histSig(s){
   return s.items.map(it => isChapter(it)
-    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
+    ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|D"+(it.divV||0)+":"+(it.divHtml||"").length+"|L"+(it.layout||1)+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
     : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
-  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "") + "§W" + (s.wm ? JSON.stringify(s.wm) : "");
+  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "") + "§W" + (s.wm ? JSON.stringify(s.wm) : "") + "§D" + (s.divH||"");
 }
 function recordHistory(){
   const sig = histSig(state);
@@ -2246,14 +2253,33 @@ function buildTextPage(p, pageNumber){
 }
 
 const divLines = p => wrapMm(p.title ? `${p.number} - ${p.title}` : p.number, 210-36-8-8, 15, "bolditalic");
+/* page CHAPITRE : une bande de titre en haut (hauteur commune à tous les chapitres, réglable en tirant son bord bas),
+   puis le reste de la page est une page de texte où l'on peut écrire. */
+const DIV_TOP=24, DIV_GAP=8;
+const divH = () => Math.max(12, Math.min(200, +state.divH || 26));
+const divBand = p => Math.max(divH(), divLines(p).length*7 + 8);          // la bande s'agrandit si le titre passe sur plusieurs lignes
+const divTextTop = p => DIV_TOP + divBand(p) + DIV_GAP;
 function buildDividerPage(p){            // intercalaire de chapitre (ni logo ni numéro affiché)
   const page = pageEl("page-divider");
   if(p.itemId) page.id = "doe-"+p.itemId;
-  const c = h("div","page-content");
+  const band = h("div","div-band"); band.style.top=DIV_TOP+"mm"; band.style.height=divBand(p)+"mm";
   const t = h("div","div-title");
   t.innerHTML = divLines(p).map(escapeHtml).join("<br>");
-  c.append(t);
-  page.append(c);
+  const hdl = h("div","div-hdl",{title:"Tirer pour changer la hauteur de la bande de titre (tous les chapitres)"});
+  band.append(t, hdl);
+  page.append(band);
+  if(typeof wireDivHandle==="function") wireDivHandle(page, hdl);
+  // le reste de la page : texte libre
+  const top = divTextTop(p), id = "div:"+p.itemId;
+  const ed = h("div","tx-edit tx-content div-text"); ed.contentEditable="true"; ed.spellcheck=true;
+  ed.dataset.img = id; ed.dataset.ph = "Texte du chapitre (facultatif)…";
+  ed.style.top = top+"mm"; ed.style.height = (TX_BOTTOM-top)+"mm";
+  ed.innerHTML = p.html || "<p><br></p>";
+  if(typeof gfScanLoad==="function") gfScanLoad(p.html);
+  page.append(ed);
+  const more = h("button","tx-more",{type:"button", innerHTML: icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 12v6M9 15h6"/>')+"Créer une seconde page ?", title:"La page est pleine : la suite du texte part sur une nouvelle page, juste après"});
+  more.hidden = true; page.append(more);
+  if(typeof wireTextPage==="function") wireTextPage(page, ed, more, id);
   return page;
 }
 
@@ -2292,7 +2318,7 @@ function buildDocModel(){
       chain.length=0;
       const en={depth:0, kind:"chapter", number:num, title:item.title, offset:seq, page:0, itemId:item.id, off};
       all.push(en); if(!off) toc.push(en);
-      push({type:"divider", number:num, title:item.title, itemId:item.id, off});
+      push({type:"divider", number:num, title:item.title, itemId:item.id, off, html:item.divHtml||""});
       pushItemPages(item, [{num, title:item.title}], off, null);
       return;
     }
@@ -2415,7 +2441,7 @@ function toItems(obj){
   if(Array.isArray(obj.items)){
     return obj.items.map(n=>{
       if(!n) return null;
-      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.off?{off:true}:{}), ...(LAYOUTS[n.layout]&&n.layout>1?{layout:n.layout}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[]};
+      if(n.type==="jalon") return {id:n.id||uid(), type:"jalon", title:n.title??"", ...(n.divHtml?{divHtml:String(n.divHtml)}:{}), ...(n.off?{off:true}:{}), ...(LAYOUTS[n.layout]&&n.layout>1?{layout:n.layout}:{}), images:Array.isArray(n.images)?n.images.map(normPage).filter(Boolean):[]};
       return normSection(n, n.type);
     }).filter(Boolean);
   }
@@ -2533,11 +2559,16 @@ async function buildPdf(onProgress){
     const p=pages[idx], num=contentStart+idx;
     pdf.addPage(); if(wmPaint) wmPaint(pdf, "content");
     if(p.type==="divider"){
-      const dl=divLines(p), dh=(dl.length-1)*7;
+      const dl=divLines(p), B=divBand(p), cy=DIV_TOP+B/2, dh=(dl.length-1)*7;
       pdf.setDrawColor(152,162,174); pdf.setLineWidth(0.3);
-      pdf.line(X0, 134-dh/2, X1, 134-dh/2); pdf.line(X0, 160+dh/2, X1, 160+dh/2);
+      pdf.line(X0, DIV_TOP, X1, DIV_TOP); pdf.line(X0, DIV_TOP+B, X1, DIV_TOP+B);
       pdf.setFont("helvetica","bolditalic"); pdf.setFontSize(15); pdf.setTextColor(...BRAND);
-      dl.forEach((t,i)=> pdf.text(pdfSafe(t), W/2, 149-dh/2+i*7, {align:"center"}));
+      dl.forEach((t,i)=> pdf.text(pdfSafe(t), W/2, cy-dh/2+i*7+1.9, {align:"center"}));
+      if(!isBlankHtml(p.html||"")){
+        const top=divTextTop(p), hh=TX_BOTTOM-top;
+        const data = await rasterText(p.html, TX_W, hh);
+        if(data) pdf.addImage(data, "PNG", TX_LEFT, top, TX_W, hh, "dv"+idx, "FAST");
+      }
     }else{
       if(logo) addFit(pdf, logo, X1-48, 9, 48, 16, "right");
       pdf.setFont("helvetica","normal"); pdf.setFontSize(10); pdf.setTextColor(51,51,51);
@@ -2707,7 +2738,8 @@ function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asCl
 const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
   return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null, wm:state.wm||null,
-    items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}), ...(it.layout>1?{layout:it.layout}:{}),
+    divH: state.divH || null,
+    items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title, ...(it.divHtml?{divHtml:it.divHtml}:{})} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}), ...(it.layout>1?{layout:it.layout}:{}),
       images: (it.images||[]).map(im=>{
         if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
         const o={id:im.id, name:im.name||"", m:ref(im.src)};
@@ -2764,6 +2796,7 @@ async function applyDoc(obj){
     meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "", footer: obj.meta?.footer ?? "" },
     logo: obj.logo ?? null, logoOrig: obj.logoOrig ?? null, logoCrop: obj.logoCrop ?? null, photo: obj.photo ?? null, items,
     gantt: (obj.gantt && Array.isArray(obj.gantt.lanes)) ? obj.gantt : null,
+    divH: +obj.divH || null,
     wm: (obj.wm && typeof obj.wm==="object") ? {...WM_DEF, kind:"text", ...obj.wm} : null
   };
   collapsedNodes.clear();
@@ -3207,7 +3240,7 @@ const GUIDE = [
   {id:"struct", t:"Structure", i:"i_chap", h:`
     <p class="hg-intro">La colonne de gauche, c'est le plan de ton document, sur quatre niveaux. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront. Les boutons de création sont en haut du volet gauche, dans la plage Édition (chaque plage se replie d'un clic sur son titre).</p>
     <ul class="hg-list">
-      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page intercalaire, avec son numéro et son titre. Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages. <b>Mosaïque</b> : dès qu’un chapitre, un jalon ou une section contient au moins deux pièces, la ligne « Pièces par page » permet de les regrouper par 2, 4, 6 ou 9 sur une même page (reportage photo, planches…) ; une page de texte ou une pièce masquée garde sa page à elle.</p></li>
+      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page chapitre : une bande de titre en haut, avec son numéro et son titre, et le reste de la page est une page de texte où tu peux écrire (même barre d’outils que le traitement de texte ; si la page est pleine, la suite part sur une page de texte juste après). La hauteur de la bande se règle en tirant son bord bas, dans l’aperçu : elle change pour tous les chapitres à la fois. Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages. <b>Mosaïque</b> : dès qu’un chapitre, un jalon ou une section contient au moins deux pièces, la ligne « Pièces par page » permet de les regrouper par 2, 4, 6 ou 9 sur une même page (reportage photo, planches…) ; une page de texte ou une pièce masquée garde sa page à elle.</p></li>
       <li><b>${b_("i_jalon","c-blue")} Jalon</b><p>Un ensemble de pages dans un chapitre (1.1, 1.2…) : un Kbis, une attestation, un rapport d'essais… C'est là que tu importes tes fichiers. Sa première page porte son numéro et son nom en haut à gauche, en gras souligné.</p></li>
       <li><b>${b_("i_sect")} Section</b><p>Pour découper un jalon (1.1.1, 1.1.2…). Sur sa première page, le jalon s'affiche, puis la section en italique juste en dessous.</p></li>
       <li><b>${b_("i_sous")} Sous-section</b><p>Le niveau le plus fin (1.1.1.1…), rangé dans une section. Jalons, sections et sous-sections reçoivent tous des pages.</p></li>
@@ -3506,13 +3539,23 @@ let txRange = null;           // sélection mémorisée (les listes déroulantes
 let txHistTimer = null;
 
 function findPage(id){ for(const it of IT()) if(it.images){ const k=it.images.findIndex(x=>x.id===id); if(k>=0) return {sec:it, k, img:it.images[k]}; } return null; }
+/* cible d'un éditeur : une page de texte, ou le texte d'une page chapitre (id « div:<chapitre> ») */
+function txTarget(id){
+  if(String(id).startsWith("div:")){ const it=findItem(String(id).slice(4)); return it ? {div:true, sec:it, k:-1, img:{id, kind:"text", html:it.divHtml||"", v:it.divV||0}} : null; }
+  return findPage(id);
+}
+function txStore(f, html){
+  if(f.div){ if(isBlankHtml(html)) delete f.sec.divHtml; else f.sec.divHtml=html; f.sec.divV=(f.sec.divV||0)+1; }
+  else f.sec.images[f.k] = {...f.img, html, v:(f.img.v||0)+1};
+}
+let txOnDiv=false;            // l'éditeur actif est le texte d'une page chapitre
 function isBlankHtml(html){ return !String(html||"").replace(/<br\s*\/?>|<\/?p>|&nbsp;|\s/gi,""); }
 
 function txCommit(ed){
-  const f=findPage(ed.dataset.img); if(!f) return;
+  const f=txTarget(ed.dataset.img); if(!f) return;
   const html=ed.innerHTML.replace(/ class="tx-img sel"/g,' class="tx-img"');
-  if(f.img.html===html) return;
-  f.sec.images[f.k] = {...f.img, html, v:(f.img.v||0)+1};
+  if((f.img.html||"")===html) return;
+  txStore(f, html);
   markDirty();
   clearTimeout(txHistTimer); txHistTimer=setTimeout(recordHistory, 700);
 }
@@ -3524,7 +3567,12 @@ function txCheckOverflow(ed){
   ed.classList.toggle("blank", isBlankHtml(ed.innerHTML));
 }
 function wireTextPage(page, ed, more, imgId){
-  ed.addEventListener("focus", ()=>{ txActive=ed; setActivePage(imgId); updateTxBar(); });
+  ed.addEventListener("focus", ()=>{
+    txActive=ed;
+    if(String(imgId).startsWith("div:")){ if(activePageImg) setActivePage(null); txOnDiv=true; setActiveItem(String(imgId).slice(4)); }
+    else{ txOnDiv=false; setActivePage(imgId); }
+    updateTxBar();
+  });
   ed.addEventListener("input", ()=>{
     if(!ed.firstElementChild && ed.textContent.trim()){ document.execCommand("formatBlock", false, "p"); }
     txCommit(ed); txCheckOverflow(ed); txState();
@@ -3563,7 +3611,7 @@ function cleanPaste(html){
 
 /* page pleine : la suite part sur une nouvelle page, juste après */
 function txSplit(ed){
-  const f=findPage(ed.dataset.img); if(!f) return;
+  const f=txTarget(ed.dataset.img); if(!f) return;
   const limit=ed.clientHeight, kids=[...ed.children];
   let k=kids.findIndex(n=> n.offsetTop + n.offsetHeight > limit);
   if(k===0 && kids.length===1){                 // un seul bloc trop long : on le coupe par mots
@@ -3572,8 +3620,9 @@ function txSplit(ed){
   const moved = k>0 ? [...ed.children].slice(k) : [];
   const rest = moved.map(n=>n.outerHTML).join("") || "<p><br></p>";
   moved.forEach(n=>n.remove());
-  f.sec.images[f.k] = {...f.img, html:ed.innerHTML, v:(f.img.v||0)+1};
+  txStore(f, ed.innerHTML);
   const np = {id:uid(), kind:"text", html:rest};
+  if(!f.sec.images) f.sec.images=[];
   f.sec.images.splice(f.k+1, 0, np);
   changed();
   setActivePage(np.id, {scroll:true});
@@ -3768,7 +3817,7 @@ function txState(){
 /* la barre s'affiche dès qu'une page de texte est active */
 function updateTxBar(){
   const fp = activePageImg && findPage(activePageImg);
-  const show = !!(fp && fp.img.kind==="text");
+  const show = !!(fp && fp.img.kind==="text") || (txOnDiv && !!txActive && document.contains(txActive));
   const bar=$("#txBar");
   if(show) buildTxBar();
   if(bar.hidden===show){ bar.hidden=!show; if(zoom===null) applyZoom(); }
@@ -4076,6 +4125,27 @@ function txOpenCat(k, auto){
   sub.querySelectorAll(".tx-subgrp").forEach(g=>g.hidden = g.dataset.cat!==k);
   bar.querySelectorAll(".txcat").forEach(c=>c.classList.toggle("on", c.dataset.cat===k));
   if(zoom===null) applyZoom();
+}
+
+
+/* hauteur de la bande de titre des pages chapitre : on tire son bord bas (la même pour tous les chapitres) */
+function wireDivHandle(page, hdl){
+  hdl.addEventListener("pointerdown", e=>{
+    if(e.button!==0) return; e.preventDefault(); e.stopPropagation();
+    const band=hdl.parentElement, k=page.getBoundingClientRect().height/297, y0=e.clientY, h0=parseFloat(band.style.height)||divH(), base=divH();
+    hdl.classList.add("drag"); hdl.setPointerCapture(e.pointerId);
+    const mv=ev=>{
+      const nh=Math.max(12, Math.min(200, h0+(ev.clientY-y0)/k));
+      state.divH = Math.round((base + (nh-h0))*2)/2;
+      doc.querySelectorAll(".page-divider").forEach(pg=>{       // aperçu immédiat sur tous les chapitres
+        const b=pg.querySelector(".div-band"), ed=pg.querySelector(".div-text"); if(!b||!ed) return;
+        const lines=b.querySelectorAll(".div-title br").length+1, bh=Math.max(divH(), lines*7+8), top=DIV_TOP+bh+DIV_GAP;
+        b.style.height=bh+"mm"; ed.style.top=top+"mm"; ed.style.height=(TX_BOTTOM-top)+"mm";
+      });
+    };
+    const up=()=>{ hdl.removeEventListener("pointermove",mv); hdl.removeEventListener("pointerup",up); hdl.removeEventListener("lostpointercapture",up); hdl.classList.remove("drag"); changed(); toast(`Bande de titre des chapitres : ${divH()} mm`); };
+    hdl.addEventListener("pointermove",mv); hdl.addEventListener("pointerup",up); hdl.addEventListener("lostpointercapture",up);
+  });
 }
 
 /* =====================================================================
@@ -4480,6 +4550,7 @@ async function extractItem(item){
 /* ---------- page active ---------- */
 function findImg(id){ const f=findPage(id); return f ? {sec:f.sec, k:f.k} : null; }
 function setActivePage(imgId, opts={}){
+  if(imgId && typeof txOnDiv!=="undefined") txOnDiv=false;
   activePageImg = findImg(imgId) ? imgId : null;
   document.querySelectorAll(".page.is-active, .thumb.is-active, .pg-cell.is-active").forEach(e=>e.classList.remove("is-active"));
   if(activePageImg){
