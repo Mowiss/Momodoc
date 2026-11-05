@@ -678,6 +678,9 @@
   .gt-seg button.on{background:var(--accent);color:#fff}
   .gt-seg.full{display:flex}
   .wm-card{width:min(54rem,100%)}
+  #psDivHRow[hidden]{display:none}
+  .ps-num{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+  .ps-num input{width:72px;height:30px;border-radius:6px;border:1px solid var(--line-2);background:#0f1722;color:var(--ink);padding:0 8px;font:600 13px var(--ui)}
   .wm-body{display:flex;gap:20px;padding:6px 0 0}
   .wm-prv{flex:0 0 250px;display:flex;flex-direction:column;align-items:center;gap:8px}
   .wm-stage{position:relative;width:250px;height:333px;overflow:hidden;border-radius:8px;background:repeating-linear-gradient(45deg,#0f1722 0 8px,#121c2a 8px 16px);display:grid;place-items:center;touch-action:none}
@@ -1038,6 +1041,7 @@ requestAnimationFrame(frame);
       <nav class="mm-tabs" data-tabs="ps">
         <button class="mm-tab on" data-sec="save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Enregistrement</button>
         <button class="mm-tab" data-sec="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Import</button>
+        <button class="mm-tab" data-sec="lay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7 10h10M7 14h8M7 18h6"/></svg>Chapitres</button>
         <button class="mm-tab" data-sec="wm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 18v-7.5h5.5M9.5 14h4" stroke-width="2.3"/></svg>Filigrane</button>
         <button class="mm-tab" data-sec="app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Application</button>
       </nav>
@@ -1062,6 +1066,14 @@ requestAnimationFrame(frame);
               <div class="fmt"><b>PDF</b>page par page</div><div class="fmt"><b>JPEG</b>.jpg .jpeg</div><div class="fmt"><b>PNG</b>transparence gardée</div><div class="fmt"><b>WEBP</b>converti</div>
               <div class="fmt"><b>TIFF</b>multipage</div><div class="fmt"><b>BMP</b>converti</div><div class="fmt"><b>HEIC</b>photos iPhone</div><div class="fmt"><b>JPEG XR</b>.jxr .wdp .hdp</div>
             </div></div>
+        </section>
+        <section class="mm-sec" data-sec="lay">
+          <p class="ps-title">Chapitres</p>
+          <p class="ps-intro">Chaque chapitre peut avoir sa propre page de titre (une bande de titre en haut, puis du texte libre), ou simplement s'afficher en tête de sa première page.</p>
+          <div class="ps-row"><div><div class="ps-h">Pages de titre des chapitres</div><div class="ps-sub" id="psDivSub"></div></div>
+            <div class="ps-seg" id="psDivOn"><button data-v="1">Activées</button><button data-v="0">Désactivées</button></div></div>
+          <div class="ps-row" id="psDivHRow"><div><div class="ps-h">Hauteur de la bande de titre</div><div class="ps-sub">La même pour tous les chapitres (se règle aussi en tirant le bord bas de la bande, dans l'aperçu).</div></div>
+            <label class="ps-num"><input type="number" id="psDivH" min="12" max="200" step="1"> mm</label></div>
         </section>
         <section class="mm-sec" data-sec="wm">
           <p class="ps-title">Filigrane</p>
@@ -1382,6 +1394,7 @@ function cloneState(s){
     gantt: s.gantt ? JSON.parse(JSON.stringify(s.gantt)) : null,
     wm: s.wm ? {...s.wm} : null,
     divH: s.divH || null,
+    ...(s.divPages===false ? {divPages:false} : {}),
     items: s.items.map(it => isChapter(it)
       ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, ...(it.divHtml?{divHtml:it.divHtml}:{}), ...(it.layout>1?{layout:it.layout}:{}), images:(it.images||[]).slice()}
       : {id:it.id, type:it.type, name:it.name, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images: it.images.slice()})
@@ -1391,7 +1404,7 @@ function histSig(s){
   return s.items.map(it => isChapter(it)
     ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|D"+(it.divV||0)+":"+(it.divHtml||"").length+"|L"+(it.layout||1)+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
     : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
-  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "") + "§W" + (s.wm ? JSON.stringify(s.wm) : "") + "§D" + (s.divH||"");
+  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "") + "§W" + (s.wm ? JSON.stringify(s.wm) : "") + "§D" + (s.divH||"") + (s.divPages===false ? "off" : "");
 }
 function recordHistory(){
   const sig = histSig(state);
@@ -1414,6 +1427,7 @@ function restoreFrom(entry){
   markDirty(); renderSections(); renderDocument(); updateUndoUI();
   if(typeof ganttSync==="function") ganttSync();
   if(typeof wmSync==="function") wmSync();
+  if(typeof divSync==="function") divSync();
 }
 function undo(){ if(hIndex<=0) return; hIndex--; restoreFrom(history[hIndex]); }
 function redo(){ if(hIndex>=history.length-1) return; hIndex++; restoreFrom(history[hIndex]); }
@@ -2288,8 +2302,12 @@ function buildDividerPage(p){            // intercalaire de chapitre (ni logo ni
 // Les éléments et les pages masqués (œil barré) restent dans la liste avec off:true, mais sans numéro ni entrée au sommaire.
 function buildDocModel(){
   const toc=[], all=[], pages=[], nums=numbering(), hid=hiddenIds(), chain=[];
-  let seq=0;
-  const push=p=>{ if(p.off){ p.seq=null; } else { p.seq=seq++; } pages.push(p); };
+  let seq=0, chapHead=null;              // pages de titre désactivées : le chapitre s'affiche en tête de sa 1re page
+  const push=p=>{
+    if(chapHead && !p.off && p.type!=="divider"){ p.chain=[chapHead, ...(p.chain||[])]; p.first=true; p._head=null; chapHead=null; }
+    if(p.off){ p.seq=null; } else { p.seq=seq++; } pages.push(p);
+  };
+  const divOn = state.divPages!==false;
   /* pages d'un élément ; en mosaïque (item.layout = 2, 4, 6 ou 9), les pièces image se regroupent par page.
      Une page de texte ou une pièce masquée coupe le groupe (elle garde sa page à elle). */
   function pushItemPages(item, ch, off, firstItemId){
@@ -2318,7 +2336,14 @@ function buildDocModel(){
       chain.length=0;
       const en={depth:0, kind:"chapter", number:num, title:item.title, offset:seq, page:0, itemId:item.id, off};
       all.push(en); if(!off) toc.push(en);
-      push({type:"divider", number:num, title:item.title, itemId:item.id, off, html:item.divHtml||""});
+      if(divOn) push({type:"divider", number:num, title:item.title, itemId:item.id, off, html:item.divHtml||""});
+      else{
+        chapHead = off ? null : {num, title:item.title};
+        // texte déjà écrit sur la page chapitre : il devient une page de texte (modifiable), en tête de chapitre
+        if(!isBlankHtml(item.divHtml||"")) push({type:"text", html:item.divHtml, chain:[], first:true, itemId:item.id, imgId:"div:"+item.id, secId:item.id, off});
+        pushItemPages(item, [], off, null);
+        return;
+      }
       pushItemPages(item, [{num, title:item.title}], off, null);
       return;
     }
@@ -2739,6 +2764,7 @@ const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
   return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null, wm:state.wm||null,
     divH: state.divH || null,
+    ...(state.divPages===false ? {divPages:false} : {}),
     items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title, ...(it.divHtml?{divHtml:it.divHtml}:{})} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}), ...(it.layout>1?{layout:it.layout}:{}),
       images: (it.images||[]).map(im=>{
         if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
@@ -2797,6 +2823,7 @@ async function applyDoc(obj){
     logo: obj.logo ?? null, logoOrig: obj.logoOrig ?? null, logoCrop: obj.logoCrop ?? null, photo: obj.photo ?? null, items,
     gantt: (obj.gantt && Array.isArray(obj.gantt.lanes)) ? obj.gantt : null,
     divH: +obj.divH || null,
+    ...(obj.divPages===false ? {divPages:false} : {}),
     wm: (obj.wm && typeof obj.wm==="object") ? {...WM_DEF, kind:"text", ...obj.wm} : null
   };
   collapsedNodes.clear();
@@ -3240,7 +3267,7 @@ const GUIDE = [
   {id:"struct", t:"Structure", i:"i_chap", h:`
     <p class="hg-intro">La colonne de gauche, c'est le plan de ton document, sur quatre niveaux. Elle se lit de haut en bas, exactement dans l'ordre où les pages sortiront. Les boutons de création sont en haut du volet gauche, dans la plage Édition (chaque plage se replie d'un clic sur son titre).</p>
     <ul class="hg-list">
-      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page chapitre : une bande de titre en haut, avec son numéro et son titre, et le reste de la page est une page de texte où tu peux écrire (même barre d’outils que le traitement de texte ; si la page est pleine, la suite part sur une page de texte juste après). La hauteur de la bande se règle en tirant son bord bas, dans l’aperçu : elle change pour tous les chapitres à la fois. Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages. <b>Mosaïque</b> : dès qu’un chapitre, un jalon ou une section contient au moins deux pièces, la ligne « Pièces par page » permet de les regrouper par 2, 4, 6 ou 9 sur une même page (reportage photo, planches…) ; une page de texte ou une pièce masquée garde sa page à elle.</p></li>
+      <li><b>${b_("i_chap","c-blue")} Chapitre</b><p>Les grandes parties du document (1 - ADMINISTRATIF, 2 - ESSAIS…). Chaque chapitre crée automatiquement sa page chapitre : une bande de titre en haut, avec son numéro et son titre, et le reste de la page est une page de texte où tu peux écrire (même barre d’outils que le traitement de texte ; si la page est pleine, la suite part sur une page de texte juste après). La hauteur de la bande se règle en tirant son bord bas, dans l’aperçu : elle change pour tous les chapitres à la fois. Dans ⛯ Paramètres › Chapitres, tu peux désactiver les pages de titre : le titre du chapitre s’affiche alors seulement en tête de sa première page (le texte déjà écrit sur une page chapitre devient une page de texte). Tu peux y déposer des pièces directement, sans jalon : elles suivent l’intercalaire, avant les jalons du chapitre. Un titre trop long n’est jamais coupé : il passe à la ligne, au sommaire comme sur les pages. <b>Mosaïque</b> : dès qu’un chapitre, un jalon ou une section contient au moins deux pièces, la ligne « Pièces par page » permet de les regrouper par 2, 4, 6 ou 9 sur une même page (reportage photo, planches…) ; une page de texte ou une pièce masquée garde sa page à elle.</p></li>
       <li><b>${b_("i_jalon","c-blue")} Jalon</b><p>Un ensemble de pages dans un chapitre (1.1, 1.2…) : un Kbis, une attestation, un rapport d'essais… C'est là que tu importes tes fichiers. Sa première page porte son numéro et son nom en haut à gauche, en gras souligné.</p></li>
       <li><b>${b_("i_sect")} Section</b><p>Pour découper un jalon (1.1.1, 1.1.2…). Sur sa première page, le jalon s'affiche, puis la section en italique juste en dessous.</p></li>
       <li><b>${b_("i_sous")} Sous-section</b><p>Le niveau le plus fin (1.1.1.1…), rangé dans une section. Jalons, sections et sous-sections reçoivent tous des pages.</p></li>
@@ -5903,6 +5930,24 @@ function wmSet(k, v, final){
   $("#btnSettings").addEventListener("click", wmSync);
   document.querySelector('#ps-modal .mm-tab[data-sec="wm"]').addEventListener("click", wmSync);
 })();
+
+
+/* ---------- Paramètres › Chapitres : pages de titre activées ou non, hauteur de la bande ---------- */
+function divSync(){
+  const on = state.divPages!==false;
+  document.querySelectorAll("#psDivOn button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===on));
+  $("#psDivSub").textContent = on ? "Activées : chaque chapitre a sa propre page (bande de titre + texte libre)." : "Désactivées : le titre du chapitre s'affiche seulement en tête de sa première page.";
+  $("#psDivHRow").hidden = !on;
+  if(document.activeElement!==$("#psDivH")) $("#psDivH").value = divH();
+}
+$("#psDivOn").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const on=b.dataset.v==="1"; if((state.divPages!==false)===on) return;
+  if(on) delete state.divPages; else state.divPages=false;
+  changed(); divSync(); toast(on ? "Pages de titre des chapitres activées" : "Pages de titre désactivées : le chapitre s'affiche en tête de sa première page");
+});
+$("#psDivH").addEventListener("change", e=>{ const v=Math.max(12, Math.min(200, +e.target.value||26)); state.divH=v; changed(); divSync(); });
+$("#btnSettings").addEventListener("click", divSync);
 
 /* ============ Démarrage ============ */
 setupListDnD();
