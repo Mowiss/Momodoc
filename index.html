@@ -677,12 +677,21 @@
   .wm-page{position:relative;width:200px;height:283px;background:#fff;border-radius:3px;box-shadow:0 6px 24px rgba(0,0,0,.4);overflow:hidden}
   .wm-lines{position:absolute;inset:28px 21px;background:repeating-linear-gradient(#e5e7eb 0 5px,transparent 5px 14px)}
   .wm-txt{position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none}
+  .wm-pimg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
   .wm-cap{font-size:12px;color:var(--muted);text-align:center}
   .wm-form{flex:1;min-width:0;display:flex;flex-direction:column}
   .wm-form label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 5px}
   .wm-form label span{color:#93c5fd}
   .wm-form label:first-child{margin-top:0}
   .wm-form input[type=text]{height:32px;border-radius:6px;border:1px solid var(--line-2);background:#0f1722;color:var(--ink);padding:0 10px;font:700 14px var(--ui);letter-spacing:.04em}
+  .wm-imgrow{display:flex;gap:12px;align-items:center}
+  .wm-drop{width:150px;height:96px;border:1.5px dashed var(--line-2);border-radius:8px;display:grid;place-items:center;cursor:pointer;background:#fff repeating-conic-gradient(#e5e7eb 0 25%,#fff 0 50%) 0 0/12px 12px;overflow:hidden;padding:6px;text-align:center}
+  .wm-drop span{font-size:11.5px;color:#374151;background:rgba(255,255,255,.85);padding:3px 6px;border-radius:4px}
+  .wm-drop img{max-width:100%;max-height:100%;object-fit:contain}
+  .wm-drop.drag{border-color:var(--accent-2)}
+  .wm-imgbtns{display:flex;flex-direction:column;gap:6px}
+  #wmImgRow[hidden],#wmTextRow[hidden],#wmColRow[hidden],#wmAngleRow[hidden],#wmSzRow[hidden]{display:none}
+  .page>img.wm-full{left:0;top:0;width:100%;height:100%;transform:none}
   .wm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
   .wm-chips button{height:24px;padding:0 9px;border-radius:12px;border:1px solid var(--line-2);background:transparent;color:#cbd5e1;font:600 11px var(--ui);cursor:pointer}
   .wm-chips button:hover{background:var(--btn)}
@@ -690,6 +699,7 @@
   .wm-cols button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(255,255,255,.2)}
   .wm-cols button.on{border-color:#fff}
   .wm-cols input{width:96px;height:26px;border-radius:5px;border:1px solid var(--line-2);background:#0f1722;color:var(--ink);padding:0 7px;font:600 12px ui-monospace,Consolas,monospace}
+  .page>img.wm{max-width:none;height:auto}
   .page>.wm{position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none;z-index:6;user-select:none}
   @media (max-width:900px){ .wm-body{flex-direction:column;align-items:center} }
   .gt-seg .gt-segl{align-self:center;font-size:11px;color:var(--muted);padding:0 4px 0 6px}
@@ -1039,25 +1049,37 @@ requestAnimationFrame(frame);
         </section>
         <section class="mm-sec" data-sec="wm">
           <p class="ps-title">Filigrane</p>
-          <p class="ps-intro">Un texte en transparence sur les pages du document (PROVISOIRE, COPIE, CONFIDENTIEL…), enregistré avec lui.</p>
+          <p class="ps-intro">Une image posée sur <b>tout le format de la page</b>, bord à bord (fond de page, papier à en-tête, tampon… un PNG à fond transparent rend le mieux), ou un texte, en transparence sur les pages du document. Il est enregistré avec lui.</p>
           <div class="wm-body">
-      <div class="wm-prv"><div class="wm-page" id="wmPrv"><div class="wm-lines"></div><div class="wm-txt" id="wmPrvTxt"></div></div><div class="wm-cap" id="wmCap"></div></div>
+      <div class="wm-prv"><div class="wm-page" id="wmPrv"><div class="wm-lines"></div><div class="wm-txt" id="wmPrvTxt"></div><img class="wm-pimg" id="wmPrvImg" alt="" hidden></div><div class="wm-cap" id="wmCap"></div></div>
       <div class="wm-form">
         <label>Filigrane</label>
         <div class="gt-seg full" id="wmOn"><button data-v="1">Activé</button><button data-v="0">Désactivé</button></div>
-        <label for="wmText">Texte</label>
-        <input type="text" id="wmText" maxlength="60" spellcheck="false" placeholder="PROVISOIRE">
-        <div class="wm-chips" id="wmChips"></div>
+        <label>Type</label>
+        <div class="gt-seg full" id="wmKind"><button data-v="img">Image</button><button data-v="text">Texte</button></div>
+        <div id="wmImgRow">
+          <label>Image</label>
+          <div class="wm-imgrow">
+            <div class="wm-drop" id="wmDrop" title="Choisir ou déposer une image (PNG à fond transparent conseillé : logo, tampon, mention…)"><img id="wmThumb" alt="" hidden><span id="wmDropTxt">Choisir ou déposer une image</span></div>
+            <div class="wm-imgbtns"><button type="button" class="ps-btn" id="wmPick">Choisir une image…</button><button type="button" class="ps-btn" id="wmClear">Retirer</button></div>
+          </div>
+          <input type="file" id="wmFile" class="hidden-input" accept="image/*,.heic,.heif,.tif,.tiff,.bmp,.webp,.jxr,.pdf">
+        </div>
+        <div id="wmTextRow">
+          <label for="wmText">Texte</label>
+          <input type="text" id="wmText" maxlength="60" spellcheck="false" placeholder="PROVISOIRE">
+          <div class="wm-chips" id="wmChips"></div>
+        </div>
         <label>Pages</label>
         <div class="gt-seg full wrap" id="wmScope"><button data-v="all">Toutes les pages</button><button data-v="nocover">Sauf la page de garde</button><button data-v="content">Pages de contenu</button></div>
-        <label>Orientation</label>
-        <div class="gt-seg full" id="wmAngle"><button data-v="up">Diagonale ↗</button><button data-v="h">Horizontale</button><button data-v="down">Diagonale ↘</button></div>
-        <label>Couleur</label>
-        <div class="wm-cols" id="wmCols"></div>
+        <div id="wmAngleRow"><label>Orientation</label>
+        <div class="gt-seg full" id="wmAngle"><button data-v="up">Diagonale ↗</button><button data-v="h">Horizontale</button><button data-v="down">Diagonale ↘</button></div></div>
+        <div id="wmColRow"><label>Couleur</label>
+        <div class="wm-cols" id="wmCols"></div></div>
         <label>Opacité <span id="wmOpV"></span></label>
         <input type="range" id="wmOp" min="0.04" max="0.6" step="0.01">
-        <label>Taille <span id="wmSzV"></span></label>
-        <input type="range" id="wmSz" min="0.4" max="1.6" step="0.05">
+        <div id="wmSzRow"><label>Taille <span id="wmSzV"></span></label>
+        <input type="range" id="wmSz" min="0.4" max="1.6" step="0.05"></div>
         <p class="gt-hint">Le filigrane est enregistré avec le document : il apparaît dans l'aperçu, le PDF + Script et le PDF compilé, par-dessus le contenu, en transparence. Les extractions (pièces d'origine) n'en ont pas.</p>
       </div>
     </div>
@@ -2560,7 +2582,7 @@ async function buildPdf(onProgress){
   }
 
   // ---- 4 bis) Filigrane, par-dessus tout
-  if(typeof wmPdf==="function") wmPdf(pdf, S);
+  if(typeof wmPdf==="function") await wmPdf(pdf, S);
 
   // ---- 5) Signets (panneau latéral du lecteur PDF)
   try{
@@ -2726,7 +2748,7 @@ async function applyDoc(obj){
     meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "", footer: obj.meta?.footer ?? "" },
     logo: obj.logo ?? null, logoOrig: obj.logoOrig ?? null, logoCrop: obj.logoCrop ?? null, photo: obj.photo ?? null, items,
     gantt: (obj.gantt && Array.isArray(obj.gantt.lanes)) ? obj.gantt : null,
-    wm: (obj.wm && typeof obj.wm==="object") ? {...WM_DEF, ...obj.wm} : null
+    wm: (obj.wm && typeof obj.wm==="object") ? {...WM_DEF, kind:"text", ...obj.wm} : null
   };
   collapsedNodes.clear();
   state.items.forEach(i=>collapsedNodes.add(i.id));   // tout replié à l'ouverture
@@ -3231,7 +3253,7 @@ const GUIDE = [
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
       <li><b>Enregistrer en PDF compilé</b><p>Un PDF classique, figé, à diffuser : sans les jalons ni les pages masqués, sans les images entières des recadrages et sans la partie modifiable. Il est enregistré à côté (nom en « _compilé ») et ne remplace jamais ton fichier en cours.</p></li>
-      <li><b>Filigrane</b><p>Dans ⛯ Paramètres › Filigrane (onglet marqué d’un F), un réglage pose un texte en transparence sur les pages : PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), l’orientation (diagonale ou horizontale), la couleur (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
+      <li><b>Filigrane</b><p>Dans ⛯ Paramètres › Filigrane (onglet marqué d’un F), un réglage pose une <b>image</b> (logo, tampon, mention… un PNG à fond transparent rend le mieux) ou un texte (PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien) en transparence sur les pages. L’image couvre tout le format de la page, bord à bord et droite (une image au format A4 portrait rend le mieux) ; le texte peut aussi être en diagonale. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), la couleur du texte (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
@@ -5619,9 +5641,13 @@ function ganttSync(){ Gantt.sync(); }
    ===================================================================== */
 const WM_PRESETS=["PROVISOIRE","COPIE","CONFIDENTIEL","DOCUMENT DE TRAVAIL","NE PAS DIFFUSER","BON POUR EXÉCUTION","PROJET","ANNULE ET REMPLACE"];
 const WM_COLORS=["#9ca3af","#111827","#c0392b","#123a6b","#2563eb","#16a34a","#f97316"];
-const WM_DEF={on:true, text:"PROVISOIRE", color:"#9ca3af", op:0.16, size:1, angle:"up", scope:"all"};
+const WM_DEF={on:true, kind:"img", img:null, text:"PROVISOIRE", color:"#9ca3af", op:0.16, size:1, angle:"h", scope:"all"};
 const wmCfg = () => state.wm || null;
-const wmActive = () => !!(state.wm && state.wm.on && (state.wm.text||"").trim());
+const wmIsImg = w => (w.kind||"text")==="img";
+const wmActive = () => !!(state.wm && state.wm.on && (wmIsImg(state.wm) ? !!state.wm.img : (state.wm.text||"").trim()));
+/* image : largeur en mm (60 % de la page × le réglage « taille ») ; rapport hauteur/largeur mémorisé */
+/* image : pleine page et droite — 100 % = toute la page (sans déformer), moins = réduite au centre */
+const wmImgW = w => Math.min(210, 297/(w.imgR||1)) * Math.min(1, w.size||1);
 const WM_DEG = {up:54.7, h:0, down:-54.7};          // la diagonale d'une page A4
 /* taille (pt) : le texte occupe ~70 % de la diagonale (ou de la largeur), × le réglage « taille » */
 function wmPt(w){ const t=(w.text||"").trim()||"X", L=(w.angle==="h" ? 180 : 330)*0.72*(w.size||1); return Math.max(8, Math.min(220, L/Math.max(1e-3, textMm(t,1,"bold")))); }
@@ -5631,7 +5657,11 @@ function wmOn(kind){
   return s==="all" || (s==="nocover" && kind!=="cover") || (s==="content" && kind==="content");
 }
 function wmEl(){
-  const w=state.wm, d=h("div","wm",{textContent:w.text.trim()});
+  const w=state.wm;
+  if(wmIsImg(w)){
+    const im=h("img","wm wm-full",{src:w.img, alt:""}); im.style.opacity=w.op; return im;     // toute la page, bord à bord
+  }
+  const d=h("div","wm",{textContent:w.text.trim()});
   d.style.fontSize=wmPt(w)+"pt"; d.style.color=w.color; d.style.opacity=w.op;
   d.style.transform=`translate(-50%,-50%) rotate(${-WM_DEG[w.angle]||0}deg)`;
   return d;
@@ -5646,8 +5676,28 @@ function wmDecorate(){
   });
 }
 /* PDF : par-dessus chaque page concernée (page 1 = garde, 2..1+S = sommaire) */
-function wmPdf(pdf, S){
+/* image du filigrane, déjà tournée et transparente (PNG) : posée telle quelle au centre de chaque page */
+async function wmImgPdfData(w){
+  const im=await loadImg(w.img), Wmm=210, Hmm=297, ppmm=6;      // étirée sur tout le format A4
+  const a=0, c=1, s=0;                        // l'image reste droite
+  const bw=Wmm*c+Hmm*s, bh=Wmm*s+Hmm*c;
+  const cv=document.createElement("canvas"); cv.width=Math.max(1,Math.round(bw*ppmm)); cv.height=Math.max(1,Math.round(bh*ppmm));
+  const x=cv.getContext("2d"); x.globalAlpha=w.op; x.translate(cv.width/2, cv.height/2); x.rotate(-a);
+  x.drawImage(im, -Wmm*ppmm/2, -Hmm*ppmm/2, Wmm*ppmm, Hmm*ppmm);
+  const data=cv.toDataURL("image/png"); cv.width=cv.height=0;
+  return {data, bw, bh};
+}
+async function wmPdf(pdf, S){
   if(!wmActive()) return;
+  if(wmIsImg(state.wm)){
+    let I; try{ I=await wmImgPdfData(state.wm); }catch(e){ console.warn("filigrane image", e); return; }
+    const n=pdf.getNumberOfPages();
+    for(let i=1;i<=n;i++){
+      const kind = i===1 ? "cover" : i<=1+S ? "som" : "content"; if(!wmOn(kind)) continue;
+      pdf.setPage(i); pdf.addImage(I.data, "PNG", 105-I.bw/2, 148.5-I.bh/2, I.bw, I.bh, "wm-img", "FAST");
+    }
+    return;
+  }
   const w=state.wm, t=pdfSafe(w.text.trim()), pt=wmPt(w), a=WM_DEG[w.angle]||0, r=a*Math.PI/180;
   const n=pdf.getNumberOfPages();
   const [R,G,B]=[1,3,5].map(i=>parseInt(w.color.slice(i,i+2),16));
@@ -5669,17 +5719,23 @@ function wmPdf(pdf, S){
 function wmSync(){
   const w=state.wm || {...WM_DEF, on:false};
   const seg=(id,v)=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle("on", b.dataset.v===String(v)));
-  seg("wmOn", w.on?1:0); seg("wmScope", w.scope); seg("wmAngle", w.angle);
+  const isImg=wmIsImg(w);
+  seg("wmOn", w.on?1:0); seg("wmScope", w.scope); seg("wmAngle", w.angle); seg("wmKind", w.kind||"text");
+  $("#wmImgRow").hidden=!isImg; $("#wmTextRow").hidden=isImg; $("#wmColRow").hidden=isImg; $("#wmAngleRow").hidden=isImg;
+  $("#wmSzRow").hidden = isImg;
+  $("#wmThumb").hidden=!w.img; if(w.img) $("#wmThumb").src=w.img; $("#wmDropTxt").hidden=!!w.img; $("#wmClear").hidden=!w.img;
+  const pi=$("#wmPrvImg"); pi.hidden=!(isImg && w.img);
+  if(isImg && w.img){ pi.src=w.img; pi.style.opacity=w.on?w.op:0.05; }
   if(document.activeElement!==$("#wmText")) $("#wmText").value=w.text||"";
   $("#wmOp").value=w.op; $("#wmOpV").textContent=Math.round(w.op*100)+" %";
-  $("#wmSz").value=w.size; $("#wmSzV").textContent=Math.round(w.size*100)+" %";
+  $("#wmSz").value=w.size; $("#wmSzV").textContent=Math.round(Math.min(isImg?1:9,w.size)*100)+" %"+(isImg && w.size>=1 ? " (pleine page)" : "");
   document.querySelectorAll("#wmCols button").forEach(b=>b.classList.toggle("on", b.dataset.c===w.color));
   if(document.activeElement!==$("#wmHex")) $("#wmHex").value=w.color;
   // aperçu (page A4 de 200 px de large : 1 mm = 200/210 px ; 1 pt = 0.3528 mm)
-  const t=$("#wmPrvTxt"); t.textContent=(w.text||"").trim();
+  const t=$("#wmPrvTxt"); t.textContent=isImg ? "" : (w.text||"").trim();
   t.style.fontSize=(wmPt(w)*MM_PT*200/210)+"px"; t.style.color=w.color; t.style.opacity=w.on?w.op:0.05;
   t.style.transform=`translate(-50%,-50%) rotate(${-WM_DEG[w.angle]||0}deg)`;
-  $("#wmCap").textContent = !w.on ? "Filigrane désactivé" : w.scope==="all" ? "Sur toutes les pages, garde et sommaire compris" : w.scope==="nocover" ? "Sur toutes les pages sauf la page de garde" : "Sur les pages de contenu (ni garde ni sommaire)";
+  $("#wmCap").textContent = !w.on ? "Filigrane désactivé" : (isImg && !w.img) ? "Choisis une image" : w.scope==="all" ? "Sur toutes les pages, garde et sommaire compris" : w.scope==="nocover" ? "Sur toutes les pages sauf la page de garde" : "Sur les pages de contenu (ni garde ni sommaire)";
 
 }
 function wmSet(k, v, final){
@@ -5694,6 +5750,28 @@ function wmSet(k, v, final){
   const hex=h("input",null,{type:"text",id:"wmHex",maxLength:7,spellcheck:false,title:"Code couleur hexa"}); cols.append(hex);
   hex.addEventListener("input",()=>{ const v=hex.value.trim(); if(/^#?[0-9a-f]{6}$/i.test(v)) wmSet("color", ("#"+v.replace("#","")).toLowerCase()); });
   hex.addEventListener("change",()=>recordHistory());
+  // image : importée (tous formats de MomoDOC), réduite à 1600 px, gardée en PNG (transparence conservée)
+  async function wmSetImage(f){
+    if(!f) return;
+    showBusy("Préparation du filigrane…");
+    try{
+      const pages=await convertFile(f); if(!pages.length) throw new Error("image illisible");
+      const bmp=await createImageBitmap(mediaBlob(pages[0].src)), k=Math.min(1, 1600/Math.max(bmp.width,bmp.height));
+      const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
+      c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); bmp.close&&bmp.close();
+      const data=c.toDataURL("image/png"), ratio=c.height/Math.max(1,c.width); c.width=c.height=0;
+      if(!state.wm) state.wm={...WM_DEF};
+      state.wm.img=data; state.wm.imgR=ratio; state.wm.kind="img"; state.wm.on=true; state.wm.size=1;
+      markDirty(); wmSync(); renderDocument(); recordHistory();
+    }catch(e){ alert("Image impossible à utiliser : "+(e && e.message ? e.message : e)); }
+    finally{ hideBusy(); }
+  }
+  $("#wmPick").addEventListener("click",()=>$("#wmFile").click());
+  $("#wmDrop").addEventListener("click",()=>$("#wmFile").click());
+  $("#wmFile").addEventListener("change",e=>{ const f=e.target.files[0]; e.target.value=""; wmSetImage(f); });
+  wireDrop($("#wmDrop"), files=>wmSetImage(files[0]));
+  $("#wmClear").addEventListener("click",()=>{ if(state.wm){ state.wm.img=null; markDirty(); wmSync(); renderDocument(); recordHistory(); } });
+  $("#wmKind").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; wmSet("kind", b.dataset.v, true); if(b.dataset.v==="img" && !(state.wm && state.wm.img)) $("#wmFile").click(); });
   [["wmOn","on"],["wmScope","scope"],["wmAngle","angle"]].forEach(([id,k])=>$("#"+id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; wmSet(k, k==="on" ? b.dataset.v==="1" : b.dataset.v, true); }));
   $("#wmText").addEventListener("input",e=>wmSet("text", e.target.value.toUpperCase()===e.target.value ? e.target.value : e.target.value));
   $("#wmText").addEventListener("change",()=>recordHistory());
