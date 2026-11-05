@@ -671,6 +671,15 @@
   .gt-seg button:hover{background:var(--btn)}
   .gt-seg button.on{background:var(--accent);color:#fff}
   .gt-seg.full{display:flex}
+  .gt-seg .gt-segl{align-self:center;font-size:11px;color:var(--muted);padding:0 4px 0 6px}
+  .gt-days{margin-top:10px;padding:7px 9px;border-radius:6px;background:var(--card);font-size:12.5px;color:var(--muted)}
+  .gt-days b{color:var(--ink)}
+  .gt-days:empty{display:none}
+  .gt-pas.split{background:transparent!important;overflow:visible}
+  .gt-pas.split::before{content:"";position:absolute;left:4px;right:4px;top:50%;border-top:2px dotted var(--c);opacity:.9}
+  .gt-pas .sg{position:absolute;top:0;bottom:0;border-radius:6px;background:var(--c)}
+  .gt-pas .ttl{position:relative;z-index:1}
+  .gt-pas.split .ttl{text-overflow:ellipsis}
   .gt-seg.full button{flex:1}
   .gt-start{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
   .gt-start input{background:var(--btn);border:1px solid var(--line-2);color:var(--ink);border-radius:6px;padding:4px 6px;font:12.5px var(--ui);color-scheme:dark}
@@ -1099,6 +1108,7 @@ requestAnimationFrame(frame);
     <button class="gt-btn" id="gtAddMile" data-tip="Nouvelle étape clé|Un losange à une date précise (réception, OS, livraison…)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 9-9 9-9-9z"/></svg>Étape clé</button>
     <span class="gt-sep"></span>
     <div class="gt-seg" id="gtMode" data-tip="Daté ou non daté|Daté : vraies dates du calendrier. Non daté : J1, J2… S1, S2… M1… à partir du début du planning"><button data-v="date">Daté</button><button data-v="rel">Non daté</button></div>
+    <div class="gt-seg" id="gtWe" data-tip="Week-ends travaillés ?|Non : les samedis et dimanches sont grisés, on ne peut rien y poser, et une tâche qui les traverse est coupée (seuls les jours ouvrés comptent). En non daté : J6 et J7 de chaque semaine"><span class="gt-segl">Week-ends travaillés</span><button data-v="off">Non</button><button data-v="on">Oui</button></div>
     <label class="gt-start" id="gtStartWrap" data-tip="Début du planning|Changer cette date décale tout le planning">Début <input type="date" id="gtStart"></label>
     <span class="gt-sep"></span>
     <button class="gt-btn icon" id="gtToday" data-tip="Aller à aujourd'hui|(au début, en non daté)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -1127,11 +1137,12 @@ requestAnimationFrame(frame);
         <label>Couleur</label><div class="gt-sw" id="gtPColors"></div>
         <div id="gtPDate"><label>Début</label><input type="datetime-local" id="gtPStart"><div id="gtPEndRow"><label>Fin</label><input type="datetime-local" id="gtPEnd"></div></div>
         <div id="gtPRel"><label>Début (jour)</label><div class="gt-row">J <input type="number" id="gtPDay" step="1"></div><div id="gtPDurRow"><label>Durée</label><div class="gt-row"><input type="number" id="gtPDur" min="0.25" step="0.5"> jour(s)</div></div></div>
+        <div class="gt-days" id="gtPDays"></div>
         <button class="gt-del" id="gtPDel">Supprimer</button>
       </div>
     </div>
   </div>
-  <div class="gt-status"><span class="gt-scale" id="gtScale">échelle</span><span>Curseur : <b id="gtCur">—</b></span><span class="gt-grow"></span><span><b id="gtCount">0</b> élément(s) · molette = zoom · Maj+molette = défiler · glisser le fond = naviguer · double-clic = nouvelle tâche</span></div>
+  <div class="gt-status"><span class="gt-scale" id="gtScale">échelle</span><span id="gtTotal"></span><span>Curseur : <b id="gtCur">—</b></span><span class="gt-grow"></span><span><b id="gtCount">0</b> élément(s) · molette = zoom · Maj+molette = défiler · glisser le fond = naviguer · double-clic = nouvelle tâche</span></div>
 </div>
 <div class="mm-modal" id="gt-print" role="dialog" aria-modal="true" aria-labelledby="gtPrTitle" hidden>
   <div class="mm-card gt-pcard">
@@ -1144,6 +1155,9 @@ requestAnimationFrame(frame);
         <div class="gt-seg full" id="gtPrDest"><button data-v="pdf">PDF à télécharger</button><button data-v="doc">Pages du document</button></div>
         <div id="gtPrFmtRow"><label>Format</label><div class="gt-seg full wrap" id="gtPrFmt"><button data-v="a4l">A4 paysage</button><button data-v="a4p">A4 portrait</button><button data-v="a3l">A3 paysage</button><button data-v="a3p">A3 portrait</button></div></div>
         <div id="gtPrDocfRow"><label>Page du document</label><div class="gt-seg full" id="gtPrDocf"><button data-v="land">Paysage (tournée)</button><button data-v="port">Portrait</button></div></div>
+        <label>Page « Détail des postes »</label>
+        <div class="gt-seg full" id="gtPrDet"><button data-v="1">Oui</button><button data-v="0">Non</button></div>
+        <p class="gt-hint">Ajoute après le planning une page qui liste, lot par lot, chaque tâche : début, fin, nombre de jours.</p>
         <label>Largeur — étirement de la frise <span id="gtPrWfV"></span></label>
         <input type="range" id="gtPrWf" min="1" max="6" step="0.25">
         <p class="gt-hint">×1 : tout le planning tient en largeur ; ×2 : deux fois plus large, sur deux pages côte à côte.</p>
@@ -3188,10 +3202,13 @@ const GUIDE = [
     <ul class="hg-list">
       <li><b>Lots, tâches, étapes clés</b><p>Chaque ligne est un lot (Terrassement, VRD…) : son nom se modifie directement, la pastille de couleur change sa teinte. Une tâche se crée avec le bouton Tâche ou d'un double-clic sur la frise ; elle se déplace à la souris (aussi d'un lot à l'autre) et s'allonge par ses bords. Une étape clé est un losange à une date (réception, OS…).</p></li>
       <li><b>Daté ou non daté</b><p>Daté : les vraies dates du calendrier, et la date de début qui décale tout le planning d'un coup. Non daté : J1, J2… S1, S2… M1… à partir du début du planning, pour un planning de principe (mémoire technique, offre). On passe de l'un à l'autre sans rien perdre.</p></li>
+      <li><b>Week-ends travaillés : Non / Oui</b><p>Sur « Non » (réglage de départ), les samedis et dimanches sont grisés et on ne peut rien y poser. Une tâche qui traverse un ou plusieurs week-ends est automatiquement découpée : ses morceaux sont reliés par un pointillé, et seuls les jours ouvrés comptent. Quand on la déplace, elle garde son nombre de jours ouvrés et s'allonge d'elle-même par-dessus les week-ends. En non daté, ce sont J6 et J7 de chaque semaine.</p></li>
+      <li><b>Compte des jours</b><p>Chaque tâche affiche son nombre de jours (ouvrés si les week-ends ne sont pas travaillés), sur la barre et dans ses propriétés. En bas, la durée totale du planning, en jours calendaires et en jours ouvrés.</p></li>
       <li><b>Navigation</b><p>Molette : zoom continu, de l'heure aux années. Maj + molette : défiler. Glisser le fond : se déplacer. Le magnétisme accroche les tâches à la graduation fine.</p></li>
       <li><b>Au document</b><p>Ajoute le planning au document, en paysage (page tournée, tout le planning en grand) ou en portrait : après la mise en page, tu choisis l'élément et la place entre deux pages. Le logo et le numéro de page sont ceux du document.</p></li>
       <li><b>PDF</b><p>Télécharge le planning tout de suite, avec le logo de la page de garde.</p></li>
       <li><b>Mise en page d'impression</b><p>PDF et Au document ouvrent la même fenêtre, avec l'aperçu de toutes les pages : le format (A4 / A3, paysage / portrait, ou page du document), l'étirement en largeur (×2 = le planning s'étale sur deux pages côte à côte, pour les plannings longs), la hauteur des lignes (si elles ne tiennent plus, la suite part sur une page en dessous) et la taille du texte. Chaque page reprend les lots, la règle et le titre. Les réglages sont gardés avec le planning.</p></li>
+      <li><b>Page « Détail des postes »</b><p>À activer dans la fenêtre de mise en page (Oui / Non) : après le planning, une page liste lot par lot chaque tâche et étape clé, avec son début, sa fin et son nombre de jours, plus le total par lot.</p></li>
     </ul>
     <p class="hg-tip">Un fichier de Gantt'o'Matic (.json) s'importe avec le bouton d'import du bandeau.</p>`},
   {id:"pdf", t:"Le PDF", i:"print", h:`
@@ -4845,7 +4862,7 @@ const Gantt = (()=>{
 
   const today0 = ()=>{ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); };
   function blank(){
-    return {v:1, mode:"date", title:"Planning prévisionnel", origin:today0(),
+    return {v:1, mode:"date", we:"off", title:"Planning prévisionnel", origin:today0(),
       lanes:[{id:"l1",name:"Terrassement",color:"#ff8a3d"},{id:"l2",name:"VRD",color:"#4c8dff"},{id:"l3",name:"Assainissement",color:"#36c08a"},{id:"l4",name:"Démolition",color:"#9d7bff"}],
       pastilles:[]};
   }
@@ -4943,6 +4960,45 @@ const Gantt = (()=>{
 
   const t2x=t=>(t-tStart)*pxPerMs, x2t=x=>tStart+x/pxPerMs;
 
+  /* ---------- week-ends et jours ouvrés ----------
+     G.we = "on" : week-ends travaillés ; sinon (par défaut) non travaillés : grisés, rien ne s'y pose,
+     et une tâche qui les traverse est découpée (seuls les jours ouvrés comptent). Non daté : J6 et J7 de chaque semaine. */
+  const weOff = ()=> !!G && G.we!=="on";
+  function dayStart(t){ if(rel()) return G.origin+Math.floor((t-G.origin)/DAY)*DAY; const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); }
+  function nextDay(t){ if(rel()) return t+DAY; const d=new Date(t); d.setDate(d.getDate()+1); d.setHours(0,0,0,0); return d.getTime(); }
+  function isWE(t){ if(rel()){ const k=((Math.floor((t-G.origin)/DAY)%7)+7)%7; return k>=5; } const g=new Date(t).getDay(); return g===0||g===6; }
+  /* morceaux travaillés de [a, b) */
+  function workSegs(a,b){
+    if(!weOff() || b<=a) return [[a,b]];
+    const out=[]; let s=null, n=0;
+    for(let d=dayStart(a); d<b && n<40000; d=nextDay(d), n++){
+      const lo=Math.max(a,d), hi=Math.min(b,nextDay(d)); if(hi<=lo) continue;
+      if(isWE(d)){ if(s!=null){ out.push([s,lo]); s=null; } } else if(s==null) s=lo;
+    }
+    if(s!=null) out.push([s,b]);
+    return out;
+  }
+  const workMs = (a,b) => workSegs(a,b).reduce((n,[x,y])=>n+(y-x),0);
+  /* nombre de jours d'une tâche (ouvrés si les week-ends ne sont pas travaillés) */
+  const taskDays = p => p.mile ? 0 : workMs(p.start, p.end)/DAY;
+  function fmtDays(n){ const r=Math.round(n*2)/2; return (Number.isInteger(r) ? String(r) : String(r).replace(".",","))+" j"; }
+  function nextWork(t){ if(!weOff()) return t; let n=0; while(isWE(dayStart(t)) && n++<30) t=nextDay(dayStart(t)); return t; }
+  function prevWorkEnd(t){ if(!weOff()) return t; let n=0; while(isWE(dayStart(t-1)) && n++<30) t=dayStart(t-1); return t; }
+  function addWork(s, ms){
+    if(!weOff()) return s+ms;
+    let t=s, left=ms, n=0;
+    while(left>1 && n++<40000){ const d=dayStart(t), e=nextDay(d); if(isWE(d)){ t=e; continue; } const take=Math.min(left, e-t); t+=take; left-=take; }
+    return t;
+  }
+  /* jours calendaires et ouvrés de tout le planning */
+  function totals(){
+    const ts=G.pastilles; if(!ts.length) return null;
+    const a=Math.min(...ts.map(p=>p.start)), b=Math.max(...ts.map(p=>p.mile ? nextDay(dayStart(p.start)) : p.end));
+    const cal=(dayStart(b-1)-dayStart(a))/DAY+1;
+    return {a, b, cal:Math.round(cal), work: weOff() ? Math.round(workMs(dayStart(a), nextDay(dayStart(b-1)))/DAY) : Math.round(cal)};
+  }
+  const ttlText = p => p.mile ? p.label : (p.label||"")+"  ·  "+fmtDays(taskDays(p));
+
   /* ---------- rendu écran ---------- */
   function schedule(){ if(!raf) raf=requestAnimationFrame(draw); }
   function resize(){
@@ -4956,6 +5012,10 @@ const Gantt = (()=>{
     const t0=x2t(-2), t1=x2t(CW+2), RH=ruler.height/dpr, RT=Math.round(RH*0.5);
     gctx.clearRect(0,0,CW,CH);
     G.lanes.forEach((l,i)=>{ const y=i*ROW-scrollY; if(y>CH||y+ROW<0) return; gctx.fillStyle=i%2?"#162032":"#111827"; gctx.fillRect(0,y,CW,ROW); });
+    if(weOff() && DAY*pxPerMs>=2.5){
+      gctx.fillStyle="rgba(148,163,184,.22)";
+      let n=0; for(let d=dayStart(t0); d<t1 && n<3000; d=nextDay(d), n++) if(isWE(d)){ const xa=t2x(d), xb=t2x(nextDay(d)); gctx.fillRect(xa,0,xb-xa,CH); }
+    }
     const minorPx=span(lv.minor)*pxPerMs;
     if(minorPx>5){
       gctx.strokeStyle="rgba(148,163,184,"+Math.min(.35,(minorPx-5)/70)+")"; gctx.lineWidth=1; gctx.beginPath();
@@ -4989,6 +5049,7 @@ const Gantt = (()=>{
     place();
     $g("gtScale").textContent="échelle : "+scaleName(lv.major);
     $g("gtCount").textContent=G.pastilles.length;
+    const T=totals(); $g("gtTotal").innerHTML = T ? `Durée : <b>${T.cal} j</b> calendaires`+(weOff()?` · <b>${T.work} j</b> ouvrés`:"") : "";
   }
 
   /* ---------- pastilles ---------- */
@@ -4997,7 +5058,7 @@ const Gantt = (()=>{
     for(const p of G.pastilles){
       let el=document.createElement("div");
       if(p.mile){ el.className="gt-mile"; el.innerHTML='<div class="dia"></div><div class="lab"></div>'; el.querySelector(".dia").style.background=p.color; el.querySelector(".lab").textContent=p.label; }
-      else{ el.className="gt-pas"; el.style.background=p.color; el.innerHTML='<div class="h l"></div><div class="ttl"></div><div class="h r"></div>'; el.querySelector(".ttl").textContent=p.label; }
+      else{ el.className="gt-pas"; el.style.background=p.color; el.innerHTML='<div class="h l"></div><div class="ttl"></div><div class="h r"></div>'; el.querySelector(".ttl").textContent=ttlText(p); }
       el.dataset.id=p.id; ov.appendChild(el); drag(el,p);
     }
     place();
@@ -5008,26 +5069,36 @@ const Gantt = (()=>{
       const y=p.lane*ROW-scrollY;
       if(y+ROW<0||y>CH){ el.style.display="none"; continue; }
       if(p.mile){ const x=t2x(p.start); if(x<-300||x>CW+300){ el.style.display="none"; continue; } el.style.display="flex"; el.style.left=(x-8)+"px"; el.style.top=(y+ROW/2-8)+"px"; }
-      else{ const x1=t2x(p.start), x2=t2x(p.end); if(x1>CW+2||x2<-2){ el.style.display="none"; continue; } el.style.display="flex"; el.style.left=x1+"px"; el.style.width=Math.max(x2-x1,8)+"px"; el.style.top=(y+ROW/2-13)+"px"; }
+      else{
+        const x1=t2x(p.start), x2=t2x(p.end); if(x1>CW+2||x2<-2){ el.style.display="none"; continue; }
+        el.style.display="flex"; el.style.left=x1+"px"; el.style.width=Math.max(x2-x1,8)+"px"; el.style.top=(y+ROW/2-13)+"px";
+        el.style.setProperty("--c", p.color);
+        const segs=workSegs(p.start,p.end), split=segs.length>1;
+        el.classList.toggle("split", split);
+        el.querySelectorAll(".sg").forEach(n=>n.remove());
+        if(split) segs.forEach(([a,b])=>{ const s=document.createElement("div"); s.className="sg"; s.style.left=(t2x(a)-x1)+"px"; s.style.width=Math.max(2,(b-a)*pxPerMs)+"px"; el.insertBefore(s, el.firstChild); });
+        const tt=el.querySelector(".ttl"); const txt=ttlText(p); if(tt.textContent!==txt) tt.textContent=txt;
+        tt.style.maxWidth = split ? Math.max(0,(segs[0][1]-segs[0][0])*pxPerMs)+"px" : ""; el.title = split ? txt : "";
+      }
       el.classList.toggle("sel", !!sel && sel.id===p.id);
     }
   }
   function snapT(t){ if(!snapOn||!curLevel) return t; const u=curLevel.minor, f=floorU(t,u), n=nextU(f,u); return (t-f)<(n-t)?f:n; }
   const snapMin=()=>curLevel? Math.max(span(curLevel.minor),HOUR) : HOUR;
   function drag(el,p){
-    let mode=null, sx=0, sy=0, st=0, et=0, sl=0, moved=false;
+    let mode=null, sx=0, sy=0, st=0, et=0, sl=0, moved=false, wms=0;
     const down=(e,m)=>{
       if(e.button!==0) return;
       e.stopPropagation(); e.preventDefault();
-      mode=m; sx=e.clientX; sy=e.clientY; st=p.start; et=p.end||p.start; sl=p.lane; moved=false;
+      mode=m; sx=e.clientX; sy=e.clientY; st=p.start; et=p.end||p.start; sl=p.lane; moved=false; wms=p.mile?0:workMs(st,et);
       select(p); el.setPointerCapture(e.pointerId);
     };
     el.addEventListener("pointermove",e=>{
       if(!mode) return;
       const dx=e.clientX-sx, dy=e.clientY-sy, dt=dx/pxPerMs; if(Math.abs(dx)+Math.abs(dy)>2) moved=true;
-      if(mode==="move"){ const dur=p.mile?0:et-st; p.start=snapT(st+dt); if(!p.mile) p.end=p.start+dur; p.lane=Math.max(0,Math.min(G.lanes.length-1, sl+Math.round(dy/ROW))); }
-      else if(mode==="l") p.start=Math.min(snapT(st+dt), p.end-snapMin());
-      else if(mode==="r") p.end=Math.max(snapT(et+dt), p.start+snapMin());
+      if(mode==="move"){ p.start=nextWork(snapT(st+dt)); if(!p.mile) p.end = weOff() ? addWork(p.start, wms) : p.start+(et-st); p.lane=Math.max(0,Math.min(G.lanes.length-1, sl+Math.round(dy/ROW))); }
+      else if(mode==="l"){ p.start=nextWork(Math.min(snapT(st+dt), p.end-snapMin())); if(p.start>=p.end) p.start=st; }
+      else if(mode==="r"){ p.end=prevWorkEnd(Math.max(snapT(et+dt), p.start+snapMin())); if(p.end<=p.start) p.end=et; }
       place(); if(sel&&sel.id===p.id) fill(p);
     });
     const up=()=>{ if(mode && moved) touched(); mode=null; };
@@ -5059,8 +5130,9 @@ const Gantt = (()=>{
     if(e.target!==ov || !G.lanes.length) return;
     const r=tl.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
     const lane=Math.max(0,Math.min(G.lanes.length-1,Math.floor((my+scrollY)/ROW)));
-    const start=snapT(x2t(mx)), dur=Math.max(snapMin(), x2t(mx+140)-x2t(mx));
-    add({id:nid(),lane,label:"Nouvelle tâche",start,end:start+dur,color:G.lanes[lane].color,mile:false});
+    if(weOff() && isWE(dayStart(x2t(mx)))){ toast("Week-end non travaillé : choisis un jour ouvré"); return; }
+    const start=nextWork(snapT(x2t(mx))), dur=Math.max(snapMin(), x2t(mx+140)-x2t(mx));
+    add({id:nid(),lane,label:"Nouvelle tâche",start,end:weOff()?addWork(start,dur):start+dur,color:G.lanes[lane].color,mile:false});
   });
   tl.addEventListener("pointermove",e=>{ if(!G) return; const r=tl.getBoundingClientRect(); $g("gtCur").textContent=fmtCursor(x2t(e.clientX-r.left)); });
   function add(p){ G.pastilles.push(p); build(); select(p); schedule(); touched(); const i=$g("gtPLabel"); i.focus(); i.select(); }
@@ -5084,15 +5156,16 @@ const Gantt = (()=>{
     if(!rel()){ $g("gtPStart").value=toLocal(p.start); if(!p.mile) $g("gtPEnd").value=toLocal(p.end); }
     else{
       if(force || document.activeElement!==$g("gtPDay")) $g("gtPDay").value=Math.floor((p.start-G.origin)/DAY)+1;
-      if(!p.mile && (force || document.activeElement!==$g("gtPDur"))) $g("gtPDur").value=+((p.end-p.start)/DAY).toFixed(2);
+      if(!p.mile && (force || document.activeElement!==$g("gtPDur"))) $g("gtPDur").value=+(taskDays(p)).toFixed(2);
     }
     [...pColors.children].forEach(b=>b.classList.toggle("on",b.dataset.c===p.color));
+    $g("gtPDays").innerHTML = p.mile ? "" : `Durée : <b>${fmtDays(taskDays(p))}</b>`+(weOff()?" ouvrés":"")+(weOff() && workSegs(p.start,p.end).length>1 ? ` <span>(sur ${Math.round((dayStart(p.end-1)-dayStart(p.start))/DAY)+1} j calendaires)</span>`:"");
   }
-  $g("gtPLabel").addEventListener("input",e=>{ if(!sel) return; sel.label=e.target.value; const el=ov.querySelector('[data-id="'+sel.id+'"] .ttl, [data-id="'+sel.id+'"] .lab'); if(el) el.textContent=sel.label; touched(); });
-  $g("gtPStart").addEventListener("change",e=>{ if(!sel) return; const t=new Date(e.target.value).getTime(); if(isNaN(t)) return; if(!sel.mile){ const d=sel.end-sel.start; sel.start=t; sel.end=t+d; } else sel.start=t; place(); touched(); });
-  $g("gtPEnd").addEventListener("change",e=>{ if(!sel) return; const t=new Date(e.target.value).getTime(); if(isNaN(t)) return; sel.end=Math.max(t,sel.start+HOUR); place(); touched(); });
-  $g("gtPDay").addEventListener("input",e=>{ if(!sel) return; const n=parseFloat(e.target.value); if(!isFinite(n)) return; const keep=((sel.start-G.origin)%DAY+DAY)%DAY, d=sel.mile?0:sel.end-sel.start; sel.start=G.origin+(Math.round(n)-1)*DAY+keep; if(!sel.mile) sel.end=sel.start+d; place(); touched(); });
-  $g("gtPDur").addEventListener("input",e=>{ if(!sel||sel.mile) return; const n=parseFloat(e.target.value); if(!(n>0)) return; sel.end=sel.start+n*DAY; place(); touched(); });
+  $g("gtPLabel").addEventListener("input",e=>{ if(!sel) return; sel.label=e.target.value; const el=ov.querySelector('[data-id="'+sel.id+'"] .ttl, [data-id="'+sel.id+'"] .lab'); if(el) el.textContent=ttlText(sel); touched(); });
+  $g("gtPStart").addEventListener("change",e=>{ if(!sel) return; const t=new Date(e.target.value).getTime(); if(isNaN(t)) return; if(!sel.mile){ const d=sel.end-sel.start; const w=workMs(sel.start,sel.end); sel.start=nextWork(t); sel.end=weOff()?addWork(sel.start,w):sel.start+d; } else sel.start=nextWork(t); place(); fill(sel); touched(); });
+  $g("gtPEnd").addEventListener("change",e=>{ if(!sel) return; const t=new Date(e.target.value).getTime(); if(isNaN(t)) return; sel.end=prevWorkEnd(Math.max(t,sel.start+HOUR)); if(sel.end<=sel.start) sel.end=sel.start+HOUR; place(); fill(sel); touched(); });
+  $g("gtPDay").addEventListener("input",e=>{ if(!sel) return; const n=parseFloat(e.target.value); if(!isFinite(n)) return; const keep=((sel.start-G.origin)%DAY+DAY)%DAY, d=sel.mile?0:sel.end-sel.start; const w=sel.mile?0:workMs(sel.start,sel.end); sel.start=nextWork(G.origin+(Math.round(n)-1)*DAY+keep); if(!sel.mile) sel.end=weOff()?addWork(sel.start,w):sel.start+d; place(); fill(sel); touched(); });
+  $g("gtPDur").addEventListener("input",e=>{ if(!sel||sel.mile) return; const n=parseFloat(e.target.value); if(!(n>0)) return; sel.end=weOff()?addWork(sel.start,n*DAY):sel.start+n*DAY; place(); fill(sel); touched(); });
   $g("gtPType").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b||!sel) return; const m=b.dataset.v==="mile"; if(m===!!sel.mile) return; sel.mile=m; if(!m) sel.end=sel.start+Math.max(snapMin(),DAY); build(); fill(sel); touched(); });
   $g("gtPDel").onclick=()=>{ if(!sel) return; G.pastilles=G.pastilles.filter(x=>x.id!==sel.id); select(null); build(); schedule(); touched(); };
   $g("gtPClose").onclick=()=>select(null);
@@ -5133,8 +5206,8 @@ const Gantt = (()=>{
   function fit(){ let [a,b]=extent(); const pad=(b-a)*0.06||DAY; a-=pad; b+=pad; pxPerMs=Math.max(MINZ,Math.min(MAXZ,CW/(b-a))); tStart=a; clamp(); schedule(); }
   $g("gtFit").onclick=fit;
   $g("gtSnap").onclick=function(){ snapOn=!snapOn; this.classList.toggle("on",snapOn); };
-  $g("gtAddTask").onclick=()=>{ if(!G.lanes.length) return; const start=snapT(x2t(CW/3)), dur=Math.max(snapMin(),x2t(CW/3+150)-x2t(CW/3)); const lane=sel?sel.lane:0; add({id:nid(),lane,label:"Nouvelle tâche",start,end:start+dur,color:G.lanes[lane].color,mile:false}); };
-  $g("gtAddMile").onclick=()=>{ if(!G.lanes.length) return; const lane=sel?sel.lane:0; add({id:nid(),lane,label:"Étape clé",start:snapT(x2t(CW/2)),end:0,color:"#ff5d6c",mile:true}); };
+  $g("gtAddTask").onclick=()=>{ if(!G.lanes.length) return; const start=nextWork(snapT(x2t(CW/3))), dur=Math.max(snapMin(),x2t(CW/3+150)-x2t(CW/3)); const lane=sel?sel.lane:0; add({id:nid(),lane,label:"Nouvelle tâche",start,end:weOff()?addWork(start,dur):start+dur,color:G.lanes[lane].color,mile:false}); };
+  $g("gtAddMile").onclick=()=>{ if(!G.lanes.length) return; const lane=sel?sel.lane:0; add({id:nid(),lane,label:"Étape clé",start:nextWork(snapT(x2t(CW/2))),end:0,color:"#ff5d6c",mile:true}); };
   $g("gtTitle").addEventListener("input",e=>{ G.title=e.target.value; touched(); });
   const dateIn=t=>{ const d=new Date(t); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
   /* daté / non daté : le planning reste le même, seules les graduations changent */
@@ -5149,6 +5222,13 @@ const Gantt = (()=>{
   }
   function shift(dt){ G.pastilles.forEach(p=>{ p.start+=dt; if(!p.mile) p.end+=dt; }); G.origin+=dt; tStart+=dt; }
   $g("gtMode").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) setMode(b.dataset.v); });
+  $g("gtWe").addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b || (G.we==="on")===(b.dataset.v==="on")) return;
+    G.we = b.dataset.v==="on" ? "on" : "off";
+    if(weOff()) G.pastilles.forEach(p=>{ const w=p.mile?0:workMs(p.start,p.end); p.start=nextWork(p.start); if(!p.mile) p.end=prevWorkEnd(Math.max(p.end, p.start+HOUR)); void w; });
+    syncBar(); build(); if(sel) fill(sel); schedule(); touched();
+    toast(weOff() ? "Week-ends non travaillés : grisés, et les tâches qui les traversent sont coupées" : "Week-ends travaillés");
+  });
   $g("gtStart").addEventListener("change",e=>{
     const v=e.target.value; if(!v) return; const [y,mo,d]=v.split("-").map(Number); const t=new Date(y,mo-1,d).getTime();
     const [a]=extent(); const first=new Date(a); first.setHours(0,0,0,0);
@@ -5157,6 +5237,7 @@ const Gantt = (()=>{
   });
   function syncBar(){
     $g("gtMode").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.v===G.mode));
+    $g("gtWe").querySelectorAll("button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="on")===(G.we==="on")));
     $g("gtStartWrap").hidden=rel();
     const [a]=extent(); $g("gtStart").value=dateIn(G.pastilles.length?a:G.origin);
     $g("gtTitle").value=G.title||"";
@@ -5213,12 +5294,19 @@ const Gantt = (()=>{
     // titre
     x.fillStyle="#123a6b"; x.font="bold "+F(26); x.fillText(G.title||"Planning", M, M+titleH/2-6*k);
     const [ea,eb]=extent();
-    const sub = (rel() ? `Durée : ${Math.ceil((eb-G.origin)/DAY)} jours (J1 à J${Math.ceil((eb-G.origin)/DAY)})` : `Du ${new Date(ea).toLocaleDateString("fr-FR")} au ${new Date(eb).toLocaleDateString("fr-FR")}`) + (n>1 ? `   ·   page ${pg.idx+1}/${n}` : "");
+    const T=totals();
+    const sub = (rel() ? `J1 à J${Math.ceil((eb-G.origin)/DAY)}` : `Du ${new Date(ea).toLocaleDateString("fr-FR")} au ${new Date(eb-1).toLocaleDateString("fr-FR")}`) + (T ? `   ·   ${T.cal} jours calendaires`+(weOff()?` · ${T.work} jours ouvrés`:"") : "") + (n>1 ? `   ·   page ${pg.idx+1}/${n}` : "");
     x.fillStyle="#6b7280"; x.font=F(14); x.textAlign="right"; x.fillText(sub, Wpx-M, M+titleH/2-6*k); x.textAlign="left";
     const gx=M+leftW, lanes=G.lanes.slice(pg.l0,pg.l1), gh=rowH*lanes.length, X=t=>gx+(t-ta)*ppm;
     const lv=pickLevel(ppm, 120*k);
     // bandes des lots d'abord : le maillage du temps passe par-dessus
     lanes.forEach((l,i)=>{ if((pg.l0+i)%2){ x.fillStyle="#f9fafb"; x.fillRect(M,top+RH+i*rowH,leftW+gw,rowH); } });
+    // week-ends non travaillés : grisés
+    if(weOff() && DAY*ppm>=2*k){
+      x.save(); x.beginPath(); x.rect(gx,top+RH,gw,gh); x.clip(); x.fillStyle="#eceef2";
+      let nn=0; for(let d=dayStart(ta); d<tb && nn<4000; d=nextDay(d), nn++) if(isWE(d)){ const xa=X(d); x.fillRect(xa,top+RH,X(nextDay(d))-xa,gh); }
+      x.restore();
+    }
     // graduation fine (jours, semaines…) dans les lignes
     if(span(lv.minor)*ppm>6*k){
       x.save(); x.beginPath(); x.rect(gx,top+RH,gw,gh); x.clip();
@@ -5265,9 +5353,13 @@ const Gantt = (()=>{
         const xm=X(p.start), s=Math.min(9*k,bh/2); x.fillStyle=p.color; x.beginPath(); x.moveTo(xm,cy-s); x.lineTo(xm+s,cy); x.lineTo(xm,cy+s); x.lineTo(xm-s,cy); x.closePath(); x.fill();
         x.fillStyle="#111827"; x.font="bold "+F(fs); x.fillText(p.label||"", xm+s+5*k, cy);
       }else{
-        const xa=X(p.start), w=Math.max(X(p.end)-xa, 3*k);
-        x.fillStyle=p.color; x.beginPath(); if(x.roundRect) x.roundRect(xa,cy-bh/2,w,bh,4*k); else x.rect(xa,cy-bh/2,w,bh); x.fill();
-        x.font="bold "+F(fs); const lbl=p.label||"", tw=x.measureText(lbl).width;
+        const xa=X(p.start), w=Math.max(X(p.end)-xa, 3*k), segs=workSegs(p.start,p.end);
+        if(segs.length>1){                        // coupée par les week-ends : un trait pointillé relie les morceaux
+          x.strokeStyle=p.color; x.lineWidth=1.6*k; x.setLineDash([2*k,2.5*k]); x.beginPath(); x.moveTo(xa,cy); x.lineTo(xa+w,cy); x.stroke(); x.setLineDash([]);
+        }
+        x.fillStyle=p.color;
+        segs.forEach(([sa,sb])=>{ const qa=X(sa), qw=Math.max(X(sb)-qa, 2*k); x.beginPath(); if(x.roundRect) x.roundRect(qa,cy-bh/2,qw,bh,4*k); else x.rect(qa,cy-bh/2,qw,bh); x.fill(); });
+        x.font="bold "+F(fs); const lbl=ttlText(p), tw=x.measureText(lbl).width;
         // libellé lisible même si la tâche commence sur la page précédente
         const lx=Math.max(xa, gx)+7*k;
         if(tw+14*k < xa+w-Math.max(xa,gx)){ x.fillStyle="#0b1220"; x.fillText(lbl, lx, cy); }
@@ -5279,6 +5371,92 @@ const Gantt = (()=>{
   }
   const blobOf=(c,type,q)=>new Promise(r=>c.toBlob(r,type,q));
 
+  /* ---------- page « Détail des postes » : lot par lot, chaque tâche avec début, fin et nombre de jours ---------- */
+  function fmtD(t, end){
+    if(end) t=t-1;                                         // la fin est exclusive : on affiche le dernier jour travaillé
+    if(rel()) return "J"+(Math.floor((t-G.origin)/DAY)+1);
+    return new Date(t).toLocaleDateString("fr-FR");
+  }
+  function detailRows(){
+    const rows=[];
+    G.lanes.forEach((l,i)=>{
+      const ts=G.pastilles.filter(p=>p.lane===i).sort((a,b)=>a.start-b.start);
+      const tasks=ts.filter(p=>!p.mile);
+      const d=tasks.reduce((n,p)=>n+taskDays(p),0);
+      const a=ts.length?Math.min(...ts.map(p=>p.start)):null, b=ts.length?Math.max(...ts.map(p=>p.mile?p.start+1:p.end)):null;
+      rows.push({kind:"lane", l, a, b, days:d, n:ts.length});
+      ts.forEach(p=>rows.push({kind:"task", p}));
+    });
+    return rows;
+  }
+  function detailLayout(Wpx, Hpx, ppmm, o){
+    const k=ppmm*277/1600*(o.tf||1), M=12*k, titleH=56*k, HH=30*k, rowH=27*k, laneH=34*k;
+    const avail=Hpx-M-titleH-HH-M, rows=detailRows(), pages=[]; let cur=[], used=0;
+    rows.forEach((r,i)=>{
+      const hgt = r.kind==="lane" ? laneH : rowH;
+      // un lot ne reste pas seul en bas de page
+      const need = r.kind==="lane" && rows[i+1] && rows[i+1].kind==="task" ? hgt+rowH : hgt;
+      if(cur.length && used+need>avail){ pages.push(cur); cur=[]; used=0; }
+      cur.push(r); used+=hgt;
+    });
+    if(cur.length || !pages.length) pages.push(cur);
+    return {k, M, titleH, HH, rowH, laneH, pages};
+  }
+  function renderDetail(Wpx, Hpx, D, rows, idx, n, j, nd){
+    const c=document.createElement("canvas"); c.width=Wpx; c.height=Hpx; const x=c.getContext("2d");
+    const {k,M,titleH,HH,rowH,laneH}=D, F=s=>`${s*k}px Arial,Helvetica,sans-serif`;
+    x.fillStyle="#fff"; x.fillRect(0,0,Wpx,Hpx); x.textBaseline="middle";
+    x.fillStyle="#123a6b"; x.font="bold "+F(26); x.fillText("Détail des postes"+(nd>1?` (${j+1}/${nd})`:""), M, M+titleH/2-6*k);
+    x.fillStyle="#6b7280"; x.font=F(14); x.textAlign="right";
+    const T=totals(); x.fillText((G.title||"Planning")+(T?`   ·   ${T.cal} j calendaires`+(weOff()?` · ${T.work} j ouvrés`:""):"")+(n>1?`   ·   page ${idx+1}/${n}`:""), Wpx-M, M+titleH/2-6*k); x.textAlign="left";
+    const W=Wpx-2*M, cD=W*0.15, cF=W*0.15, cJ=W*0.13, cN=W-cD-cF-cJ;
+    const cols=[["Poste / tâche",M,"left"],[rel()?"Début":"Début",M+cN,"left"],["Fin",M+cN+cD,"left"],[weOff()?"Jours ouvrés":"Jours",Wpx-M,"right"]];
+    let y=M+titleH;
+    x.fillStyle="#123a6b"; x.fillRect(M,y,W,HH);
+    x.fillStyle="#fff"; x.font="bold "+F(12.5);
+    cols.forEach(([t,cx,al],i)=>{ x.textAlign=al; x.fillText(t, i===3?cx-10*k:cx+10*k, y+HH/2); }); x.textAlign="left";
+    y+=HH;
+    const fit=(s,w)=>{ let t=s; while(t.length>1 && x.measureText(t).width>w) t=t.slice(0,-1); return t===s?s:t.trimEnd()+"…"; };
+    rows.forEach(r=>{
+      if(r.kind==="lane"){
+        x.fillStyle="#eef2f7"; x.fillRect(M,y,W,laneH);
+        x.fillStyle=r.l.color; x.fillRect(M,y,5*k,laneH);
+        x.fillStyle="#111827"; x.font="bold "+F(14);
+        x.fillText(fit(r.l.name||"Lot", cN-30*k), M+14*k, y+laneH/2);
+        x.font="bold "+F(12.5); x.fillStyle="#374151";
+        if(r.a!=null){ x.fillText(fmtD(r.a), M+cN+10*k, y+laneH/2); x.fillText(fmtD(r.b,true), M+cN+cD+10*k, y+laneH/2); }
+        x.textAlign="right"; x.fillText(r.n ? fmtDays(r.days) : "—", Wpx-M-10*k, y+laneH/2); x.textAlign="left";
+        y+=laneH;
+      }else{
+        const p=r.p;
+        x.fillStyle=p.color; x.beginPath();
+        if(p.mile){ const s=5*k, cx=M+26*k, cy=y+rowH/2; x.moveTo(cx,cy-s); x.lineTo(cx+s,cy); x.lineTo(cx,cy+s); x.lineTo(cx-s,cy); x.closePath(); }
+        else x.rect(M+21*k, y+rowH/2-4*k, 10*k, 8*k);
+        x.fill();
+        x.fillStyle="#111827"; x.font=F(12.5); x.fillText(fit(p.label||(p.mile?"Étape clé":"Tâche"), cN-50*k), M+40*k, y+rowH/2);
+        x.fillStyle="#374151";
+        x.fillText(fmtD(p.start), M+cN+10*k, y+rowH/2);
+        x.fillText(p.mile ? "étape clé" : fmtD(p.end,true), M+cN+cD+10*k, y+rowH/2);
+        x.textAlign="right"; x.fillText(p.mile ? "—" : fmtDays(taskDays(p)), Wpx-M-10*k, y+rowH/2); x.textAlign="left";
+        x.strokeStyle="#e5e7eb"; x.lineWidth=1*k; x.beginPath(); x.moveTo(M,y+rowH); x.lineTo(M+W,y+rowH); x.stroke();
+        y+=rowH;
+      }
+    });
+    x.strokeStyle="#9ca3af"; x.lineWidth=1.2*k; x.strokeRect(M, M+titleH, W, y-(M+titleH));
+    return c;
+  }
+  /* toutes les pages à produire : planning (découpé), puis éventuellement le détail des postes */
+  function allPages(W, H, ppmm, o){
+    const L=layout(W,H,ppmm,o), out=L.pages.map(pg=>({g:pg}));
+    if(o.detail){ const D=detailLayout(W,H,ppmm,o); D.pages.forEach((rows,j)=>out.push({d:rows, j, nd:D.pages.length, D})); }
+    return {L, out, n:out.length};
+  }
+  function renderAny(W, H, A, i){
+    const it=A.out[i];
+    if(it.g){ it.g.idx=i; return render(W,H,A.L,it.g,A.n); }
+    return renderDetail(W,H,it.D,it.d,i,A.n,it.j,it.nd);
+  }
+
   /* --- fenêtre de mise en page --- */
   const prv=$g("gtPrv");
   function prSync(){
@@ -5289,8 +5467,9 @@ const Gantt = (()=>{
     $g("gtPrFmtRow").hidden = o.dest!=="pdf"; $g("gtPrDocfRow").hidden = o.dest!=="doc";
     $g("gtPrWf").value=o.wf; $g("gtPrHf").value=o.hf; $g("gtPrTf").value=o.tf;
     $g("gtPrWfV").textContent="×"+(+o.wf).toFixed(2).replace(/\.?0+$/,""); $g("gtPrHfV").textContent=Math.round(o.hf*100)+" %"; $g("gtPrTfV").textContent=Math.round(o.tf*100)+" %";
-    const A=areaMM(o), pp=2.2, W=Math.round(A.w*pp), H=Math.round(A.h*pp), L=layout(W,H,pp,o), n=L.pages.length;
-    $g("gtPrInfo").textContent = n===1 ? "1 page" : `${n} pages : ${L.nx} en largeur × ${L.ny} en hauteur`;
+    const A=areaMM(o), pp=2.2, W=Math.round(A.w*pp), H=Math.round(A.h*pp), AP=allPages(W,H,pp,o), L=AP.L, n=AP.n, nd=n-L.pages.length;
+    document.querySelectorAll("#gtPrDet button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===!!o.detail));
+    $g("gtPrInfo").textContent = (L.pages.length===1 ? "1 page de planning" : `${L.pages.length} pages de planning : ${L.nx} en largeur × ${L.ny} en hauteur`) + (nd ? ` + ${nd} page${nd>1?"s":""} de détail des postes` : "");
     const sec=atTargetSec(), num=numbering();
     void sec; void num;
     $g("gtPrGo").disabled=false;
@@ -5298,13 +5477,15 @@ const Gantt = (()=>{
     $g("gtPrWhere").textContent = o.dest==="doc" ? `${n>1?n+" pages":"1 page"} à ajouter : à l'étape suivante, tu choisis l'élément et la place entre deux pages.` : "Avec le logo de la page de garde en haut à droite de chaque page.";
     // aperçu : toutes les pages, en vignettes
     prv.innerHTML="";
-    const maxW = Math.min(680, 680/L.nx), maxH = 460/L.ny;
+    const rowsN = L.ny + (nd ? Math.ceil(nd/L.nx) : 0);
+    const maxW = Math.min(680, 680/L.nx), maxH = 460/rowsN;
     prv.style.gridTemplateColumns=`repeat(${L.nx}, auto)`;
-    L.pages.forEach((pg,i)=>{ pg.idx=i; const c=render(W,H,L,pg,n); c.className="gt-pv"; const s=Math.min(maxW/W, maxH/H); c.style.width=(W*s)+"px"; c.style.height=(H*s)+"px"; prv.append(c); });
+    for(let i=0;i<n;i++){ const c=renderAny(W,H,AP,i); c.className="gt-pv"; const s=Math.min(maxW/W, maxH/H); c.style.width=(W*s)+"px"; c.style.height=(H*s)+"px"; prv.append(c); }
   }
   function openPrint(dest){ pr().dest=dest; prSync(); openModal("gt-print"); }
   $g("gtPdf").onclick=()=>openPrint("pdf");
   $g("gtAdd").onclick=()=>openPrint("doc");
+  $g("gtPrDet").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pr().detail = b.dataset.v==="1"; prSync(); touched(); });
   [["gtPrDest","dest"],["gtPrFmt","fmt"],["gtPrDocf","docf"]].forEach(([id,key])=>$g(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pr()[key]=b.dataset.v; prSync(); touched(); }));
   [["gtPrWf","wf"],["gtPrHf","hf"],["gtPrTf","tf"]].forEach(([id,key])=>$g(id).addEventListener("input",e=>{ pr()[key]=+e.target.value; prSync(); touched(); }));
   $g("gtPrReset").onclick=()=>{ Object.assign(pr(),{wf:1,hf:1,tf:1}); prSync(); touched(); };
@@ -5318,10 +5499,10 @@ const Gantt = (()=>{
   async function addToDoc(o, secId, slot){
     const sec=findItem(secId); if(!sec) return; if(!sec.images) sec.images=[];
     const f=DOCF[o.docf], ppmm=(settings.dpi||200)/25.4, W=Math.round(f.w*ppmm), H=Math.round(f.h*ppmm);
-    const L=layout(W,H,ppmm,o), n=L.pages.length, ims=[];
+    const AP=allPages(W,H,ppmm,o), n=AP.n, ims=[];
     for(let i=0;i<n;i++){
       setBusy(`Mise en page du planning — page ${i+1}/${n}…`);
-      const pg=L.pages[i]; pg.idx=i; let c=render(W,H,L,pg,n);
+      let c=renderAny(W,H,AP,i);
       if(f.rot){ const r=document.createElement("canvas"); r.width=H; r.height=W; const x=r.getContext("2d"); x.translate(H,0); x.rotate(Math.PI/2); x.drawImage(c,0,0); c.width=c.height=0; c=r; }
       const blob=await blobOf(c,"image/png");
       ims.push({id:uid(), src:mediaAdd(blob), thumb:thumbFromSource(c,c.width,c.height), name:(G.title||"Planning")+(n>1?` (${i+1}/${n})`:"")});
@@ -5335,12 +5516,12 @@ const Gantt = (()=>{
   async function downloadPdf(o){
     const { jsPDF } = window.jspdf, F=FORMATS[o.fmt], land=F.w>F.h;
     const pdf=new jsPDF({unit:"mm", format:[F.w,F.h], orientation:land?"l":"p", compress:true});
-    const A=areaMM(o), ppmm=200/25.4, W=Math.round(A.w*ppmm), H=Math.round(A.h*ppmm), L=layout(W,H,ppmm,o), n=L.pages.length;
+    const A=areaMM(o), ppmm=200/25.4, W=Math.round(A.w*ppmm), H=Math.round(A.h*ppmm), AP=allPages(W,H,ppmm,o), n=AP.n;
     let li=null; if(state.logo){ try{ li=await imgInfo(state.logo,null); }catch(e){} }
     for(let i=0;i<n;i++){
       setBusy(`PDF du planning — page ${i+1}/${n}…`);
       if(i) pdf.addPage([F.w,F.h], land?"l":"p");
-      const pg=L.pages[i]; pg.idx=i; const c=render(W,H,L,pg,n);
+      const c=renderAny(W,H,AP,i);
       if(li) addFit(pdf, li, F.w-10-48, 6, 48, 14, "right");
       pdf.addImage(c.toDataURL("image/png"),"PNG",10,22,A.w,A.h,undefined,"FAST"); c.width=c.height=0;
       pdf.setFont("helvetica","normal"); pdf.setFontSize(8); pdf.setTextColor(120,120,120);
