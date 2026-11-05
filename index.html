@@ -671,6 +671,27 @@
   .gt-seg button:hover{background:var(--btn)}
   .gt-seg button.on{background:var(--accent);color:#fff}
   .gt-seg.full{display:flex}
+  .wm-card{width:min(54rem,100%)}
+  .wm-body{display:flex;gap:22px;padding:18px 20px;overflow:auto}
+  .wm-prv{flex:0 0 250px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .wm-page{position:relative;width:250px;height:354px;background:#fff;border-radius:3px;box-shadow:0 6px 24px rgba(0,0,0,.4);overflow:hidden}
+  .wm-lines{position:absolute;inset:34px 26px;background:repeating-linear-gradient(#e5e7eb 0 5px,transparent 5px 14px)}
+  .wm-txt{position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none}
+  .wm-cap{font-size:12px;color:var(--muted);text-align:center}
+  .wm-form{flex:1;min-width:0;display:flex;flex-direction:column}
+  .wm-form label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 5px}
+  .wm-form label span{color:#93c5fd}
+  .wm-form label:first-child{margin-top:0}
+  .wm-form input[type=text]{height:32px;border-radius:6px;border:1px solid var(--line-2);background:#0f1722;color:var(--ink);padding:0 10px;font:700 14px var(--ui);letter-spacing:.04em}
+  .wm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .wm-chips button{height:24px;padding:0 9px;border-radius:12px;border:1px solid var(--line-2);background:transparent;color:#cbd5e1;font:600 11px var(--ui);cursor:pointer}
+  .wm-chips button:hover{background:var(--btn)}
+  .wm-cols{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .wm-cols button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(255,255,255,.2)}
+  .wm-cols button.on{border-color:#fff}
+  .wm-cols input{width:96px;height:26px;border-radius:5px;border:1px solid var(--line-2);background:#0f1722;color:var(--ink);padding:0 7px;font:600 12px ui-monospace,Consolas,monospace}
+  .page>.wm{position:absolute;left:50%;top:50%;white-space:nowrap;font-weight:700;font-family:Helvetica,Arial,sans-serif;pointer-events:none;z-index:6;user-select:none}
+  @media (max-width:760px){ .wm-body{flex-direction:column;align-items:center} }
   .gt-seg .gt-segl{align-self:center;font-size:11px;color:var(--muted);padding:0 4px 0 6px}
   .gt-days{margin-top:10px;padding:7px 9px;border-radius:6px;background:var(--card);font-size:12.5px;color:var(--muted)}
   .gt-days b{color:var(--ink)}
@@ -902,6 +923,7 @@ requestAnimationFrame(frame);
   <div class="side">
     <button class="btn-install hidden" id="btn-install" title="Installer MomoDOC comme une application (raccourci, fenêtre dédiée)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Installer</button>
     <button class="hbtn c-orange" id="btnGantt" title="Planning : diagramme de Gantt du document (daté ou en J1, S1…), à ajouter au document ou à télécharger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 7h6"/><path d="M10 11h7"/><path d="M8 15h5"/><path d="M15 15h4"/></svg></button>
+    <button class="hbtn c-blue3" id="btnWm" title="Filigrane : un texte en transparence sur toutes les pages du document (PROVISOIRE, COPIE, CONFIDENTIEL…)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5l9-9" stroke-dasharray="2.2 2"/></svg></button>
     <button class="hbtn c-blue3" id="btnAtelier" title="Atelier PDF : modifier, convertir, fusionner, compresser, filigrane, caviardage, déverrouiller un XLSX"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5v-5h1.6a1.5 1.5 0 0 1 0 3H7.5"/><path d="M12 12.5v5h1.1a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/><path d="M17 17.5v-5h2M17 15h1.6"/></svg></button>
     <span class="hsep"></span>
     <button class="hbtn" id="btnFull" title="Plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
@@ -1041,6 +1063,35 @@ requestAnimationFrame(frame);
 </div>
 
 <!-- ======= Déplacer vers ======= -->
+<div class="mm-modal" id="wm-modal" role="dialog" aria-modal="true" aria-labelledby="wmTitle" hidden>
+  <div class="mm-card wm-card">
+    <div class="mm-head"><h3 id="wmTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M7.5 17.5l9-9" stroke-dasharray="2.2 2"/></svg>Filigrane</h3>
+      <button class="iconbtn" data-close title="Fermer (Échap)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="wm-body">
+      <div class="wm-prv"><div class="wm-page" id="wmPrv"><div class="wm-lines"></div><div class="wm-txt" id="wmPrvTxt"></div></div><div class="wm-cap" id="wmCap"></div></div>
+      <div class="wm-form">
+        <label>Filigrane</label>
+        <div class="gt-seg full" id="wmOn"><button data-v="1">Activé</button><button data-v="0">Désactivé</button></div>
+        <label for="wmText">Texte</label>
+        <input type="text" id="wmText" maxlength="60" spellcheck="false" placeholder="PROVISOIRE">
+        <div class="wm-chips" id="wmChips"></div>
+        <label>Pages</label>
+        <div class="gt-seg full wrap" id="wmScope"><button data-v="all">Toutes les pages</button><button data-v="nocover">Sauf la page de garde</button><button data-v="content">Pages de contenu</button></div>
+        <label>Orientation</label>
+        <div class="gt-seg full" id="wmAngle"><button data-v="up">Diagonale ↗</button><button data-v="h">Horizontale</button><button data-v="down">Diagonale ↘</button></div>
+        <label>Couleur</label>
+        <div class="wm-cols" id="wmCols"></div>
+        <label>Opacité <span id="wmOpV"></span></label>
+        <input type="range" id="wmOp" min="0.04" max="0.6" step="0.01">
+        <label>Taille <span id="wmSzV"></span></label>
+        <input type="range" id="wmSz" min="0.4" max="1.6" step="0.05">
+        <p class="gt-hint">Le filigrane est enregistré avec le document : il apparaît dans l'aperçu, le PDF + Script et le PDF compilé, par-dessus le contenu, en transparence. Les extractions (pièces d'origine) n'en ont pas.</p>
+      </div>
+    </div>
+    <div class="mm-foot"><button class="ps-btn primary" data-close>Fermer</button></div>
+  </div>
+</div>
+
 <div class="mm-modal" id="mv-modal" role="dialog" aria-modal="true" aria-labelledby="mvTitle" hidden>
   <div class="mm-card narrow mv-card">
     <div class="mm-head"><h3 id="mvTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="10" width="9" height="11.5" rx="1.5"/><rect x="15" y="12.5" width="6.5" height="9" rx="1" stroke-dasharray="2 2"/><path d="M7 10V8a4 4 0 0 1 4-4h3.5a3.8 3.8 0 0 1 3.8 3.8V10"/><path d="M15.6 7.6l2.7 2.7 2.7-2.7"/></svg>Déplacer vers…</h3>
@@ -1289,6 +1340,7 @@ function cloneState(s){
     meta:{title:s.meta.title, subtitle:s.meta.subtitle, footer:s.meta.footer},
     logo:s.logo, logoOrig:s.logoOrig||null, logoCrop:s.logoCrop||null, photo:s.photo,
     gantt: s.gantt ? JSON.parse(JSON.stringify(s.gantt)) : null,
+    wm: s.wm ? {...s.wm} : null,
     items: s.items.map(it => isChapter(it)
       ? {id:it.id, type:"jalon", title:it.title, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images:(it.images||[]).slice()}
       : {id:it.id, type:it.type, name:it.name, off:!!it.off, ...(it.layout>1?{layout:it.layout}:{}), images: it.images.slice()})
@@ -1298,7 +1350,7 @@ function histSig(s){
   return s.items.map(it => isChapter(it)
     ? "J|"+it.id+"|"+it.title+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+(it.images||[]).map(im=>im.id+":"+(im.v||0)).join(",")
     : it.type+"|"+it.id+"|"+it.name+(it.off?"|off":"")+"|L"+(it.layout||1)+"|"+it.images.map(im=>im.id+":"+(im.v||0)).join(",")
-  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "");
+  ).join("¶") + "§" + s.meta.title + "§" + s.meta.subtitle + "§" + s.meta.footer + "§G" + (s.gantt ? s.gantt.v||0 : "") + "§W" + (s.wm ? JSON.stringify(s.wm) : "");
 }
 function recordHistory(){
   const sig = histSig(state);
@@ -1320,6 +1372,7 @@ function restoreFrom(entry){
   lastSig=histSig(state); lastLogo=state.logo; lastPhoto=state.photo;
   markDirty(); renderSections(); renderDocument(); updateUndoUI();
   if(typeof ganttSync==="function") ganttSync();
+  if(typeof wmSync==="function") wmSync();
 }
 function undo(){ if(hIndex<=0) return; hIndex--; restoreFrom(history[hIndex]); }
 function redo(){ if(hIndex>=history.length-1) return; hIndex++; restoreFrom(history[hIndex]); }
@@ -2251,6 +2304,7 @@ function renderDocument(){
   });
   all.forEach(en=>{ if(!(en.itemId in itemPageMap)){ const nx=pages.findIndex((p,i)=>p.seq!=null && p.seq>=en.offset); itemPageMap[en.itemId] = domBase + (nx<0 ? pages.length-1 : nx); } });
 
+  if(typeof wmDecorate==="function") wmDecorate();
   docPages = pages.map(p=>({no: p.seq==null ? null : contentStart+p.seq, type:p.type, imgId:p.imgId, ...(p.cells?{imgIds:p.cells.map(c=>c.imgId)}:{}), secId:p.secId, itemId:p.itemId, off:p.off}));
   docToc = all.map(en=>({id:en.itemId, number:en.number, title:en.title, kind:en.kind, depth:en.depth, page:en.page, off:en.off}));
   if(typeof updateMoveBtn==="function") updateMoveBtn();
@@ -2509,6 +2563,9 @@ async function buildPdf(onProgress){
     });
   }
 
+  // ---- 4 bis) Filigrane, par-dessus tout
+  if(typeof wmPdf==="function") wmPdf(pdf, S);
+
   // ---- 5) Signets (panneau latéral du lecteur PDF)
   try{
     const root = pdf.outline.add(null, "SOMMAIRE", {pageNumber:2});
@@ -2615,7 +2672,7 @@ function markSaved(){ dirty=false; document.body.classList.remove("dirty"); asCl
    Les anciens .mmd (JSON), .doe et .json s'ouvrent toujours. */
 const MAGIC="MOMODOC2\n";
 function docHeader(ref, withThumbs){
-  return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null,
+  return { app:"MomoDOC", format:2, meta:{...state.meta}, logo:state.logo, logoOrig:state.logoOrig||null, logoCrop:state.logoCrop||null, photo:state.photo, gantt:state.gantt||null, wm:state.wm||null,
     items: state.items.map(it=> ({...(isChapter(it) ? {id:it.id, type:"jalon", title:it.title} : {id:it.id, type:it.type, name:it.name}), ...(it.off?{off:true}:{}), ...(it.layout>1?{layout:it.layout}:{}),
       images: (it.images||[]).map(im=>{
         if(im.kind==="text") return {id:im.id, kind:"text", html:im.html||"", ...(im.off?{off:true}:{})};
@@ -2672,13 +2729,15 @@ async function applyDoc(obj){
   state = {
     meta:{ title: obj.meta?.title ?? "", subtitle: obj.meta?.subtitle ?? "", footer: obj.meta?.footer ?? "" },
     logo: obj.logo ?? null, logoOrig: obj.logoOrig ?? null, logoCrop: obj.logoCrop ?? null, photo: obj.photo ?? null, items,
-    gantt: (obj.gantt && Array.isArray(obj.gantt.lanes)) ? obj.gantt : null
+    gantt: (obj.gantt && Array.isArray(obj.gantt.lanes)) ? obj.gantt : null,
+    wm: (obj.wm && typeof obj.wm==="object") ? {...WM_DEF, ...obj.wm} : null
   };
   collapsedNodes.clear();
   state.items.forEach(i=>collapsedNodes.add(i.id));   // tout replié à l'ouverture
   activeItemId=null; activePageImg=null;
   renderAll(); initHistory(); mediaGC();
   if(typeof ganttSync==="function") ganttSync();
+  if(typeof wmSync==="function") wmSync();
   dirty=false; document.body.classList.remove("dirty");
   ensureThumbs();
   return true;
@@ -3176,6 +3235,7 @@ const GUIDE = [
       <li><b>Enregistrer</b> <kbd>Ctrl</kbd>+<kbd>S</kbd><p>Réécrit le fichier en cours, sans rien demander. La première fois, MomoDOC te demande où le ranger.</p></li>
       <li><b>Enregistrer sous</b> <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>S</kbd><p>Crée une copie sous un autre nom ou ailleurs ; c'est elle qui devient le fichier en cours.</p></li>
       <li><b>Enregistrer en PDF compilé</b><p>Un PDF classique, figé, à diffuser : sans les jalons ni les pages masqués, sans les images entières des recadrages et sans la partie modifiable. Il est enregistré à côté (nom en « _compilé ») et ne remplace jamais ton fichier en cours.</p></li>
+      <li><b>Filigrane</b><p>Le bouton filigrane du bandeau (à gauche de l’Atelier PDF) pose un texte en transparence sur les pages : PROVISOIRE, COPIE, CONFIDENTIEL… ou le tien. Tu choisis les pages (toutes, sauf la garde, ou le contenu seul), l’orientation (diagonale ou horizontale), la couleur (nuancier ou code hexa), l’opacité et la taille, avec un aperçu. Il est enregistré avec le document et sort dans le PDF + Script comme dans le PDF compilé.</p></li>
       <li><b>${b_("clock")} Sauvegardes automatiques</b><p>En plus de ton fichier, MomoDOC garde dans ce navigateur les 10 dernières versions de ton travail, à la fréquence réglée dans ⛯ Paramètres › Enregistrement. Si la fenêtre se ferme avant que tu aies enregistré, MomoDOC te propose de récupérer ton travail à la prochaine ouverture.</p></li>
     </ul>
     <p class="hg-note">Le nom du fichier en cours s'affiche à côté du menu disquette ; un petit point jaune signale des modifications pas encore enregistrées.</p>
@@ -5556,6 +5616,94 @@ const Gantt = (()=>{
   return {open, close, sync, isOpen:()=>!panel.hidden, deselect:()=>{ if(sel){ select(null); return true; } return false; }};
 })();
 function ganttSync(){ Gantt.sync(); }
+
+/* =====================================================================
+   FILIGRANE : un texte en transparence sur les pages du document (toutes, sauf la garde, ou le contenu seul).
+   Enregistré dans le document (state.wm) ; dessiné dans l'aperçu et par-dessus chaque page du PDF.
+   ===================================================================== */
+const WM_PRESETS=["PROVISOIRE","COPIE","CONFIDENTIEL","DOCUMENT DE TRAVAIL","NE PAS DIFFUSER","BON POUR EXÉCUTION","PROJET","ANNULE ET REMPLACE"];
+const WM_COLORS=["#9ca3af","#111827","#c0392b","#123a6b","#2563eb","#16a34a","#f97316"];
+const WM_DEF={on:true, text:"PROVISOIRE", color:"#9ca3af", op:0.16, size:1, angle:"up", scope:"all"};
+const wmCfg = () => state.wm || null;
+const wmActive = () => !!(state.wm && state.wm.on && (state.wm.text||"").trim());
+const WM_DEG = {up:54.7, h:0, down:-54.7};          // la diagonale d'une page A4
+/* taille (pt) : le texte occupe ~70 % de la diagonale (ou de la largeur), × le réglage « taille » */
+function wmPt(w){ const t=(w.text||"").trim()||"X", L=(w.angle==="h" ? 180 : 330)*0.72*(w.size||1); return Math.max(8, Math.min(220, L/Math.max(1e-3, textMm(t,1,"bold")))); }
+/* quelles pages ? kind : "cover" | "som" | "content" */
+function wmOn(kind){
+  if(!wmActive()) return false; const s=state.wm.scope||"all";
+  return s==="all" || (s==="nocover" && kind!=="cover") || (s==="content" && kind==="content");
+}
+function wmEl(){
+  const w=state.wm, d=h("div","wm",{textContent:w.text.trim()});
+  d.style.fontSize=wmPt(w)+"pt"; d.style.color=w.color; d.style.opacity=w.op;
+  d.style.transform=`translate(-50%,-50%) rotate(${-WM_DEG[w.angle]||0}deg)`;
+  return d;
+}
+/* aperçu : ajouté à chaque page concernée, après le rendu */
+function wmDecorate(){
+  doc.querySelectorAll(".page>.wm").forEach(n=>n.remove());
+  if(!wmActive()) return;
+  doc.querySelectorAll(".page").forEach(p=>{
+    const kind = p.classList.contains("cover") ? "cover" : p.classList.contains("page-sommaire") ? "som" : "content";
+    if(wmOn(kind)) p.append(wmEl());
+  });
+}
+/* PDF : par-dessus chaque page concernée (page 1 = garde, 2..1+S = sommaire) */
+function wmPdf(pdf, S){
+  if(!wmActive()) return;
+  const w=state.wm, t=pdfSafe(w.text.trim()), pt=wmPt(w), a=WM_DEG[w.angle]||0, r=a*Math.PI/180;
+  const n=pdf.getNumberOfPages();
+  const [R,G,B]=[1,3,5].map(i=>parseInt(w.color.slice(i,i+2),16));
+  for(let i=1;i<=n;i++){
+    const kind = i===1 ? "cover" : i<=1+S ? "som" : "content"; if(!wmOn(kind)) continue;
+    pdf.setPage(i);
+    try{ pdf.setGState(new pdf.GState({opacity:w.op})); }catch(e){}
+    pdf.setFont("helvetica","bold"); pdf.setFontSize(pt); pdf.setTextColor(R,G,B);
+    const tw=pdf.getTextWidth(t), fh=pt*MM_PT;
+    // centre de la page ; jsPDF tourne le texte autour de son point de départ (sens anti-horaire)
+    const cx=105, cy=148.5, dx=Math.cos(r), dy=-Math.sin(r);
+    const x0=cx-dx*tw/2 + Math.sin(r)*fh*0.35, y0=cy-dy*tw/2 + Math.cos(r)*fh*0.35;
+    pdf.text(t, x0, y0, {angle:a});
+    try{ pdf.setGState(new pdf.GState({opacity:1})); }catch(e){}
+  }
+}
+
+/* ---------- fenêtre ---------- */
+function wmSync(){
+  const w=state.wm || {...WM_DEF, on:false};
+  const seg=(id,v)=>document.querySelectorAll(`#${id} button`).forEach(b=>b.classList.toggle("on", b.dataset.v===String(v)));
+  seg("wmOn", w.on?1:0); seg("wmScope", w.scope); seg("wmAngle", w.angle);
+  if(document.activeElement!==$("#wmText")) $("#wmText").value=w.text||"";
+  $("#wmOp").value=w.op; $("#wmOpV").textContent=Math.round(w.op*100)+" %";
+  $("#wmSz").value=w.size; $("#wmSzV").textContent=Math.round(w.size*100)+" %";
+  document.querySelectorAll("#wmCols button").forEach(b=>b.classList.toggle("on", b.dataset.c===w.color));
+  if(document.activeElement!==$("#wmHex")) $("#wmHex").value=w.color;
+  // aperçu (page A4 de 250 px de large : 1 mm = 250/210 px ; 1 pt = 0.3528 mm)
+  const t=$("#wmPrvTxt"); t.textContent=(w.text||"").trim();
+  t.style.fontSize=(wmPt(w)*MM_PT*250/210)+"px"; t.style.color=w.color; t.style.opacity=w.on?w.op:0.05;
+  t.style.transform=`translate(-50%,-50%) rotate(${-WM_DEG[w.angle]||0}deg)`;
+  $("#wmCap").textContent = !w.on ? "Filigrane désactivé" : w.scope==="all" ? "Sur toutes les pages, garde et sommaire compris" : w.scope==="nocover" ? "Sur toutes les pages sauf la page de garde" : "Sur les pages de contenu (ni garde ni sommaire)";
+  $("#btnWm").classList.toggle("on", wmActive());
+}
+function wmSet(k, v, final){
+  if(!state.wm) state.wm={...WM_DEF};
+  state.wm[k]=v; if(k!=="on" && !state.wm.on && final!=="keep") state.wm.on=true;
+  markDirty(); wmSync(); renderDocument();
+  if(final) recordHistory();
+}
+(function(){
+  const chips=$("#wmChips"); WM_PRESETS.forEach(t=>{ const b=h("button",null,{type:"button",textContent:t}); b.onclick=()=>{ $("#wmText").value=t; wmSet("text", t, true); }; chips.append(b); });
+  const cols=$("#wmCols"); WM_COLORS.forEach(c=>{ const b=h("button",null,{type:"button",title:c}); b.dataset.c=c; b.style.background=c; b.onclick=()=>wmSet("color", c, true); cols.append(b); });
+  const hex=h("input",null,{type:"text",id:"wmHex",maxLength:7,spellcheck:false,title:"Code couleur hexa"}); cols.append(hex);
+  hex.addEventListener("input",()=>{ const v=hex.value.trim(); if(/^#?[0-9a-f]{6}$/i.test(v)) wmSet("color", ("#"+v.replace("#","")).toLowerCase()); });
+  hex.addEventListener("change",()=>recordHistory());
+  [["wmOn","on"],["wmScope","scope"],["wmAngle","angle"]].forEach(([id,k])=>$("#"+id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; wmSet(k, k==="on" ? b.dataset.v==="1" : b.dataset.v, true); }));
+  $("#wmText").addEventListener("input",e=>wmSet("text", e.target.value.toUpperCase()===e.target.value ? e.target.value : e.target.value));
+  $("#wmText").addEventListener("change",()=>recordHistory());
+  [["wmOp","op"],["wmSz","size"]].forEach(([id,k])=>{ $("#"+id).addEventListener("input",e=>wmSet(k, +e.target.value)); $("#"+id).addEventListener("change",()=>recordHistory()); });
+  $("#btnWm").addEventListener("click",()=>{ wmSync(); openModal("wm-modal"); });
+})();
 
 /* ============ Démarrage ============ */
 setupListDnD();
